@@ -6,16 +6,74 @@
 <title>მათემატიკა — ალბათობა</title>
 <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
-.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+html{height:100%}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;height:100vh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:10px;padding:0 15px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;height:34px}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.75rem;padding:3px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;transition:.2s;white-space:nowrap}
 .u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
-.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
-.u-body{flex:1;display:flex;justify-content:center;padding:15px}
-.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
-.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
-.u-card canvas{display:block}
-.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+.u-header h1{font-size:.95rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:5px;overflow:hidden;min-height:0}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;width:100%;max-width:1100px;box-shadow:0 4px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.u-card>.container,.u-card>.app{max-width:none;margin:0;padding:0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.u-card>main{flex:1;min-height:0;overflow:hidden}
+.u-card canvas{display:block;max-height:calc(100vh - 160px)}
+.u-card .sim-area,.u-card .simulation-area{flex-shrink:1;min-height:0;overflow:hidden;border-radius:8px}
+.u-card .controls,.u-card .controls-panel{max-height:150px;overflow-y:auto;padding:6px;font-size:.8rem}
+.u-card .control-group{gap:2px;margin-bottom:2px}
+.u-card .control-group label{font-size:.73rem}
+.u-card input[type="range"]{height:4px}
+.u-card .btn,.u-card button{padding:4px 8px;font-size:.76rem}
+.u-card .btn-row{gap:4px}
+.u-card .info-panel{max-height:70px;overflow-y:auto;font-size:.72rem;padding:5px 8px;margin-top:3px;line-height:1.3}
+.u-card .formula-bar{padding:4px 8px;font-size:.95rem;margin:3px 0}
+.u-card .subtitle{font-size:.72rem;margin-bottom:3px}
+.u-card h2{font-size:.9rem;margin-bottom:3px}
+.u-card h3{font-size:.82rem}
+.u-card .card{padding:8px;margin-bottom:4px}
+.u-card .tabs{margin-bottom:5px}
+.u-card .tab{padding:5px;font-size:.72rem}
+.u-card .eq-display{padding:8px;font-size:1.2rem;min-height:40px;margin-bottom:6px}
+.u-card .score-bar{padding:4px 8px;font-size:.72rem;margin-bottom:4px}
+.u-card .feedback{padding:5px;font-size:.75rem;margin-top:4px}
+.u-card .steps{padding:5px;font-size:.7rem;line-height:1.4;margin-top:3px}
+.u-card .graph-area{height:110px;margin-top:3px}
+.u-card .input-row{margin-bottom:4px}
+.u-card .stats-grid{gap:4px;margin-top:3px;padding-top:3px}
+.u-card .stat-box{padding:4px}
+.u-card .stat-value{font-size:.9rem}
+.u-card .stat-label{font-size:.6rem}
+.u-card .hud{font-size:.65rem;padding:4px 6px}
+.u-card .tags{margin-bottom:4px;gap:3px}
+.u-card .tag{padding:2px 6px;font-size:.68rem}
+.u-card .stat-grid{gap:4px}
+.u-card .stat-card{padding:6px}
+.u-card .s-label{font-size:.68rem}
+.u-card .s-val{font-size:.8rem}
+.u-card .stat-row{padding:.4rem 0}
+.u-card .fact-box{padding:6px;font-size:.78rem;margin-bottom:6px}
+.u-card .organ-title{font-size:1.3rem}
+.u-card .o-title{font-size:1.3rem}
+.u-card .desc-text{font-size:.8rem;margin-bottom:6px}
+.u-card .dashboard{margin-top:5px;padding-top:5px}
+.u-card .temp-display{font-size:1.8rem}
+.u-card .visual{height:200px;padding-bottom:20px}
+.u-card .graph{height:120px}
+.u-card select{padding:5px;font-size:.8rem}
+.u-card .panel{padding:8px}
+.u-card .beaker-container{width:150px;height:220px}
+.u-card .result-panel{padding:8px;margin-top:5px}
+.u-card .bond-type{font-size:1rem}
+.u-card .bond-desc{font-size:.78rem}
+.u-card .overlay-instruction{font-size:.85rem;top:10px}
+.u-card .selector-box{gap:3px}
+.u-card .selector-box label{font-size:.75rem}
+.u-card .btn-bond{padding:6px;font-size:.85rem}
+.u-card .btn-primary{padding:6px;font-size:.85rem;margin-top:4px}
+.u-card .btn-secondary{padding:5px;font-size:.78rem}
+.u-card main{gap:6px}
+.u-card .controls-panel{padding:8px;gap:6px}
+.u-card aside{overflow-y:auto}
+@media(max-width:768px){body{height:auto!important;overflow:auto!important}.u-body{overflow:auto}.u-card{overflow:auto;height:auto}.u-card canvas{max-height:300px}.u-card .controls,.u-card .controls-panel{max-height:none}.u-card .info-panel{max-height:none}}</style>
 <style>* { margin: 0; padding: 0; box-sizing: border-box; }
         
         
