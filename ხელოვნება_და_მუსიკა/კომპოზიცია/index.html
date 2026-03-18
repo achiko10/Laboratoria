@@ -1,15 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ხელოვნება და მუსიკა — კომპოზიცია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #e2e8f0; color: #1e293b; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ხელოვნება და მუსიკა — კომპოზიცია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
         
-        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #0f172a; text-align: center;}
+        
+        
         .subtitle { color: #475569; font-size: 0.95rem; margin-bottom: 25px; text-align: center;}
 
         .toolbar { background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: center; border: 1px solid #cbd5e1;}
@@ -51,17 +61,16 @@
         .placed { position: absolute; font-size: 4rem; cursor: grab; user-select: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transform: translate(-50%, -50%);}
         .placed:active { cursor: grabbing; }
 
-        .info-panel { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; max-width: 800px; text-align: center; margin-top: 20px; line-height: 1.5;}
-
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #fff; color: #475569; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #cbd5e1; transition: 0.2s;}
-        .back-btn:hover { background: #cbd5e1; color: #0f172a;}
-    </style>
+        .info-panel { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; max-width: 800px; text-align: center; margin-top: 20px; line-height: 1.5;}</style>
 </head>
 <body>
-    <h1>🖼️ კომპოზიცია</h1>
-    <p class="subtitle">გადაათრიე ობიექტები ტილოზე და ისწავლე "მესამედების წესი" (Rule of Thirds)</p>
-    
-    <div class="toolbar">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ხელოვნება და მუსიკა — კომპოზიცია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="toolbar">
         <button class="tool-btn" id="btn-grid" onclick="toggleGrid()">▦ მესამედების ბადე: გამორთული</button>
         <button class="tool-btn" onclick="clearCanvas()">🗑️ ტილოს გასუფთავება</button>
         
@@ -100,10 +109,9 @@
         <b>მესამედების წესი (Rule of Thirds)</b> არის კომპოზიციის ძირითადი პრინციპი ფოტოგრაფიასა და ფერწერაში.<br>
         თუ ტილოს დავყოფთ 9 ტოლ ნაწილად (2 ჰორიზონტალური და 2 ვერტიკალური ხაზით), ყველაზე მნიშვნელოვანი ობიექტები უნდა განვათავსოთ ამ <b>ხაზების გადაკვეთის წერტილებში</b>. დასაწყებად: ჩართე ბადე და დაამატე ობიექტი ტილოზე (დააჭირე იკონკას, შემდეგ გადაათრიე ტილოზე).
     </div>
-
-    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
-
-    <script>
+</div>
+</div>
+<script>
         const canvas = document.getElementById('canvas');
         const grid = document.getElementById('grid');
         const btnGrid = document.getElementById('btn-grid');

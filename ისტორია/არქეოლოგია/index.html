@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ისტორია — არქეოლოგია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fafaf9; color: #292524; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #78350f; font-weight: bold; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ისტორია — არქეოლოგია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #92400e; font-size: 0.85rem; margin-bottom: 20px; }
         .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
         @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
@@ -52,17 +62,16 @@
         
         .method-box { background: #fff; border: 1px dashed #ca8a04; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #854d0e; }
 
-        .progress { color: #854d0e; font-weight: bold; font-size: 0.9rem; text-align: center;}
-
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #e7e5e4; color: #57534e; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #d6d3d1;}
-        .back-btn:hover { background: #d6d3d1; color: #292524; }
-    </style>
+        .progress { color: #854d0e; font-weight: bold; font-size: 0.9rem; text-align: center;}</style>
 </head>
 <body>
-    <h1>⛏️ არქეოლოგია</h1>
-    <p class="subtitle">ინტერაქტიული გათხრები: სტრატიგრაფია და არტეფაქტები</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ისტორია — არქეოლოგია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         <div class="card">
             <div class="grid-header">
                 <div>არქეოლოგიური უბანი (ფენები)</div>
@@ -109,9 +118,10 @@
         </div>
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const artifactsData = {
             1: { icon: "🪙", title: "სპილენძის მონეტა", layer: "ფენა 1 (ზედაპირული, შუა საუკუნეები)", desc: "არქეოლოგებმა იპოვეს შუა საუკუნეების მონეტა. პოვნისთანავე შეგვიძლია დავადგინოთ ვისი მოჭრილია. ის მიუთითებს სავაჭრო კავშირებზე.", method: "ნუმიზმატიკა (მონეტების შესწავლა) და ტიპოლოგიური ანალიზი." },
             8: { icon: "🏺", title: "მოხატული ამფორა", layer: "ფენა 2 (ანტიკური ხანა)", desc: "ანტიკური ბერძნული ან რომაული სტილის ჭურჭელი. მასში ინახავდნენ ღვინოს ან ზეითუნის ზეთს. ფორმა და ორნამენტი გვეხმარება ეპოქის ზუსტ დადგენაში.", method: "სტრატიგრაფია (ფენების მდებარეობა) და კერამიკის ტიპოლოგია." },

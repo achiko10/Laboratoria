@@ -1,15 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ხელოვნება და მუსიკა — მუსიკალური ინსტრუმენტები</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #27272a; color: #f4f4f5; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ხელოვნება და მუსიკა — მუსიკალური ინსტრუმენტები</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
         
-        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #facc15; text-align: center;}
+        
+        
         .subtitle { color: #a1a1aa; font-size: 0.95rem; margin-bottom: 30px; text-align: center;}
 
         .app-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 900px;}
@@ -43,17 +53,16 @@
         .inst-tag { background: #27272a; padding: 5px 10px; border-radius: 15px; font-size: 0.85rem; color: #a1a1aa; border: 1px solid #52525b;}
 
         .btn-play { width: 100%; padding: 12px; background: transparent; border: 2px solid currentColor; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 20px;}
-        .btn-play:hover { background: rgba(255,255,255,0.1); }
-
-        .back-btn { display: inline-block; margin-top: 30px; padding: 10px 20px; background: #3f3f46; color: #d4d4d8; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #52525b; transition: 0.2s;}
-        .back-btn:hover { background: #52525b; color: #fff;}
-    </style>
+        .btn-play:hover { background: rgba(255,255,255,0.1); }</style>
 </head>
 <body>
-    <h1>🎻 მუსიკალური ინსტრუმენტები</h1>
-    <p class="subtitle">შეისწავლე სიმფონიური ორკესტრის განლაგება და ინსტრუმენტების ოჯახები</p>
-    
-    <div class="app-grid">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ხელოვნება და მუსიკა — მუსიკალური ინსტრუმენტები</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app-grid">
         
         <div class="panel">
             <h2>სიმფონიური ორკესტრის სცენა</h2>
@@ -92,10 +101,9 @@
         </div>
 
     </div>
-
-    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
-
-    <script>
+</div>
+</div>
+<script>
         const families = {
             strings: {
                 id: 'strings',

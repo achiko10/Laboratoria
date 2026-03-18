@@ -1,15 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ატომური ფიზიკა — ბორის მოდელი</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #050510; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ატომური ფიზიკა — ბორის მოდელი</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
         .container { max-width: 900px; margin: auto; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #00e5ff, #aa00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
         .sim-area { background: #080818; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; position: relative; }
         canvas { display: block; width: 100%; height: 450px; }
@@ -31,13 +41,18 @@
         .photon-display { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; color: #7a84a0; white-space: nowrap; }
         .info-panel { background: #0d1020; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8; border-left: 3px solid #aa00ff; }
         .info-panel strong { color: #e0e6f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
-        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
-        select { background: #1e2740; color: #e0e6f0; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 0.8rem; }
-    </style>
+        
+        
+        select { background: #1e2740; color: #e0e6f0; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 0.8rem; }</style>
 </head>
 <body>
-    <div class="container">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ატომური ფიზიკა — ბორის მოდელი</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="container">
         <h1>⚛️ ატომური ფიზიკა — ბორის მოდელი</h1>
         <p class="subtitle">აირჩიე ელემენტი · დააკლიკე ენერგეტიკულ დონეზე ელექტრონის გადახტომისთვის</p>
 
@@ -70,10 +85,11 @@
             • <strong>გადასვლა ქვემოთ:</strong> ელექტრონი უშვებს ფოტონს (სინათლეს) ΔE = E_high - E_low<br>
             • 🎯 <strong>ექსპერიმენტი:</strong> რა ფერის ფოტონი იშვება n=3 → n=2 გადასვლაზე?
         </div>
-        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+        
     </div>
-
-    <script>
+</div>
+</div>
+<script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let W, H;

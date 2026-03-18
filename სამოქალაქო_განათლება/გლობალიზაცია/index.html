@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>სამოქალაქო განათლება — გლობალიზაცია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 15px; overflow-x: hidden; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #38bdf8; font-weight: bold;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>სამოქალაქო განათლება — გლობალიზაცია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
         
         .app { max-width: 1000px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
@@ -47,17 +57,16 @@
         .controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
         .btn-nav { padding: 10px 25px; background: #0f172a; border: 1px solid #64748b; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;}
         .btn-nav:hover:not(:disabled) { background: #334155; border-color: #38bdf8; }
-        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #0f172a; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #334155; text-align: center;}
-        .back-btn:hover { background: #1e293b; color: #fff; }
-    </style>
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }</style>
 </head>
 <body>
-    <h1>🌍 გლობალიზაცია</h1>
-    <p class="subtitle">ერთი მაისურის მოგზაურობა შექმნიდან მომხმარებლამდე (გლობალური მიწოდების ჯაჭვი)</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>სამოქალაქო განათლება — გლობალიზაცია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         
         <div class="map-wrapper" id="map-wrap">
             <!-- Simplified abstract map using SVG rects for continents to keep code compact but visual -->
@@ -96,9 +105,10 @@
 
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const stepsData = [
             {
                 country: "ინდოეთი", title: "ნედლეულის მოპოვება", icon: "🌱", transport: "🚢",

@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ბიოლოგია — იმუნოლოგია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #3b82f6, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ბიოლოგია — იმუნოლოგია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
         .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
@@ -26,15 +36,16 @@
         .health-bar { width: 100%; height: 12px; background: #0f172a; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
         .health-fill { height: 100%; transition: 0.3s; background: linear-gradient(90deg, #ef4444, #22c55e); }
         .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #3b82f6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
-        .info-panel strong { color: #e2e8f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
-        .back-btn:hover { background: #334155; color: #f8fafc; }
-    </style>
+        .info-panel strong { color: #e2e8f0; }</style>
 </head>
 <body>
-    <h1>🛡️ იმუნური პასუხი</h1>
-    <p class="subtitle">ვირუსი vs ანტისხეულები — ორგანიზმის თავდაცვის სიმულაცია</p>
-    <div class="container">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ბიოლოგია — იმუნოლოგია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="container">
         <div class="sim-area">
             <canvas id="canvas"></canvas>
             <div class="hud">
@@ -60,8 +71,10 @@
             • <strong>ანტისხეულები 🟡:</strong> B-ლიმფოციტები აწარმოებენ — ვირუსს ეკვრიან და ანეიტრალებენ. ვაქცინაცია ამ პროცესს ამაჩქარებს!
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const sim = canvas.parentElement;

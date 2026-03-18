@@ -1,36 +1,29 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>თერმოქიმია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+GO:wght@400;600;800&display=swap');
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'Fira GO', sans-serif;
-            background: radial-gradient(circle at top right, #3f2b96 0%, #03001e 100%);
-            color: #f8fafc;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>თერმოქიმია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin:0; padding:0; box-sizing:border-box; }
+        
 
-        header {
-            padding: 1.5rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;
-        }
-        .back-btn {
-            color: #cbd5e1; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
-            background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        
+        
+        
 
-        h1 {
-            font-size: 2rem;
-            background: linear-gradient(90deg, #f97316, #fde047);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;
-        }
+        
 
         main {
             display: grid; grid-template-columns: 350px 1fr; gap: 2rem; padding: 2rem; flex: 1;
@@ -101,17 +94,16 @@
         
         @keyframes float { 0% {transform: translateY(100%) scale(0.5); opacity:1;} 100% {transform: translateY(-20px) scale(1.5); opacity:0;} }
 
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
-    </style>
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }</style>
 </head>
 <body>
-    <header>
-        <a href="../../index.html" class="back-btn"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> მთავარზე დაბრუნება</a>
-        <h1>თერმოქიმია</h1>
-        <div style="width:150px"></div>
-    </header>
-
-    <main>
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>თერმოქიმია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<main>
         <aside class="panel controls">
             <h3>რეაქციის გაშვება</h3>
             <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:1rem;">დააკვირდით ენერგიის ცვლილებას და ტემპერატურას რეაქციის მიმდინარეობისას.</p>
@@ -152,8 +144,9 @@
             </div>
         </section>
     </main>
-
-    <script>
+</div>
+</div>
+<script>
         const liquid = document.getElementById('liquid');
         const tempDisplay = document.getElementById('temp-val');
         const statusText = document.getElementById('reaction-status');

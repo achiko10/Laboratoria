@@ -1,15 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ხელოვნება და მუსიკა — პერსპექტივა</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #1e1b4b; color: #f8fafc; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ხელოვნება და მუსიკა — პერსპექტივა</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
         
-        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #a5b4fc; text-align: center;}
+        
+        
         .subtitle { color: #818cf8; font-size: 0.95rem; margin-bottom: 20px; text-align: center;}
 
         .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;}
@@ -34,17 +44,16 @@
         .node:active { cursor: grabbing; fill: #dc2626;}
         .vp-node { fill: #eab308; r: 8; stroke: #0f172a; stroke-width: 3;}
         
-        .panel { background: #312e81; padding: 15px; border-radius: 8px; border: 1px solid #4f46e5; font-size: 0.9rem; line-height: 1.6; color: #e0e7ff; max-width: 800px; margin-top: 20px; text-align: center;}
-
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3730a3; color: #c7d2fe; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #4f46e5; transition: 0.2s;}
-        .back-btn:hover { background: #4f46e5; color: #fff;}
-    </style>
+        .panel { background: #312e81; padding: 15px; border-radius: 8px; border: 1px solid #4f46e5; font-size: 0.9rem; line-height: 1.6; color: #e0e7ff; max-width: 800px; margin-top: 20px; text-align: center;}</style>
 </head>
 <body>
-    <h1>🏙️ პერსპექტივა</h1>
-    <p class="subtitle">გადააადგილეთ წერტილები, რათა დაინახოთ როგორ იცვლება 3D ფიგურა სივრცეში</p>
-    
-    <div class="controls">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ხელოვნება და მუსიკა — პერსპექტივა</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="controls">
         <button class="btn-mode active" id="btn-1p" onclick="setMode('1p')">1-წერტილიანი პერსპექტივა</button>
         <button class="btn-mode" id="btn-2p" onclick="setMode('2p')">2-წერტილიანი პერსპექტივა</button>
     </div>
@@ -66,10 +75,9 @@
     <div class="panel" id="info">
         <b>1-წერტილიანი პერსპექტივა:</b> გამოიყენება, როცა ობიექტის ერთი წინა მხარე პირდაპირ ჩვენკენაა მომართული. ყველა უხილავი, სიღრმეში მიმავალი ხაზი იყრის თავს ერთ უხილავ წერტილში (Vanishing Point) ჰორიზონტზე. გადაათრიე ყვითელი წერტილი ჰორიზონტზე ან წითელი წერტილი ფიგურის გადასაადგილებლად.
     </div>
-
-    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
-
-    <script>
+</div>
+</div>
+<script>
         const svg = document.getElementById('svg');
         const linesG = document.getElementById('lines-group');
         const cubeG = document.getElementById('cube-group');

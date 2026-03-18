@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ისტორია — მსოფლიო ომები</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #18181b; color: #f4f4f5; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #ef4444; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ისტორია — მსოფლიო ომები</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #a1a1aa; font-size: 0.85rem; margin-bottom: 15px; }
         .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 15px; }
         
@@ -49,17 +59,16 @@
         .s-title { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 10px; }
         .s-val { font-family: 'Courier New'; font-size: 1.5rem; font-weight: bold; color: #f4f4f5; }
         
-        .desc-box { background: #18181b; padding: 15px; border-radius: 8px; border-left: 3px solid #ef4444; font-size: 0.85rem; line-height: 1.6; color: #d4d4d8; }
-
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #27272a; color: #a1a1aa; text-decoration: none; border-radius: 8px; font-size: 0.85rem; border: 1px solid #3f3f46; font-weight: bold; }
-        .back-btn:hover { background: #3f3f46; color: #fff; }
-    </style>
+        .desc-box { background: #18181b; padding: 15px; border-radius: 8px; border-left: 3px solid #ef4444; font-size: 0.85rem; line-height: 1.6; color: #d4d4d8; }</style>
 </head>
 <body>
-    <h1>🌍 მსოფლიო ომები</h1>
-    <p class="subtitle">XX საუკუნის გლობალური კონფლიქტები: ალიანსები და სტატისტიკა</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ისტორია — მსოფლიო ომები</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         <div class="card">
             <div class="war-tabs">
                 <div class="w-tab active" onclick="switchWar('ww1')" id="tab-ww1">პირველი მსოფლიო ომი (1914-1918)</div>
@@ -92,9 +101,10 @@
         </div>
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const geoData = {
             ww1: {
                 cause: "სარაევოს ატენტატი (ფერდინანდის მკვლელობა)", deaths: "20 მილიონი",

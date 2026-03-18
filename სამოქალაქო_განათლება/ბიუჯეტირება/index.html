@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>სამოქალაქო განათლება — ბიუჯეტირება</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #2563eb; font-weight: bold;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>სამოქალაქო განათლება — ბიუჯეტირება</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 25px; }
         
         .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -49,17 +59,16 @@
         .visual-bar-container { width: 100%; max-width: 500px; height: 12px; background: #e2e8f0; border-radius: 6px; margin-top: 20px; display: flex; overflow: hidden; position: relative;}
         .vb-income { height: 100%; background: #10b981; transition: width 0.3s; }
         .vb-expense { height: 100%; background: #ef4444; transition: width 0.3s; position: absolute; right: 0;}
-        .vb-marker { position: absolute; top:0; height:100%; width: 2px; background: #000; left: 50%;}
-
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e0f2fe; color: #0284c7; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bae6fd; text-align: center;}
-        .back-btn:hover { background: #bae6fd; color: #0369a1; }
-    </style>
+        .vb-marker { position: absolute; top:0; height:100%; width: 2px; background: #000; left: 50%;}</style>
 </head>
 <body>
-    <h1>💵 პერსონალური ბიუჯეტირება</h1>
-    <p class="subtitle">დაგეგმე შენი ყოველთვიური შემოსავლები და ხარჯები. შეეცადე, რომ თვის ბოლოს დანაზოგი დაგრჩეს (პროფიციტი)</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>სამოქალაქო განათლება — ბიუჯეტირება</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         
         <div class="balance-board">
             <div class="bb-title">თავისუფალი ნაშთი (დანაზოგი / დეფიციტი)</div>
@@ -135,9 +144,10 @@
 
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         function calcBudget() {
             let totalInc = 0;
             document.querySelectorAll('.inc-input').forEach(el => totalInc += Number(el.value));

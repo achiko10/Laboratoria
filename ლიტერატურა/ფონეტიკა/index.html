@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ლიტერატურა — ფონეტიკა</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fffbeb; color: #451a03; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #b45309; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ლიტერატურა — ფონეტიკა</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #d97706; font-size: 0.85rem; margin-bottom: 20px; }
         .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
         
@@ -55,20 +65,21 @@
         .t-art { background: #d1fae5; color: #047857; }
         .t-voice { background: #ede9fe; color: #6d28d9; }
 
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #fef08a; color: #92400e; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #fcd34d; text-align: center;}
-        .back-btn:hover { background: #fde047; color: #78350f; }
+        
+        
 
         /* Highlighting animation */
         @keyframes pulseClass { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 15px currentColor; border-width: 4px;} 100% { transform: scale(1); } }
-        .highlighted { animation: pulseClass 1s infinite alternate; }
-
-    </style>
+        .highlighted { animation: pulseClass 1s infinite alternate; }</style>
 </head>
 <body>
-    <h1>🗣️ ფონეტიკა</h1>
-    <p class="subtitle">ქართული ენის ბგერითი სისტემა: ხმოვნები და თანხმოვნები</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ლიტერატურა — ფონეტიკა</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         <div class="card">
             
             <div class="classification">
@@ -99,9 +110,10 @@
         </div>
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         // Data derived from Georgian phonetics rules
         const alphabet = "აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ";
         const vowels = ['ა', 'ე', 'ი', 'ო', 'უ'];

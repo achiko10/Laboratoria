@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ადამიანის ანატომია</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+GO:wght@400;600;800&display=swap');
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'Fira GO', sans-serif;
-            background: radial-gradient(circle at 70% 50%, #0f172a 0%, #0f0a1c 100%);
-            color: #f8fafc; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ადამიანის ანატომია</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin:0; padding:0; box-sizing:border-box; }
+        
 
-        header {
-            padding: 1.5rem 2rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;
-        }
-        .back-btn {
-            color: #cbd5e1; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
-            background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        
+        
 
-        h1 {
-            font-size: 2rem; background: linear-gradient(90deg, #ec4899, #8b5cf6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;
-        }
+        
 
         main {
             display: grid; grid-template-columns: 1fr 400px; gap: 2rem; padding: 2rem; flex: 1; align-items: center;
@@ -83,17 +80,16 @@
         .stat-label { color: #94a3b8; font-size: 0.9rem; }
         .stat-val { font-weight: 600; }
 
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } svg.human-body { height: 50vh; } }
-    </style>
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } svg.human-body { height: 50vh; } }</style>
 </head>
 <body>
-    <header>
-        <a href="../../index.html" class="back-btn"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> მთავარზე დაბრუნება</a>
-        <h1>ანატომია: ორგანოების სისტემები</h1>
-        <div style="width:150px"></div>
-    </header>
-
-    <main>
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ადამიანის ანატომია</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<main>
         <section class="anatomy-container">
             <!-- Simplified abstract high-quality geometric body map for clean medical UI -->
             <svg class="human-body" viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
@@ -154,8 +150,9 @@
             </div>
         </aside>
     </main>
-
-    <script>
+</div>
+</div>
+<script>
         const organsDB = {
             "brain": {
                 title: "თავის ტვინი", sys: "ცენტრალური ნერვული სისტემა", color: "#a855f7",

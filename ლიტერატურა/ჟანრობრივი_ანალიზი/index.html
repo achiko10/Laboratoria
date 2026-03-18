@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ლიტერატურა — ჟანრობრივი ანალიზი</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fff1f2; color: #881337; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #be123c; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ლიტერატურა — ჟანრობრივი ანალიზი</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #e11d48; font-size: 0.85rem; margin-bottom: 20px; }
         
         .app { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -38,17 +48,16 @@
         
         @keyframes popIn { 0% {transform: scale(0.9);} 100% {transform: scale(1);}}
 
-        .msg { text-align: center; font-weight: bold; font-size: 1.1rem; color: #16a34a; margin-top: 15px; min-height: 25px;}
-
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #ffe4e6; color: #9f1239; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #fda4af; text-align: center;}
-        .back-btn:hover { background: #fecdd3; color: #881337; }
-    </style>
+        .msg { text-align: center; font-weight: bold; font-size: 1.1rem; color: #16a34a; margin-top: 15px; min-height: 25px;}</style>
 </head>
 <body>
-    <h1>📚 ჟანრობრივი ანალიზი</h1>
-    <p class="subtitle">ლიტერატურული გვარები: გადაანაწილეთ ნაწარმოებები და მახასიათებლები სწორ კატეგორიებში</p>
-    
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>ლიტერატურა — ჟანრობრივი ანალიზი</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         
         <div class="buckets-container">
             <div class="bucket" id="b-epos">
@@ -83,9 +92,10 @@
         </div>
     </div>
     
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const cardsData = [
             { id: 'c1', text: 'ვეფხისტყაოსანი (შ. რუსთაველი)', correct: 'b-epos' },
             { id: 'c2', text: 'რომანი, მოთხრობა, იგავ-არაკი', correct: 'b-epos' },

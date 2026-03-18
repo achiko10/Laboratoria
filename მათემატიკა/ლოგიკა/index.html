@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — ლოგიკა</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>მათემატიკა — ლოგიკა</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;min-height:100vh;display:flex!important;flex-direction:column!important}
+.u-header{display:flex;align-items:center;gap:15px;padding:10px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.u-back{color:#7a84a0;text-decoration:none;font-size:.82rem;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:.2s;white-space:nowrap}
+.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
+.u-header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+.u-body{flex:1;display:flex;justify-content:center;padding:15px}
+.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;width:100%;max-width:1000px;box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.u-card .container,.u-card .app{max-width:none;margin:0;padding:0}
+.u-card canvas{display:block}
+.u-card .simulation-area,.u-card .sim-area{min-height:300px}</style>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        
         .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
         .app { max-width: 800px; margin: auto; }
         .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
@@ -39,15 +49,16 @@
         .td-0 { color: #ef4444; }
         .desc { background: #0f172a; border-left: 3px solid #8b5cf6; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; margin-top: 15px; }
         .desc b { color: #c4b5fd; }
-        .lbl { font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 5px; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
-        .back-btn:hover { background: #334155; color: #f8fafc; }
-    </style>
+        .lbl { font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 5px; }</style>
 </head>
 <body>
-    <h1>🔌 ლოგიკური კარიბჭეები</h1>
-    <p class="subtitle">დააკლიკე შეყვანებზე (0/1), ნახე გამოსავალი — შეისწავლე AND, OR, NOT, XOR, NAND, NOR კარიბჭეები</p>
-    <div class="app">
+<div class="u-header">
+<a href="../../index.html" class="u-back">← მთავარზე</a>
+<h1>მათემატიკა — ლოგიკა</h1>
+</div>
+<div class="u-body">
+<div class="u-card">
+<div class="app">
         <div class="card">
             <div class="gate-selector" id="gate-selector"></div>
             <div class="sim-area" id="sim-area"></div>
@@ -60,8 +71,10 @@
             <div class="desc" id="gate-desc"></div>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
-    <script>
+    <div style="text-align:center;"></div>
+</div>
+</div>
+<script>
         const gates = [
             { name:'AND', symbol:'∧', inputs:2, fn:(a,b)=>a&b, desc:'გამომავალი = 1 <b>მხოლოდ</b> თუ ორივე შეყვანა = 1. ელექტრონიკაში: სერიული კავშირი. C-ში: a && b.' },
             { name:'OR', symbol:'∨', inputs:2, fn:(a,b)=>a|b, desc:'გამომავალი = 1 თუ <b>ერთი მაინც</b> შეყვანა = 1. ელექტრონიკაში: პარალელური კავშირი. C-ში: a || b.' },
