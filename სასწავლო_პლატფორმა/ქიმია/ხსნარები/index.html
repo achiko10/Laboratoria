@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — ხსნარები და ხსნადობა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 450px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .beaker { position: relative; width: 220px; height: 260px; border: 8px solid rgba(255,255,255,0.2); border-top: none; border-radius: 0 0 25px 25px; z-index: 5; margin-top: 50px; background: rgba(59, 130, 246, 0.1); }
+        .water { position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.5)); border-radius: 0 0 17px 17px; }
+        .water::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 12px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translateY(-50%); }
+
+        .precipitate { position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: #f8fafc; border-radius: 0 0 17px 17px; transition: height 0.3s; opacity: 0.9; box-shadow: inset 0 5px 10px rgba(0,0,0,0.1); }
+
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
+        
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; width: 100%; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
+
+        .meter-box { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;}
+        .m-title { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        .m-val { font-size: 2rem; font-weight: bold; color: #38bdf8; font-family: 'Courier New', monospace; }
+        
+        .alert-box { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 10px; font-size: 0.8rem; color: #e2e8f0; display: none; }
+        .alert-box.show { display: block; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #0ea5e9; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .salt-shaker { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); transition: top 0.3s, transform 0.3s; z-index: 10; font-size: 3rem; }
+        .salt-shaker.shake { top: 20px; transform: translateX(-50%) rotate(20deg); animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(-50%) rotate(20deg); } 25% { transform: translateX(-50%) rotate(15deg); } 75% { transform: translateX(-50%) rotate(25deg); } }
+
+    </style>
+</head>
+<body>
+    <h1>💧 ხსნარები და ხსნადობა</h1>
+    <p class="subtitle">დაამატე მარილი, დააკვირდი იონებად დაშლას და გაჯერებული ხსნარის წარმოქმნას</p>
+
+    <div class="container">
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="salt-shaker" id="shaker">🧂</div>
+            <div class="beaker">
+                <div class="water"></div>
+                <div class="precipitate" id="precipitate"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <button onclick="addSalt()">➕ მარილის წაყრა (NaCl)</button>
+            <button onclick="resetSim()" style="background: #334155;">↺ სუფთა წყალი</button>
+
+            <div class="meter-box">
+                <div class="m-title">კონცენტრაცია (მოლარობა)</div>
+                <div class="m-val"><span id="conc-val">0.00</span> <span style="font-size:1rem; color:#94a3b8;">M</span></div>
+            </div>
+
+            <div class="meter-box">
+                <div class="m-title">მდგომარეობა</div>
+                <div style="font-weight:bold; color:#10b981;" id="state-val">უჯერი ხსნარი</div>
+            </div>
+
+            <div class="alert-box" id="alert">
+                ⚠️ ხსნარი გაჯერებულია! მეტი მარილი აღარ გაიხსნება და ილექება ფსკერზე.
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ხსნადობა და გაჯერება:</strong><br>
+            • <strong>გახსნა:</strong> მყარი კრისტალი წყალში იშლება იონებად (მაგ. $NaCl \rightarrow Na^+ + Cl^-$). რასაც წყლის პოლარული მოლეკულები ანხორციელებენ.<br>
+            • <strong>უჯერი ხსნარი:</strong> ჯერ კიდევ შეუძლია დამატებითი ნივთიერების გახსნა.<br>
+            • <strong>გაჯერებული ხსნარი (Saturated):</strong> მიღწეულია მაქსიმალური კონცენტრაცია დროის მოცემულ პირობებში. ზედმეტი ნივთიერება ილექება (Precipitate).
+        </div>
+    </div>
+    
+    <div style="text-align:center;">
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio; canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        let ions = [];
+        let saltGrains = [];
+        let concentration = 0;
+        const maxConc = 5.0; // Molarity limit
+        let precipHeight = 0;
+
+        function resetSim() {
+            ions = [];
+            saltGrains = [];
+            concentration = 0;
+            precipHeight = 0;
+            document.getElementById('precipitate').style.height = '0px';
+            document.getElementById('conc-val').textContent = '0.00';
+            document.getElementById('state-val').textContent = 'უჯერი ხსნარი';
+            document.getElementById('state-val').style.color = '#10b981';
+            document.getElementById('alert').classList.remove('show');
+        }
+
+        function addSalt() {
+            const shaker = document.getElementById('shaker');
+            shaker.classList.add('shake');
+            setTimeout(() => shaker.classList.remove('shake'), 500);
+
+            // Add falling grains
+            for(let i=0; i<15; i++) {
+                saltGrains.push({
+                    x: W/2 + (Math.random()*40 - 20),
+                    y: 100 + Math.random()*20,
+                    vx: (Math.random()-0.5)*2,
+                    vy: 2 + Math.random()*3
+                });
+            }
+
+            if(concentration < maxConc) {
+                concentration += 1.25;
+                document.getElementById('conc-val').textContent = concentration.toFixed(2);
+                
+                if (concentration >= maxConc) {
+                    concentration = maxConc;
+                    document.getElementById('state-val').textContent = 'გაჯერებული ხსნარი';
+                    document.getElementById('state-val').style.color = '#ef4444';
+                    document.getElementById('alert').classList.add('show');
+                }
+            } else {
+                // Add to precipitate
+                precipHeight += 10;
+                if(precipHeight > 50) precipHeight = 50;
+                document.getElementById('precipitate').style.height = precipHeight + 'px';
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+
+            // Process grains
+            saltGrains = saltGrains.filter(g => {
+                g.x += g.vx; g.y += g.vy;
+                
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(g.x, g.y, 4, 4);
+
+                let waterTop = H - 260 + 260*0.25; // approx
+                if (g.y > waterTop) {
+                    // Dissolve
+                    if (concentration < maxConc || Math.random() < 0.2) {
+                        // Create ions Na+ and Cl-
+                        let bLeft = W/2 - 100;
+                        let bRight = W/2 + 100;
+                        let bBot = H - 50 - precipHeight;
+                        
+                        // Only add ions up to a visual limit
+                        if(ions.length < 150) {
+                            // Na+
+                            ions.push({ type: 'Na+', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
+                            // Cl-
+                            ions.push({ type: 'Cl-', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
+                        }
+                        return false; // remove grain
+                    } else {
+                        // Keep falling to precip
+                        if(g.y > H - 60 - precipHeight) return false;
+                        return true;
+                    }
+                }
+                return true;
+            });
+
+            // Draw and move ions inside beaker bounds
+            let bLeft = W/2 - 90;
+            let bRight = W/2 + 90;
+            let bTop = H - 260 + 260*0.25 + 10;
+            let bBot = H - 55 - precipHeight;
+
+            ions.forEach(ion => {
+                ion.x += ion.vx; ion.y += ion.vy;
+                
+                // Bounds keeping
+                if(ion.x < bLeft || ion.x > bRight) ion.vx *= -1;
+                if(ion.y < bTop || ion.y > bBot) ion.vy *= -1;
+
+                // Restrict firmly
+                if(ion.x < bLeft) ion.x = bLeft; if(ion.x > bRight) ion.x = bRight;
+                if(ion.y < bTop) ion.y = bTop; if(ion.y > bBot) ion.y = bBot;
+
+                ctx.beginPath();
+                ctx.arc(ion.x, ion.y, 5, 0, Math.PI*2);
+                if(ion.type === 'Na+') {
+                    ctx.fillStyle = '#f87171'; // Reddish for Na+
+                    ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = '7px Arial'; ctx.textAlign = 'center'; ctx.fillText('+', ion.x, ion.y+2);
+                } else {
+                    ctx.fillStyle = '#a3e635'; // Greenish for Cl-
+                    ctx.fill();
+                    ctx.fillStyle = '#111'; ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.fillText('-', ion.x, ion.y+2);
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — მჟავები და ტუტეები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 450px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .ph-scale { position: absolute; top: 15px; left: 15px; right: 15px; height: 40px; border-radius: 8px; display: flex; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+        .ph-box { flex: 1; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 2px; font-size: 0.75rem; font-weight: bold; color: rgba(0,0,0,0.5); position: relative; cursor: pointer; }
+        .ph-ind { position: absolute; top: 0; width: 100%; height: 50%; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .ph-marker { position: absolute; bottom: -8px; left: calc(50% - 6px); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid #fff; display: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); z-index: 10; transition: left 0.3s; }
+
+        .beaker-wrap { position: relative; width: 180px; height: 220px; margin-top: 40px; }
+        .beaker { position: absolute; bottom: 0; width: 100%; height: 100%; border: 6px solid rgba(255,255,255,0.3); border-top: none; border-radius: 0 0 20px 20px; overflow: hidden; z-index: 2; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2); }
+        .beaker::before { content: ''; position: absolute; top: 20px; left: -10px; width: 20px; height: 4px; background: rgba(255,255,255,0.3); }
+        .beaker::after { content: ''; position: absolute; top: 20px; right: -10px; width: 20px; height: 4px; background: rgba(255,255,255,0.3); }
+
+        .liquid { position: absolute; bottom: 0; width: 100%; height: 75%; transition: background 0.5s, height 0.3s; background: #22c55e; } /* Starts neutral green */
+        .liquid::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 10px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translateY(-50%); }
+
+        .drop { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 12px; height: 16px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; opacity: 0; z-index: 1; }
+        .drop.anim { animation: dropping 0.8s forwards; }
+        @keyframes dropping {
+            0% { top: -20px; opacity: 1; transform: translateX(-50%) scale(1); }
+            80% { top: 120px; opacity: 1; transform: translateX(-50%) scale(1.1); }
+            100% { top: 140px; opacity: 0; transform: translateX(-50%) scale(2); }
+        }
+
+        .meter { position: absolute; top: 80px; left: 20px; background: #1e293b; border: 2px solid #334155; padding: 10px 15px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; }
+        .meter-val { font-family: 'Courier New', monospace; font-size: 2rem; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .meter-lbl { font-size: 0.8rem; color: #94a3b8; font-weight: bold; }
+        .meter-probe { position: absolute; right: -40px; top: 50%; width: 50px; height: 4px; background: #64748b; transform-origin: left; transform: rotate(20deg); }
+        .meter-probe::after { content: ''; position: absolute; right: -5px; top: -4px; width: 6px; height: 12px; background: #cbd5e1; border-radius: 2px; }
+
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
+        
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        
+        .btn-acid { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .btn-water { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .btn-base { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+
+        .conc-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .c-bar-wrap { background: #0f172a; height: 12px; border-radius: 6px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); }
+        .c-bar { height: 100%; transition: 0.3s; }
+        .c-bar.h { background: #ef4444; width: 50%; }
+        .c-bar.oh { background: #3b82f6; width: 50%; }
+        .c-lbl { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-bottom: 2px; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #22c55e; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🧪 მჟავები და ტუტეები (pH შკალა)</h1>
+    <p class="subtitle">დაამატე მჟავა ან ტუტე და დააკვირდი pH-ის და ინდიკატორის ფერის ცვლილებას</p>
+
+    <div class="container">
+        <div class="sim-area">
+            <div class="ph-scale" id="ph-scale">
+                <div class="ph-marker" id="ph-marker" style="display:block;"></div>
+            </div>
+
+            <div class="meter">
+                <div class="meter-lbl">pH მეტრი</div>
+                <div class="meter-val" id="ph-val">7.0</div>
+                <div class="meter-probe"></div>
+            </div>
+
+            <div class="beaker-wrap">
+                <div class="drop" id="drop"></div>
+                <div class="beaker">
+                    <div class="liquid" id="liquid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <button class="btn-acid" onclick="addDrop('acid')">➕ მჟავა (H⁺)</button>
+            <button class="btn-water" onclick="resetpH()">💧 სუფთა წყალი (განულება)</button>
+            <button class="btn-base" onclick="addDrop('base')">➕ ტუტე (OH⁻)</button>
+
+            <div style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                <h4 style="color:#e2e8f0; font-size:0.9rem; margin-bottom:10px;">იონების კონცენტრაცია</h4>
+                <div class="conc-bars">
+                    <div>
+                        <div class="c-lbl"><span>[H⁺]</span> <span>მჟავიანობა</span></div>
+                        <div class="c-bar-wrap"><div class="c-bar h" id="bar-h"></div></div>
+                    </div>
+                    <div>
+                        <div class="c-lbl"><span>[OH⁻]</span> <span>ტუტიანობა</span></div>
+                        <div class="c-bar-wrap"><div class="c-bar oh" id="bar-oh"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 pH მაჩვენებელი:</strong> ზომავს ხსნარის მჟავიანობას ან ტუტიანობას (წყალბად-იონების H⁺ კონცენტრაციას).<br>
+            • <strong>pH < 7:</strong> მჟავა (ჭარბობს H⁺ იონები)<br>
+            • <strong>pH = 7:</strong> ნეიტრალური (სუფთა წყალი, H⁺ = OH⁻)<br>
+            • <strong>pH > 7:</strong> ტუტე (ჭარბობს OH⁻ იონები)<br>
+            უნივერსალური ინდიკატორი ფერს იცვლის წითლიდან (ძლიერი მჟავა) მწვანის გავლით (ნეიტრალური) იისფრამდე (ძლიერი ტუტე).
+        </div>
+    </div>
+    
+    <div style="text-align:center;">
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        // Universal indicator colors from pH 0 to 14
+        const phColors = [
+            '#ef4444', // 0: strong acid
+            '#f87171', // 1
+            '#f97316', // 2
+            '#fb923c', // 3
+            '#facc15', // 4
+            '#fef08a', // 5
+            '#a3e635', // 6
+            '#22c55e', // 7: neutral
+            '#10b981', // 8
+            '#14b8a6', // 9
+            '#06b6d4', // 10
+            '#3b82f6', // 11
+            '#6366f1', // 12
+            '#8b5cf6', // 13
+            '#a855f7'  // 14: strong base
+        ];
+
+        // Build scale UI
+        const pt = document.getElementById('ph-scale');
+        phColors.forEach((color, i) => {
+            const b = document.createElement('div');
+            b.className = 'ph-box';
+            b.style.background = color;
+            b.innerHTML = `<span style="z-index:2">${i}</span>`;
+            b.onclick = () => setPH(i);
+            pt.appendChild(b);
+        });
+
+        let currentPH = 7.0;
+        let volume = 50;
+
+        function updateUI() {
+            // Clamp
+            if (currentPH < 0) currentPH = 0;
+            if (currentPH > 14) currentPH = 14;
+
+            document.getElementById('ph-val').textContent = currentPH.toFixed(1);
+            
+            // Get interpolated color
+            const idx1 = Math.floor(currentPH);
+            const idx2 = Math.ceil(currentPH);
+            const r = currentPH - idx1;
+            
+            // Simple approach: just use nearest whole color
+            const roundedPH = Math.round(currentPH);
+            document.getElementById('liquid').style.background = phColors[roundedPH];
+            
+            // Marker
+            const pct = (currentPH / 14) * 100;
+            document.getElementById('ph-marker').style.left = `calc(${pct}% - 6px)`;
+
+            // Concentration Bars (Logarithmic nature visual)
+            // If pH=7, both 50%. If pH=0, H=100%, OH=0%
+            const hPct = ((14 - currentPH) / 14) * 100;
+            const ohPct = (currentPH / 14) * 100;
+            
+            document.getElementById('bar-h').style.width = `${hPct}%`;
+            document.getElementById('bar-oh').style.width = `${ohPct}%`;
+
+            // Volume
+            document.getElementById('liquid').style.height = `${volume}%`;
+        }
+
+        function setPH(val) {
+            currentPH = val;
+            updateUI();
+        }
+
+        function addDrop(type) {
+            const drop = document.getElementById('drop');
+            // Remove/re-add anim class to restart
+            drop.classList.remove('anim');
+            void drop.offsetWidth; // trigger reflow
+            
+            // Change drop color
+            drop.style.background = type === 'acid' ? '#ef4444' : '#3b82f6';
+            
+            drop.classList.add('anim');
+
+            setTimeout(() => {
+                if (type === 'acid') {
+                    // Logarithmic curve approximation
+                    const diff = currentPH > 7 ? 1.5 : (currentPH > 4 ? 0.8 : 0.3);
+                    currentPH -= diff;
+                } else {
+                    const diff = currentPH < 7 ? 1.5 : (currentPH < 10 ? 0.8 : 0.3);
+                    currentPH += diff;
+                }
+                
+                volume += 2;
+                if(volume > 95) volume = 95;
+                
+                updateUI();
+            }, 600); // Trigger when drop hits liquid
+        }
+
+        function resetpH() {
+            currentPH = 7.0;
+            volume = 50;
+            updateUI();
+        }
+
+        // Init
+        updateUI();
+    </script>
+</body>
+</html>

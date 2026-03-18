@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelGo — აღმოაჩინე. ითამაშე. მოიგე.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;700;900&family=DM+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07090F;
+            --bg-card: #0D1018;
+            --teal: #00D4B4;
+            --blue: #3B82F6;
+            --purple: #8B5CF6;
+            --amber: #F59E0B;
+            --text: #EDF0FA;
+            --grad: linear-gradient(135deg, #00D4B4 0%, #3B82F6 100%);
+            --border: rgba(255,255,255,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Noto Sans Georgian', sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ══════ NAVIGATION ══════ */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: rgba(7,9,15,0.8); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border); z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 5%;
+        }
+        .logo { font-weight: 900; font-size: 24px; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 25px; list-style: none; }
+        .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; opacity: 0.7; transition: 0.3s; }
+        .nav-links a:hover { opacity: 1; color: var(--teal); }
+
+        /* ══════ HERO SECTION ══════ */
+        .hero {
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; background: radial-gradient(circle at 50% 50%, rgba(0,212,180,0.1), transparent);
+        }
+        .hero-content h1 { font-size: 4rem; line-height: 1.1; margin-bottom: 20px; }
+        .hero-content span { color: var(--teal); }
+        .btn { 
+            padding: 15px 35px; border-radius: 12px; border: none; 
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            text-decoration: none; display: inline-block;
+        }
+        .btn-primary { background: var(--grad); color: white; box-shadow: 0 10px 20px rgba(0,212,180,0.3); }
+
+        /* ══════ INTERACTIVE MAP PROTOTYPE ══════ */
+        .section { padding: 100px 10%; }
+        .map-container {
+            height: 500px; background: var(--bg-card); border-radius: 24px;
+            border: 1px solid var(--border); position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .poi-marker {
+            position: absolute; width: 40px; height: 40px; background: var(--teal);
+            border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 20px var(--teal); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: rotate(-45deg) scale(1); } 50% { transform: rotate(-45deg) scale(1.1); } 100% { transform: rotate(-45deg) scale(1); } }
+
+        /* ══════ GAME DASHBOARD (XP, LEVELS) ══════ */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
+        }
+        .stat-card {
+            background: var(--bg-card); padding: 30px; border-radius: 20px;
+            border: 1px solid var(--border); text-align: center;
+        }
+        .stat-card h3 { font-family: 'DM Mono'; font-size: 32px; color: var(--amber); }
+
+        /* ══════ QUESTS & INVENTORY ══════ */
+        .quest-item {
+            background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid var(--blue);
+        }
+
+        /* ══════ ADMIN & PARTNER PANEL PREVIEW ══════ */
+        .admin-preview { background: #111; padding: 40px; border-radius: 20px; margin-top: 50px; }
+        
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">TravelGo</div>
+        <ul class="nav-links">
+            <li><a href="#map">რუკა</a></li>
+            <li><a href="#quests">ქვესტები</a></li>
+            <li><a href="#passport">პასპორტი</a></li>
+            <li><a href="#partners">პარტნიორები</a></li>
+        </ul>
+        <div class="btn btn-primary" style="padding: 10px 20px;">პროფილი</div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>აქციე მოგზაურობა <br><span>თავგადასავლად</span></h1>
+            <p style="margin-bottom: 30px; opacity: 0.7;">აღმოაჩინე ლოკაციები, შეასრულე ქვესტები და მიიღე რეალური ფასდაკლებები.</p>
+            <a href="#map" class="btn btn-primary">დაიწყე მოგზაურობა</a>
+        </div>
+    </section>
+
+    <section id="map" class="section">
+        <h2 style="margin-bottom: 40px;">ინტერაქტიული რუკა</h2>
+        <div class="map-container">
+            <div class="poi-marker" style="top: 30%; left: 40%;" onclick="alert('მეტეხის ტაძარი: +50 XP')"></div>
+            <div class="poi-marker" style="top: 60%; left: 70%; background: var(--purple);" onclick="alert('ბოტანიკური ბაღი: +30 XP')"></div>
+            <p style="opacity: 0.5;">[ GPS რუკის იმიტაცია ]</p>
+        </div>
+    </section>
+
+    <section id="status" class="section">
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <p>თქვენი დონე</p>
+                <h3>LVL 14</h3>
+                <div style="width: 100%; height: 5px; background: #222; margin-top: 10px;">
+                    <div style="width: 70%; height: 100%; background: var(--teal);"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <p>ჯამური XP</p>
+                <h3>12,450</h3>
+            </div>
+            <div class="stat-card">
+                <p>მონახულებული POI</p>
+                <h3>42</h3>
+            </div>
+        </div>
+    </section>
+
+    <section id="quests" class="section">
+        <h2 style="margin-bottom: 30px;">აქტიური ქვესტები</h2>
+        <div class="quest-item">
+            <div>
+                <h4>ძველი თბილისის მცველი</h4>
+                <p style="font-size: 12px; opacity: 0.6;">ეწვიეთ 3 ისტორიულ ადგილს</p>
+            </div>
+            <span style="color: var(--teal);">+150 XP</span>
+        </div>
+        <div class="quest-item">
+            <div>
+                <h4>გურმანის თავგადასავალი</h4>
+                <p style="font-size: 12px; opacity: 0.6;">დაასკანირეთ QR კოდი პარტნიორ რესტორანში</p>
+            </div>
+            <span style="color: var(--teal);">+200 XP</span>
+        </div>
+    </section>
+
+    <section id="inventory" class="section" style="background: var(--bg-card);">
+        <h2>ციფრული ინვენტარი</h2>
+        <div class="dashboard-grid" style="margin-top: 30px;">
+            <div style="background: #1a1a1a; aspect-ratio: 1; border-radius: 15px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center;">
+                🛡️ <br> იშვიათი სკინი
+            </div>
+            <div style="background: #1a1a1a; aspect-ratio: 1; border-radius: 15px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center;">
+                💎 <br> ლეგენდარული ბეჯი
+            </div>
+            <div style="background: #1a1a1a; aspect-ratio: 1; border-radius: 15px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center;">
+                🎫 <br> 20% ფასდაკლება
+            </div>
+        </div>
+    </section>
+
+    <footer style="padding: 50px 10%; border-top: 1px solid var(--border); text-align: center; opacity: 0.5; font-size: 12px;">
+        TravelGo 2026 — Vibe Coding Project. ყველა უფლება დაცულია.
+    </footer>
+
+</body>
+</html>

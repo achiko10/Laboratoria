@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>გენეტიკური ლაბორატორია</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; text-align: center; padding: 50px; }
+        .ბარათი { background: white; max-width: 600px; margin: auto; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .ღილაკი { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: 0.3s; border: none; cursor: pointer; font-weight: bold; }
+        .ღილაკი:hover { background: #2980b9; transform: scale(1.05); }
+
+        /* გენეტიკის სიმულატორის სტილები */
+        .ლაბორატორია { background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .მშობლები { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .გენოტიპი-სელექტორი { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .პუნეტის-ცხრილი { display: grid; grid-template-columns: 50px 1fr 1fr; grid-template-rows: 50px 1fr 1fr; gap: 5px; max-width: 250px; margin: 20px auto; font-weight: bold; }
+        .უჯრა { background: #fff; border: 2px solid #3498db; display: flex; align-items: center; justify-content: center; border-radius: 5px; min-height: 60px; font-size: 1.2rem; transition: 0.3s; }
+        .უჯრა.header { background: #3498db; color: white; border: none; min-height: 40px; }
+        .უჯრა.შედეგი { cursor: pointer; position: relative; }
+        .უჯრა.შედეგი:hover { background: #e3f2fd; }
+        
+        .ფენოტიპი-ვიზუალი { font-size: 40px; margin-bottom: 5px; }
+        .სტატისტიკა { display: flex; justify-content: space-around; background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; }
+        
+        .ინფო-პანელი { text-align: left; background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 5px solid #3498db; margin-top: 20px; font-size: 14px; }
+        .დომინანტი { color: #e74c3c; } /* წითელი ყვავილი */
+        .რეცესიული { color: #9b59b6; } /* იასამნისფერი ყვავილი */
+    </style>
+</head>
+<body>
+    <div class="ბარათი">
+        <h1>ბიოლოგია: გენეტიკა</h1>
+        <h2>მენდელის პირველი კანონი</h2>
+        
+        <p>შეაჯვარე მცენარეები და დააკვირდი შთამომავლობას!</p>
+
+        <div class="ლაბორატორია">
+            <div class="მშობლები">
+                <div class="გენოტიპი-სელექტორი">
+                    <label>მშობელი 1:</label><br>
+                    <select id="p1" onchange="updateGenetics()">
+                        <option value="AA">AA (დომინანტი)</option>
+                        <option value="Aa" selected>Aa (ჰეტეროზიგოტური)</option>
+                        <option value="aa">aa (რეცესიული)</option>
+                    </select>
+                </div>
+                <div class="გენოტიპი-სელექტორი">
+                    <label>მშობელი 2:</label><br>
+                    <select id="p2" onchange="updateGenetics()">
+                        <option value="AA">AA (დომინანტი)</option>
+                        <option value="Aa" selected>Aa (ჰეტეროზიგოტური)</option>
+                        <option value="aa">aa (რეცესიული)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="პუნეტის-ცხრილი" id="punnett">
+                <div></div>
+                <div class="უჯრა header" id="p2-a1">-</div>
+                <div class="უჯრა header" id="p2-a2">-</div>
+                
+                <div class="უჯრა header" id="p1-a1">-</div>
+                <div class="უჯრა შედეგი" id="r1"></div>
+                <div class="უჯრა შედეგი" id="r2"></div>
+                
+                <div class="უჯრა header" id="p1-a2">-</div>
+                <div class="უჯრა შედეგი" id="r3"></div>
+                <div class="უჯრა შედეგი" id="r4"></div>
+            </div>
+
+            <div class="სტატისტიკა">
+                <span>წითელი (დომ.): <span id="dom-perc">0</span>%</span>
+                <span>იასამნისფერი (რეც.): <span id="rec-perc">0</span>%</span>
+            </div>
+        </div>
+
+        <div class="ინფო-პანელი">
+            <strong>რას ვხედავთ:</strong> 
+            დიდი ასო (<strong>A</strong>) აღნიშნავს დომინანტურ გენს (წითელი ფერი), პატარა (<strong>a</strong>) — რეცესიულს (იასამნისფერი). 
+            <br><em>გახსოვდეს:</em> იასამნისფერი ყვავილი მხოლოდ მაშინ გამოჩნდება, თუ მცენარეს ორივე რეცესიული გენი (<strong>aa</strong>) ექნება.
+        </div>
+
+        <a href="../../მთავარი_გვერდი.html" class="ღილაკი">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        function updateGenetics() {
+            const p1 = document.getElementById('p1').value.split('');
+            const p2 = document.getElementById('p2').value.split('');
+
+            // მშობლების ალელების განაწილება სათაურებში
+            document.getElementById('p1-a1').textContent = p1[0];
+            document.getElementById('p1-a2').textContent = p1[1];
+            document.getElementById('p2-a1').textContent = p2[0];
+            document.getElementById('p2-a2').textContent = p2[1];
+
+            const combinations = [
+                combine(p1[0], p2[0]),
+                combine(p1[0], p2[1]),
+                combine(p1[1], p2[0]),
+                combine(p1[1], p2[1])
+            ];
+
+            let dominantCount = 0;
+
+            combinations.forEach((combo, index) => {
+                const cell = document.getElementById(`r${index + 1}`);
+                const isDominant = combo.includes('A');
+                
+                if(isDominant) dominantCount++;
+
+                cell.innerHTML = `
+                    <div class="ფენოტიპი-ვიზუალი">${isDominant ? '🌺' : '🪻'}</div>
+                    <div style="font-size: 12px">${combo}</div>
+                `;
+                cell.style.color = isDominant ? '#e74c3c' : '#9b59b6';
+            });
+
+            document.getElementById('dom-perc').textContent = (dominantCount / 4) * 100;
+            document.getElementById('rec-perc').textContent = ((4 - dominantCount) / 4) * 100;
+        }
+
+        function combine(a, b) {
+            // ყოველთვის დიდი ასო დაიწეროს პირველი (სტანდარტი)
+            return (a === 'a' && b === 'A') ? 'Aa' : a + b;
+        }
+
+        // ინიციალიზაცია
+        updateGenetics();
+    </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — ეკონომიკა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f0fdf4; color: #166534; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #15803d; font-weight: bold;}
+        .subtitle { text-align: center; color: #22c55e; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #bbf7d0; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1); }
+
+        /* Controls */
+        .control-group { margin-bottom: 25px; }
+        .cg-title { font-weight: bold; color: #166534; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;}
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; outline: none; transition: 0.2s;
+        }
+        
+        /* Demand Slider */
+        #slider-demand { background: #bfdbfe; }
+        #slider-demand::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        
+        /* Supply Slider */
+        #slider-supply { background: #fca5a5; }
+        #slider-supply::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #ef4444; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        .slider-val { font-size: 0.85rem; background: #e2e8f0; padding: 2px 8px; border-radius: 12px; font-family: monospace; font-weight: bold; color: #475569;}
+
+        .info-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; font-size: 0.9rem; color: #334155; line-height: 1.5; margin-top: 20px;}
+
+        /* Graph Area */
+        .graph-container { position: relative; width: 100%; height: 400px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; overflow: hidden;}
+        
+        .axis-y-label { position: absolute; left: 10px; top: 10px; font-weight: bold; color: #64748b; font-family: sans-serif; font-size: 0.9rem;}
+        .axis-x-label { position: absolute; right: 20px; bottom: 10px; font-weight: bold; color: #64748b; font-family: sans-serif; font-size: 0.9rem;}
+        
+        .line-demand { position: absolute; width: 140%; height: 4px; background: #3b82f6; transform-origin: top left; }
+        .line-supply { position: absolute; width: 140%; height: 4px; background: #ef4444; transform-origin: bottom left; }
+
+        .eq-point { position: absolute; width: 16px; height: 16px; background: #ca8a04; border-radius: 50%; border: 3px solid #fff; transform: translate(-50%, -50%); box-shadow: 0 0 10px rgba(202, 138, 4, 0.5); z-index: 10;}
+        
+        /* Dashed lines to axes */
+        .dash-x { position: absolute; border-top: 2px dashed #94a3b8; width: 0; left: 0; transform-origin: left; z-index: 5;}
+        .dash-y { position: absolute; border-left: 2px dashed #94a3b8; height: 0; top: 0; transform-origin: top; z-index: 5;}
+
+        /* Live Values */
+        .live-stats { display: flex; justify-content: space-around; margin-top: 15px; background: #fefce8; border: 1px bordered #fef08a; padding: 15px; border-radius: 8px;}
+        .stat-blk { text-align: center; }
+        .stat-lbl { font-size: 0.8rem; color: #a16207; font-weight: bold; text-transform: uppercase;}
+        .stat-val { font-size: 1.5rem; color: #ca8a04; font-family: monospace; font-weight: bold;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #dcfce7; color: #166534; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bbf7d0; text-align: center;}
+        .back-btn:hover { background: #bbf7d0; color: #14532d; }
+    </style>
+</head>
+<body>
+    <h1>📈 ეკონომიკა — მოთხოვნა და მიწოდება</h1>
+    <p class="subtitle">შეცვალეთ ბაზრის პირობები სლაიდერებით და დააკვირდით წონასწორულ ფასს</p>
+    
+    <div class="app">
+        <!-- Controls Sidebar -->
+        <div class="card">
+            <div class="control-group">
+                <div class="cg-title">
+                    <span style="color:#3b82f6;">📉 მოთხოვნა (Demand)</span>
+                    <span class="slider-val" id="val-d">50</span>
+                </div>
+                <!-- Sliders go from 0 to 100 -->
+                <input type="range" id="slider-demand" min="10" max="90" value="50" oninput="updateGraph()">
+                <div style="font-size:0.75rem; color:#64748b; margin-top:5px;">მომხმარებელთა სურვილი და შესაძლებლობა შეიძინონ საქონელი.</div>
+            </div>
+
+            <div class="control-group">
+                <div class="cg-title">
+                    <span style="color:#ef4444;">📈 მიწოდება (Supply)</span>
+                    <span class="slider-val" id="val-s">50</span>
+                </div>
+                <input type="range" id="slider-supply" min="10" max="90" value="50" oninput="updateGraph()">
+                <div style="font-size:0.75rem; color:#64748b; margin-top:5px;">მწარმოებლების მიერ ბაზარზე გამოტანილი საქონლის რაოდენობა.</div>
+            </div>
+
+            <div class="info-box" id="info-desc">
+                როდესაც მოთხოვნა და მიწოდება თანაბარია, ბაზარი სტაბილურია. ეს არის საბაზისო წონასწორობა.
+            </div>
+            
+            <div style="text-align:center; margin-top:15px;">
+                <button onclick="resetSim()" style="padding:5px 15px; background:#e2e8f0; border:1px solid #cbd5e1; border-radius:5px; cursor:pointer;">საწყისი პოზიცია</button>
+            </div>
+        </div>
+
+        <!-- Graph Panel -->
+        <div class="card" style="padding: 15px;">
+            <div class="graph-container" id="graph">
+                <div class="axis-y-label">ფასი (P) ₾</div>
+                <div class="axis-x-label">რაოდენობა (Q) 📦</div>
+
+                <!-- Lines -->
+                <!-- Transform set via JS -->
+                <div class="line-demand" id="l-demand"></div>
+                <div class="line-supply" id="l-supply"></div>
+                
+                <div class="dash-x" id="dash-x"></div>
+                <div class="dash-y" id="dash-y"></div>
+
+                <div class="eq-point" id="eq-point"></div>
+            </div>
+
+            <div class="live-stats">
+                <div class="stat-blk">
+                    <div class="stat-lbl">წონასწორული ფასი (P)</div>
+                    <div class="stat-val" id="res-price">50 ₾</div>
+                </div>
+                <div class="stat-blk">
+                    <div class="stat-lbl">გაყიდული რაოდენობა (Q)</div>
+                    <div class="stat-val" id="res-quant">50</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const sd = document.getElementById('slider-demand');
+        const ss = document.getElementById('slider-supply');
+        const vd = document.getElementById('val-d');
+        const vs = document.getElementById('val-s');
+        
+        const graph = document.getElementById('graph');
+        const ld = document.getElementById('l-demand');
+        const ls = document.getElementById('l-supply');
+        const pt = document.getElementById('eq-point');
+        const dx = document.getElementById('dash-x');
+        const dy = document.getElementById('dash-y');
+
+        const info = document.getElementById('info-desc');
+        const lblP = document.getElementById('res-price');
+        const lblQ = document.getElementById('res-quant');
+
+        function updateGraph() {
+            const dLevel = parseInt(sd.value);
+            const sLevel = parseInt(ss.value);
+            
+            vd.textContent = dLevel;
+            vs.textContent = sLevel;
+
+            // Math model mapping inputs to graph coordinates
+            // Container is 100% x 100% implicitly. We use pixels for math.
+            const w = graph.clientWidth;
+            const h = graph.clientHeight;
+
+            // Demand curve: y = -m*x + b_d
+            // Supply curve: y =  m*x + b_s
+            // Let slope be roughly fixed to 45 degrees for simplicity, so m = 1 (pixel per pixel)
+            // We shift intercepts based on sliders.
+            // When slider = 50, curves intersect at (w/2, h/2).
+            
+            // Map slider (10 to 90) to a shift value
+            const dShiftX = (dLevel - 50) * (w / 100); 
+            const sShiftX = (sLevel - 50) * (w / 100);
+
+            // Demand starts at (dShiftX, 0) and goes to (w + dShiftX, h)
+            // Supply starts at (sShiftX, h) and goes to (w + sShiftX, 0)
+
+            // Intersection point logic:
+            // x_eq = (w + dShiftX + sShiftX) / 2
+            // y_eq = (h + dShiftX - sShiftX) / 2
+            
+            let xEq = (w + dShiftX + sShiftX) / 2;
+            let yEq = (h - dShiftX + sShiftX) / 2; // inverted y as 0 is top
+            
+            // Clamp visually just in case
+            xEq = Math.max(0, Math.min(w, xEq));
+            yEq = Math.max(0, Math.min(h, yEq));
+
+            // Position intersection dot
+            pt.style.left = xEq + 'px';
+            pt.style.top = yEq + 'px';
+
+            // Draw lines using CSS transforms
+            // Demand goes top-left down to bottom-right
+            // Angle is constant (45 deg = 0.78 rad)
+            const angleD = Math.atan2(h, w);
+            const angleS = -Math.atan2(h, w);
+            
+            ld.style.left = dShiftX + 'px';
+            ld.style.top = '0px';
+            ld.style.transform = `rotate(${angleD}rad)`;
+
+            ls.style.left = sShiftX + 'px';
+            ls.style.top = h + 'px';
+            ls.style.transform = `rotate(${angleS}rad)`;
+
+            // Draw dashes
+            dx.style.left = '0px';
+            dx.style.top = yEq + 'px';
+            dx.style.width = xEq + 'px';
+
+            dy.style.left = xEq + 'px';
+            dy.style.top = yEq + 'px';
+            dy.style.height = (h - yEq) + 'px';
+
+            // Update Stats
+            // Convert pixels back to 'values'
+            const priceVal = Math.round(100 - (yEq / h) * 100);
+            const quantVal = Math.round((xEq / w) * 100);
+            
+            lblP.textContent = priceVal + " ₾";
+            lblQ.textContent = quantVal;
+
+            // Generate Explanation
+            let exp = "";
+            if (dLevel === 50 && sLevel === 50) {
+                exp = "ბაზარი სტაბილურია (საბაზისო წონასწორობა).";
+            } else if (dLevel > sLevel * 1.5) {
+                exp = "<b>დეფიციტი:</b> მოთხოვნა ბევრად აღემატება მიწოდებას. მყიდველები მზად არიან მეტი გადაიხადონ, ამიტომ <b>ფასი იზრდება</b>.";
+            } else if (sLevel > dLevel * 1.5) {
+                exp = "<b>ჭარბი წარმოება:</b> მიწოდება ბევრად აღემატება მოთხოვნას. საქონელი არ იყიდება, ამიტომ მწარმოებლები <b>ფასს ამცირებენ</b>.";
+            } else if (dLevel > 50 && sLevel > 50) {
+                exp = "ეკონომიკური ზრდა: იზრდება როგორც მოთხოვნა, ისე მიწოდება. ბაზრის მოცულობა (რაოდენობა) იზრდება.";
+            } else if (dLevel < 50 && sLevel < 50) {
+                exp = "ეკონომიკური კრიზისი / რეცესია: მცირდება წარმოებაც და მსყიდველობითი უნარიც. გაყიდვების რაოდენობა ეცემა.";
+            } else if (dLevel > 50) {
+                exp = "მოთხოვნის ზრდა იწვევს ფასისა და წარმოების წახალისებას.";
+            } else if (sLevel > 50) {
+                exp = "მიწოდების ზრდა (მაგ. ტექნოლოგიური პროგრესი) იწვევს ფასის კლებას, რაც კარგად აისახება მომხმარებელზე.";
+            } else {
+                exp = "ბაზარი ეძებს ახალ წონასწორობას ცვლილებების ფონზე.";
+            }
+            info.innerHTML = exp;
+        }
+
+        function resetSim() {
+            sd.value = 50;
+            ss.value = 50;
+            updateGraph();
+        }
+
+        // Handle resize properly
+        window.addEventListener('resize', updateGraph);
+        // Init
+        setTimeout(updateGraph, 100);
+    </script>
+</body>
+</html>

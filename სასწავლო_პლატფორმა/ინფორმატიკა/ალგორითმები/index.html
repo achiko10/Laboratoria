@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — ალგორითმები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #6366f1, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 850px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-sort { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .btn-gen { background: #334155; }
+        .btn-stop { background: #ef4444; }
+        select { padding: 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; font-family: inherit; font-size: 0.85rem; outline: none; }
+        .slider-wrap { display: flex; align-items: center; gap: 8px; }
+        .slider-wrap label { font-size: 0.8rem; color: #94a3b8; white-space: nowrap; }
+        input[type="range"] { -webkit-appearance: none; width: 120px; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #6366f1; cursor: pointer; }
+        .vis-area { background: #0f172a; border-radius: 12px; padding: 10px; height: 300px; display: flex; align-items: flex-end; gap: 1px; border: 1px solid rgba(255,255,255,0.05); }
+        .bar { flex: 1; border-radius: 2px 2px 0 0; transition: background 0.1s; position: relative; }
+        .bar.default { background: linear-gradient(180deg, #6366f1, #4f46e5); }
+        .bar.comparing { background: #f59e0b; }
+        .bar.sorted { background: #22c55e; }
+        .bar.pivot { background: #ef4444; }
+        .bar.active { background: #ec4899; }
+        .stats { display: flex; gap: 20px; justify-content: center; padding: 10px; font-size: 0.85rem; }
+        .stats span { color: #94a3b8; }
+        .stats b { color: #f8fafc; font-family: 'Courier New'; }
+        .legend { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; font-size: 0.75rem; color: #94a3b8; margin-top: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        .info-box { background: #0f172a; border-left: 3px solid #6366f1; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #a5b4fc; }
+        .complexity { display: flex; gap: 15px; margin-top: 8px; font-size: 0.8rem; }
+        .complexity span { padding: 4px 10px; background: rgba(99,102,241,0.15); border-radius: 5px; font-family: 'Courier New'; color: #a5b4fc; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>📊 სორტირების ალგორითმების ვიზუალიზაცია</h1>
+    <p class="subtitle">აირჩიე ალგორითმი, დააჭირე „სორტირება" და უყურე პროცესს ნაბიჯ-ნაბიჯ</p>
+    <div class="app">
+        <div class="card">
+            <div class="controls">
+                <select id="algo">
+                    <option value="bubble">Bubble Sort</option>
+                    <option value="selection">Selection Sort</option>
+                    <option value="insertion">Insertion Sort</option>
+                    <option value="quick">Quick Sort</option>
+                    <option value="merge">Merge Sort</option>
+                </select>
+                <div class="slider-wrap">
+                    <label>ზომა: <b id="size-val">40</b></label>
+                    <input type="range" id="size-slider" min="10" max="100" value="40">
+                </div>
+                <div class="slider-wrap">
+                    <label>სიჩქარე: <b id="speed-val">50</b>ms</label>
+                    <input type="range" id="speed-slider" min="5" max="200" value="50">
+                </div>
+                <button class="btn btn-gen" onclick="generateArray()">🔀 ახალი მასივი</button>
+                <button class="btn btn-sort" onclick="startSort()">▶ სორტირება</button>
+                <button class="btn btn-stop" onclick="stopSort()">⏹ შეჩერება</button>
+            </div>
+            <div class="vis-area" id="vis-area"></div>
+            <div class="stats">
+                <span>შედარებები: <b id="stat-comp">0</b></span>
+                <span>გადანაცვლებები: <b id="stat-swap">0</b></span>
+                <span>დრო: <b id="stat-time">0</b>ms</span>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#6366f1"></div> ჩვეულებრივი</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div> შედარება</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ec4899"></div> აქტიური</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div> პივოტი</div>
+                <div class="legend-item"><div class="legend-color" style="background:#22c55e"></div> დასორტირებული</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="info-box" id="algo-info"></div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        let arr = [];
+        let sorting = false;
+        let stopFlag = false;
+        let comparisons = 0, swaps = 0, startTime = 0;
+
+        const sizeSlider = document.getElementById('size-slider');
+        const speedSlider = document.getElementById('speed-slider');
+        sizeSlider.oninput = function() { document.getElementById('size-val').textContent = this.value; generateArray(); };
+        speedSlider.oninput = function() { document.getElementById('speed-val').textContent = this.value; };
+
+        const algoInfos = {
+            bubble: '<b>Bubble Sort:</b> მეზობელ ელემენტებს ადარებს და ცვლის ადგილებს. ყველაზე დიდი „ბუშტივით" მიცურავს ბოლოში.<div class="complexity"><span>O(n²) საშუალო</span><span>O(1) მეხსიერება</span><span>სტაბილური ✓</span></div>',
+            selection: '<b>Selection Sort:</b> პოულობს მინიმალურ ელემენტს და ათავსებს სწორ პოზიციაზე. მარტივი, მაგრამ ნელი.<div class="complexity"><span>O(n²) ყოველთვის</span><span>O(1) მეხსიერება</span><span>არასტაბილური ✗</span></div>',
+            insertion: '<b>Insertion Sort:</b> ელემენტს სწორ ადგილას ჩასვამს, როგორც კარტის დალაგებას ხელში. თითქმის დალაგებულ მონაცემებზე სწრაფია.<div class="complexity"><span>O(n²) საშუალო</span><span>O(1) მეხსიერება</span><span>სტაბილური ✓</span></div>',
+            quick: '<b>Quick Sort:</b> პივოტს ირჩევს, მასზე პატარებს მარცხნივ, დიდებს მარჯვნივ აწყობს. პრაქტიკაში ყველაზე სწრაფი.<div class="complexity"><span>O(n log n) საშუალო</span><span>O(log n) მეხს.</span><span>არასტაბილური ✗</span></div>',
+            merge: '<b>Merge Sort:</b> „გაყავი და იბატონე" — მასივს ყოფს ორად, ცალ-ცალკე ალაგებს, შემდეგ აერთიანებს. გარანტირებული O(n log n).<div class="complexity"><span>O(n log n) ყოველთვის</span><span>O(n) მეხსიერება</span><span>სტაბილური ✓</span></div>'
+        };
+
+        function generateArray() {
+            if (sorting) return;
+            const n = +sizeSlider.value;
+            arr = [];
+            for (let i = 0; i < n; i++) arr.push(Math.random() * 280 + 10);
+            comparisons = 0; swaps = 0;
+            document.getElementById('stat-comp').textContent = '0';
+            document.getElementById('stat-swap').textContent = '0';
+            document.getElementById('stat-time').textContent = '0';
+            renderBars();
+        }
+
+        function renderBars(highlights) {
+            const area = document.getElementById('vis-area');
+            const h = highlights || {};
+            area.innerHTML = arr.map((val, i) => {
+                let cls = 'default';
+                if (h.sorted && h.sorted.includes(i)) cls = 'sorted';
+                else if (h.pivot === i) cls = 'pivot';
+                else if (h.comparing && h.comparing.includes(i)) cls = 'comparing';
+                else if (h.active && h.active.includes(i)) cls = 'active';
+                return `<div class="bar ${cls}" style="height:${val}px"></div>`;
+            }).join('');
+        }
+
+        function delay() { return new Promise(r => setTimeout(r, +speedSlider.value)); }
+
+        function updateStats() {
+            document.getElementById('stat-comp').textContent = comparisons;
+            document.getElementById('stat-swap').textContent = swaps;
+            document.getElementById('stat-time').textContent = Date.now() - startTime;
+        }
+
+        async function startSort() {
+            if (sorting) return;
+            sorting = true; stopFlag = false;
+            comparisons = 0; swaps = 0;
+            startTime = Date.now();
+            const algo = document.getElementById('algo').value;
+            document.getElementById('algo-info').innerHTML = algoInfos[algo];
+
+            try {
+                if (algo === 'bubble') await bubbleSort();
+                else if (algo === 'selection') await selectionSort();
+                else if (algo === 'insertion') await insertionSort();
+                else if (algo === 'quick') await quickSort(0, arr.length - 1, []);
+                else if (algo === 'merge') await mergeSort(0, arr.length - 1, []);
+
+                if (!stopFlag) {
+                    const sorted = arr.map((_, i) => i);
+                    renderBars({ sorted });
+                }
+            } catch(e) {}
+            sorting = false;
+            updateStats();
+        }
+
+        function stopSort() { stopFlag = true; sorting = false; }
+
+        async function bubbleSort() {
+            const sorted = [];
+            for (let i = arr.length - 1; i > 0; i--) {
+                for (let j = 0; j < i; j++) {
+                    if (stopFlag) return;
+                    comparisons++;
+                    renderBars({ comparing: [j, j + 1], sorted });
+                    await delay();
+                    if (arr[j] > arr[j + 1]) {
+                        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                        swaps++;
+                    }
+                    updateStats();
+                }
+                sorted.push(i);
+            }
+            sorted.push(0);
+        }
+
+        async function selectionSort() {
+            const sorted = [];
+            for (let i = 0; i < arr.length; i++) {
+                let minIdx = i;
+                for (let j = i + 1; j < arr.length; j++) {
+                    if (stopFlag) return;
+                    comparisons++;
+                    renderBars({ comparing: [minIdx, j], active: [i], sorted });
+                    await delay();
+                    if (arr[j] < arr[minIdx]) minIdx = j;
+                    updateStats();
+                }
+                if (minIdx !== i) {
+                    [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+                    swaps++;
+                }
+                sorted.push(i);
+            }
+        }
+
+        async function insertionSort() {
+            const sorted = [0];
+            for (let i = 1; i < arr.length; i++) {
+                let key = arr[i];
+                let j = i - 1;
+                while (j >= 0 && arr[j] > key) {
+                    if (stopFlag) return;
+                    comparisons++;
+                    arr[j + 1] = arr[j];
+                    swaps++;
+                    renderBars({ comparing: [j, j + 1], active: [i], sorted });
+                    await delay();
+                    updateStats();
+                    j--;
+                }
+                arr[j + 1] = key;
+                sorted.push(i);
+            }
+        }
+
+        async function quickSort(lo, hi, sorted) {
+            if (lo >= hi) { if (lo >= 0 && lo < arr.length) sorted.push(lo); return; }
+            if (stopFlag) return;
+            let pivotIdx = hi;
+            let pivot = arr[hi];
+            let i = lo;
+            for (let j = lo; j < hi; j++) {
+                if (stopFlag) return;
+                comparisons++;
+                renderBars({ comparing: [j, i], pivot: pivotIdx, sorted });
+                await delay();
+                if (arr[j] < pivot) {
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                    swaps++;
+                    i++;
+                }
+                updateStats();
+            }
+            [arr[i], arr[hi]] = [arr[hi], arr[i]];
+            swaps++;
+            sorted.push(i);
+            renderBars({ sorted });
+            await quickSort(lo, i - 1, sorted);
+            await quickSort(i + 1, hi, sorted);
+        }
+
+        async function mergeSort(lo, hi, sorted) {
+            if (lo >= hi) { sorted.push(lo); return; }
+            if (stopFlag) return;
+            const mid = Math.floor((lo + hi) / 2);
+            await mergeSort(lo, mid, sorted);
+            await mergeSort(mid + 1, hi, sorted);
+            // Merge
+            const left = arr.slice(lo, mid + 1);
+            const right = arr.slice(mid + 1, hi + 1);
+            let i = 0, j = 0, k = lo;
+            while (i < left.length && j < right.length) {
+                if (stopFlag) return;
+                comparisons++;
+                renderBars({ comparing: [lo + i, mid + 1 + j], sorted });
+                await delay();
+                if (left[i] <= right[j]) { arr[k++] = left[i++]; }
+                else { arr[k++] = right[j++]; swaps++; }
+                updateStats();
+            }
+            while (i < left.length) { arr[k++] = left[i++]; }
+            while (j < right.length) { arr[k++] = right[j++]; }
+            for (let x = lo; x <= hi; x++) sorted.push(x);
+        }
+
+        // Init
+        document.getElementById('algo').onchange = function() {
+            document.getElementById('algo-info').innerHTML = algoInfos[this.value];
+        };
+        generateArray();
+        document.getElementById('algo-info').innerHTML = algoInfos.bubble;
+    </script>
+</body>
+</html>

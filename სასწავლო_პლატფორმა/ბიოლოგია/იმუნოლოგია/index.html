@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — იმუნოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #3b82f6, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; height: 450px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; }
+        .hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; z-index: 5; border: 1px solid rgba(255,255,255,0.05); }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 12px; }
+        .stat { background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .stat-val { font-weight: bold; font-size: 1.1rem; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; transition: 0.2s; color: white; width: 100%; }
+        button:hover { transform: translateY(-2px); }
+        .btn-infect { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .btn-vaccine { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .btn-reset { background: #334155; }
+        .health-bar { width: 100%; height: 12px; background: #0f172a; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .health-fill { height: 100%; transition: 0.3s; background: linear-gradient(90deg, #ef4444, #22c55e); }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #3b82f6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ იმუნური პასუხი</h1>
+    <p class="subtitle">ვირუსი vs ანტისხეულები — ორგანიზმის თავდაცვის სიმულაცია</p>
+    <div class="container">
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">
+                <div>⏱ დრო: <b id="time">0</b> წმ</div>
+            </div>
+        </div>
+        <div class="panel">
+            <button class="btn-infect" onclick="infect()">🦠 ინფექციის შეყვანა</button>
+            <button class="btn-vaccine" onclick="vaccinate()">💉 ვაქცინაცია</button>
+            <button class="btn-reset" onclick="resetSim()">↺ განულება</button>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <div style="font-size:0.8rem; color:#94a3b8;">ჯანმრთელობა:</div>
+            <div class="health-bar"><div class="health-fill" id="health-bar" style="width:100%;"></div></div>
+            <div class="stat"><span>🦠 ვირუსები</span><span class="stat-val" style="color:#ef4444;" id="v-count">0</span></div>
+            <div class="stat"><span>🔵 ლეიკოციტები</span><span class="stat-val" style="color:#60a5fa;" id="l-count">5</span></div>
+            <div class="stat"><span>🟡 ანტისხეულები</span><span class="stat-val" style="color:#eab308;" id="a-count">0</span></div>
+            <div id="status-msg" style="font-size:0.8rem; padding:8px; background:#0f172a; border-radius:6px; color:#22c55e;">🟢 ორგანიზმი ჯანმრთელია</div>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 იმუნური სისტემა:</strong><br>
+            • <strong>ვირუსი 🦠:</strong> შეჭრის შემდეგ მრავლდება სწრაფად.<br>
+            • <strong>ლეიკოციტები 🔵:</strong> თეთრი სისხლის უჯრედები ვირუსს ჭამენ (ფაგოციტოზი), მაგრამ ნელა.<br>
+            • <strong>ანტისხეულები 🟡:</strong> B-ლიმფოციტები აწარმოებენ — ვირუსს ეკვრიან და ანეიტრალებენ. ვაქცინაცია ამ პროცესს ამაჩქარებს!
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sim = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        let viruses = [], leukocytes = [], antibodies = [];
+        let health = 100;
+        let vaccinated = false;
+        let timeCount = 0;
+        let timer = null;
+
+        function resetSim() {
+            viruses = []; antibodies = [];
+            leukocytes = [];
+            health = 100; vaccinated = false; timeCount = 0;
+            clearInterval(timer);
+            for(let i=0;i<5;i++) leukocytes.push(makeEntity(W,H,1.2));
+            updateUI();
+            document.getElementById('status-msg').innerHTML = '🟢 ორგანიზმი ჯანმრთელია';
+            document.getElementById('status-msg').style.color = '#22c55e';
+        }
+
+        function makeEntity(mw,mh,spd) {
+            return { x:30+Math.random()*(mw-60), y:30+Math.random()*(mh-60), vx:(Math.random()-0.5)*spd, vy:(Math.random()-0.5)*spd };
+        }
+
+        function infect() {
+            for(let i=0;i<8;i++) viruses.push(makeEntity(W,H,1.5));
+            document.getElementById('status-msg').innerHTML = '🔴 ინფექცია!';
+            document.getElementById('status-msg').style.color = '#ef4444';
+            if(!timer) timer = setInterval(() => { timeCount++; document.getElementById('time').textContent = timeCount; }, 1000);
+            // Start producing antibodies after delay (faster if vaccinated)
+            const delay = vaccinated ? 500 : 3000;
+            setTimeout(() => {
+                const interval = setInterval(() => {
+                    if(viruses.length > 0 && antibodies.length < 80) {
+                        antibodies.push(makeEntity(W,H,2.5));
+                        if(vaccinated) antibodies.push(makeEntity(W,H,2.5)); // Double if vaccinated
+                    } else if(viruses.length === 0) clearInterval(interval);
+                }, vaccinated ? 200 : 500);
+            }, delay);
+        }
+
+        function vaccinate() {
+            vaccinated = true;
+            document.getElementById('status-msg').innerHTML = '💉 ვაქცინირებული — იმუნიტეტი გაძლიერებულია!';
+            document.getElementById('status-msg').style.color = '#3b82f6';
+            // Pre-create some antibodies (memory cells)
+            for(let i=0;i<10;i++) antibodies.push(makeEntity(W,H,2.5));
+        }
+
+        function updateUI() {
+            document.getElementById('v-count').textContent = viruses.length;
+            document.getElementById('l-count').textContent = leukocytes.length;
+            document.getElementById('a-count').textContent = antibodies.length;
+            document.getElementById('health-bar').style.width = health + '%';
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+
+            // Blood background
+            ctx.fillStyle = 'rgba(127, 29, 29, 0.15)';
+            ctx.fillRect(0,0,W,H);
+
+            // Virus reproduce
+            if(Math.random() < 0.005 * viruses.length && viruses.length < 100) {
+                viruses.push(makeEntity(W,H,1.5));
+            }
+            // Damage
+            if(viruses.length > 0) { health -= viruses.length * 0.01; if(health < 0) health = 0; }
+            // Recover if clean
+            if(viruses.length === 0 && health < 100) health += 0.1;
+
+            // Move entities
+            const moveEntity = (e, spd) => {
+                e.x += e.vx; e.y += e.vy;
+                e.vx += (Math.random()-0.5)*0.2; e.vy += (Math.random()-0.5)*0.2;
+                const s = Math.sqrt(e.vx*e.vx+e.vy*e.vy);
+                if(s > spd) { e.vx *= spd/s; e.vy *= spd/s; }
+                if(e.x<5||e.x>W-5) e.vx*=-1;
+                if(e.y<5||e.y>H-5) e.vy*=-1;
+            };
+
+            // Leukocytes chase and eat viruses
+            leukocytes.forEach(l => {
+                let closest = null, minD = 999;
+                viruses.forEach(v => { const d = Math.sqrt((v.x-l.x)**2+(v.y-l.y)**2); if(d<minD){minD=d;closest=v;} });
+                if(closest && minD < 150) {
+                    const ang = Math.atan2(closest.y-l.y, closest.x-l.x);
+                    l.vx += Math.cos(ang)*0.1; l.vy += Math.sin(ang)*0.1;
+                }
+                moveEntity(l, 1.2);
+                // Eat
+                if(closest && minD < 12) closest.dead = true;
+
+                // Draw
+                ctx.beginPath(); ctx.arc(l.x, l.y, 10, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(96,165,250,0.8)'; ctx.fill();
+                ctx.strokeStyle = '#93c5fd'; ctx.lineWidth = 2; ctx.stroke();
+                // Pseudopods
+                for(let a=0;a<6;a++) {
+                    const pa = a*Math.PI/3 + Date.now()*0.002;
+                    ctx.beginPath(); ctx.arc(l.x+Math.cos(pa)*12, l.y+Math.sin(pa)*12, 4, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(96,165,250,0.5)'; ctx.fill();
+                }
+            });
+
+            // Antibodies chase viruses
+            antibodies.forEach(a => {
+                let closest = null, minD = 999;
+                viruses.forEach(v => { const d = Math.sqrt((v.x-a.x)**2+(v.y-a.y)**2); if(d<minD){minD=d;closest=v;} });
+                if(closest && minD < 200) {
+                    const ang = Math.atan2(closest.y-a.y, closest.x-a.x);
+                    a.vx += Math.cos(ang)*0.15; a.vy += Math.sin(ang)*0.15;
+                }
+                moveEntity(a, 2.5);
+                if(closest && minD < 10) { closest.dead = true; a.dead = true; }
+
+                // Draw Y shape
+                ctx.strokeStyle = '#eab308'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y+5); ctx.lineTo(a.x, a.y-2);
+                ctx.lineTo(a.x-4, a.y-6); ctx.moveTo(a.x, a.y-2); ctx.lineTo(a.x+4, a.y-6);
+                ctx.stroke();
+            });
+
+            // Viruses
+            viruses.forEach(v => {
+                moveEntity(v, 1.5);
+                // Spiky ball
+                ctx.beginPath(); ctx.arc(v.x, v.y, 6, 0, Math.PI*2);
+                ctx.fillStyle = '#ef4444'; ctx.fill();
+                for(let s=0;s<8;s++) {
+                    const sa = s*Math.PI/4;
+                    ctx.beginPath(); ctx.moveTo(v.x+Math.cos(sa)*6, v.y+Math.sin(sa)*6);
+                    ctx.lineTo(v.x+Math.cos(sa)*10, v.y+Math.sin(sa)*10);
+                    ctx.strokeStyle='#ef4444'; ctx.lineWidth=1.5; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(v.x+Math.cos(sa)*10, v.y+Math.sin(sa)*10, 1.5, 0, Math.PI*2);
+                    ctx.fillStyle='#fca5a5'; ctx.fill();
+                }
+            });
+
+            // Remove dead
+            viruses = viruses.filter(v => !v.dead);
+            antibodies = antibodies.filter(a => !a.dead);
+
+            // Check victory
+            if(viruses.length === 0 && timeCount > 0) {
+                document.getElementById('status-msg').innerHTML = '🟢 ინფექცია დამარცხებულია!';
+                document.getElementById('status-msg').style.color = '#22c55e';
+            }
+
+            updateUI();
+            requestAnimationFrame(draw);
+        }
+        resetSim();
+        draw();
+    </script>
+</body>
+</html>

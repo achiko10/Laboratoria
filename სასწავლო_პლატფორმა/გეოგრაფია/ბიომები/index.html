@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — ბიომები (კლიმატური ზონები)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 340px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        .graph-area { position: relative; width: 100%; aspect-ratio: 1; background: #0f172a; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); border-bottom: 2px solid #64748b; border-left: 2px solid #64748b; margin-top: 20px; margin-left: 25px; margin-bottom: 25px; cursor: crosshair; }
+        .axis-label-y { position: absolute; left: -30px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
+        .axis-label-x { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: #94a3b8; }
+        .axis-tick { position: absolute; font-size: 0.6rem; color: #64748b; font-family: 'Courier New'; }
+        
+        /* Biome Regions in Graph (Whittaker Biome Diagram simplified) */
+        .biome-poly { position: absolute; border: 1px solid rgba(255,255,255,0.2); transition: 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; text-align: center; color: rgba(255,255,255,0.8); }
+        .biome-poly:hover { filter: brightness(1.2); z-index: 10; border-color: #fff; }
+        .biome-poly.active { border: 2px solid #fff; z-index: 11; font-size: 0.85rem; text-shadow: 1px 1px 2px #000; box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+
+        .pointer { position: absolute; width: 12px; height: 12px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); z-index: 20; pointer-events: none; opacity: 0; box-shadow: 0 0 10px #ef4444; transition: 0.1s; }
+
+        .biome-info { display: flex; flex-direction: column; gap: 15px; }
+        .b-header { border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .b-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .b-emoji { font-size: 2.5rem; margin-bottom: 5px; }
+        
+        .b-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .b-stat { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .b-stat-title { font-size: 0.7rem; color: #94a3b8; margin-bottom: 5px; }
+        .b-stat-val { font-family: 'Courier New'; font-size: 0.95rem; font-weight: bold; color: #f8fafc; }
+        
+        .b-desc { background: #0f172a; border-left: 3px solid #10b981; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #cbd5e1; line-height: 1.6; }
+        .b-list { list-style: none; margin-top: 10px; font-size: 0.8rem; color: #94a3b8; }
+        .b-list li { margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌴 ბიომები და კლიმატი</h1>
+    <p class="subtitle">დააკლიკე ტემპერატურა/ნალექის გრაფიკს, რომ ნახო თუ რომელი ბიომი ფორმირდება</p>
+    <div class="app">
+        <div class="card" style="padding-bottom: 40px; padding-right: 30px;">
+            <div style="font-weight:bold; color:#10b981; margin-bottom:5px; text-align:center;">უიტეკერის ბიომების დიაგრამა</div>
+            <div class="graph-area" id="graph">
+                <div class="axis-label-y">წლიური ნალექი (სმ)</div>
+                <div class="axis-label-x">საშუალო წლიური ტემპერატურა (°C)</div>
+                <div class="pointer" id="pointer"></div>
+                <!-- Ticks inserted by JS -->
+            </div>
+        </div>
+        
+        <div class="biome-info card" style="background:#0f172a;">
+            <div class="b-header" id="b-header" style="background: linear-gradient(135deg, #10b981, #047857);">
+                <div class="b-emoji" id="b-emoji">🌍</div>
+                <div class="b-title" id="b-title">აირჩიე რეგიონი</div>
+            </div>
+            
+            <div class="b-stats" id="b-stats" style="display:none;">
+                <div class="b-stat">
+                    <div class="b-stat-title">🌡️ ტემპერატურა</div>
+                    <div class="b-stat-val" id="b-temp">-</div>
+                </div>
+                <div class="b-stat">
+                    <div class="b-stat-title">🌧️ ნალექი</div>
+                    <div class="b-stat-val" id="b-prec">-</div>
+                </div>
+            </div>
+
+            <div class="b-desc" id="b-desc">
+                ბიომი არის გეოგრაფიული არეალი, რომელსაც აქვს მსგავსი კლიმატი, ფლორა და ფაუნა. კლიმატს ძირითადად განსაზღვრავს ტემპერატურა და ნალექების რაოდენობა.
+            </div>
+
+            <ul class="b-list" id="b-flora" style="display:none;">
+                <li><b style="color:#ef4444;">ფლორა:</b> <span id="f-val"></span></li>
+                <li><b style="color:#3b82f6;">ფაუნა:</b> <span id="a-val"></span></li>
+            </ul>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const graph = document.getElementById('graph');
+        
+        // Ranges -> T: -15 to 30  (span 45) -> X axis
+        //         P: 0 to 400 (span 400) -> Y axis
+        const minT = -15, maxT = 30;
+        const minP = 0, maxP = 450;
+
+        // Approx coordinates for Whittaker Diagram regions (in Graph Percentages: left=0, right=100, bottom=100, top=0)
+        // Function to map T, P to %
+        function getX(t) { return Math.max(0, Math.min(100, ((t - minT) / (maxT - minT)) * 100)); }
+        function getY(p) { return Math.max(0, Math.min(100, 100 - ((p - minP) / (maxP - minP)) * 100)); }
+
+        const biomes = [
+            { id:'tundra', title:'ტუნდრა', emoji:'❄️', temp:'-15°C – 5°C', prec:'0 – 50 სმ', color:'#93c5fd', 
+              coords: [[-15,50], [-15,0], [5,0], [5,100], [-5,100], [-15,50]],
+              desc: 'ცივი, ხეების გარეშე, ძლიერი ქარები. მიწა მუდმივად გაყინულია (პერმაფროსტი).', flora:'ხავსები, ლიქენები, ჯუჯა ბუჩქები', fauna:'პოლარული დათვი, არქტიკული მელა, ლემინგი' },
+              
+            { id:'taiga', title:'ტაიგა (ბორეალური)', emoji:'🌲', temp:'-5°C – 10°C', prec:'50 – 150 სმ', color:'#059669', 
+              coords: [[-5,100], [5,100], [5,0], [15,0], [15,150], [0,150], [-5,100]],
+              desc: 'უდიდესი ხმელეთის ბიომი. ხანგრძლივი და ცივი ზამთარი, მოკლე ზაფხული. დომინირებს წიწვოვანი ტყე.', flora:'ფიჭვი, ნაძვი, სოჭი', fauna:'დათვი, მგელი, ლოსი, ფოცხვერი' },
+            
+            { id:'desert', title:'უდაბნო', emoji:'🌵', temp:'10°C – 30°C', prec:'0 – 50 სმ', color:'#fde047', textColor:'#b45309',
+              coords: [[15,0], [30,0], [30,50], [15,50], [15,0]],
+              desc: 'მშრალი და ცხელი არეალი ძალიან მცირე ნალექით. ორგანიზმები მორგებულნი არიან წყლის შენარჩუნებას.', flora:'კაქტუსი, ეკლოვანი ბუჩქები', fauna:'აქლემი, ხვლიკი, მორიელი, გველი' },
+              
+            { id:'grassland', title:'სტეპი / პრერია', emoji:'🌾', temp:'0°C – 20°C', prec:'50 – 100 სმ', color:'#a3e635', textColor:'#3f6212',
+              coords: [[15,50], [30,50], [30,120], [20,120], [15,50]], // roughly mapped
+              desc: 'დომინირებს ბალახი და არა ხეები. ზაფხული ცხელია, ზამთარი ცივი. ხშირია ხანძრები, რაც ანახლებს ნიადაგს.', flora:'მარცვლოვანი ბალახები, მცირე ბუჩქები', fauna:'ბიზონი, ანტილოპა, კურდღელი, კოიოტი' },
+
+            { id:'savanna', title:'სავანა', emoji:'🦒', temp:'20°C – 30°C', prec:'100 – 150 სმ', color:'#f59e0b',
+              coords: [[20,120], [30,120], [30,180], [20,150], [20,120]],
+              desc: 'ტროპიკული სტეპი. აქვს მკვეთრად გამოხატული მშრალი და წვიმიანი სეზონები. ხეები იზრდება მეჩხერად.', flora:'ბაობაბი, აკაცია', fauna:'ლომი, ჟირაფი, ზებრა, სპილო, გეპარდი' },
+              
+            { id:'deciduous', title:'ფოთლოვანი ტყე', emoji:'🍂', temp:'5°C – 20°C', prec:'100 – 200 სმ', color:'#84cc16', textColor:'#166534',
+              coords: [[5,100], [15,100], [20,150], [20,200], [10,200], [5,100]],
+              desc: 'ოთხი სეზონი. ხეებს ზამთარში ფოთლები სცვივა სინათლის სიმცირის გამო.', flora:'მუხა, ნეკერჩხალი, რცხილა', fauna:'ირემი, დათვი, მელა, ციყვი' },
+              
+            { id:'rainforest', title:'ტროპიკული წვიმის ტყე', emoji:'🦜', temp:'20°C – 30°C', prec:'250 – 450 სმ', color:'#065f46',
+              coords: [[20,200], [30,180], [30,450], [20,450], [20,200]],
+              desc: 'ცხელი და ნესტიანი მთელი წელი. შეიცავს დედამიწის ბიომრავალფეროვნების ნახევარს. პრაქტიკულად არ აქვს სეზონები.', flora:'ორქიდეა, ლიანა, მაღალი ფოთლოვანი ხეები', fauna:'მაიმუნი, იაგუარი, ტუკანი, ბაყაყი' }
+        ];
+
+        // Draw ticks
+        for(let t=minT; t<=maxT; t+=10) {
+            let el = document.createElement('div');
+            el.className = 'axis-tick';
+            el.style.left = getX(t) + '%';
+            el.style.bottom = '-18px';
+            el.style.transform = 'translateX(-50%)';
+            el.textContent = t;
+            graph.appendChild(el);
+            
+            let tickLine = document.createElement('div');
+            tickLine.style.position = 'absolute'; tickLine.style.left = getX(t)+'%'; tickLine.style.bottom = '0';
+            tickLine.style.width = '1px'; tickLine.style.height = '4px'; tickLine.style.background = '#64748b';
+            graph.appendChild(tickLine);
+        }
+        for(let p=0; p<=maxP; p+=100) {
+            let el = document.createElement('div');
+            el.className = 'axis-tick';
+            el.style.top = getY(p) + '%';
+            el.style.left = '-25px';
+            el.style.transform = 'translateY(-50%)';
+            el.textContent = p;
+            graph.appendChild(el);
+
+            let tickLine = document.createElement('div');
+            tickLine.style.position = 'absolute'; tickLine.style.top = getY(p)+'%'; tickLine.style.left = '-4px';
+            tickLine.style.width = '4px'; tickLine.style.height = '1px'; tickLine.style.background = '#64748b';
+            graph.appendChild(tickLine);
+            
+            // Grid lines
+            let gl = document.createElement('div');
+            gl.style.position = 'absolute'; gl.style.top = getY(p)+'%'; gl.style.left = '0';
+            gl.style.width = '100%'; gl.style.height = '1px'; gl.style.background = 'rgba(255,255,255,0.05)';
+            graph.appendChild(gl);
+        }
+
+        // Draw biomes using clip-path polygons on absolute divs mapping to the coords
+        biomes.forEach(b => {
+            const poly = document.createElement('div');
+            poly.className = 'biome-poly';
+            poly.style.background = b.color;
+            if(b.textColor) poly.style.color = b.textColor;
+            
+            // convert coords to percentages for polygon clip-path
+            // We need to find the bounding box of the polygon in graph % to position the div, 
+            // then calculate clip-path percentages relative to that div.
+            let minX = 100, maxX = 0, minY = 100, maxY = 0;
+            const pts = b.coords.map(pt => {
+                const px = getX(pt[0]);
+                const py = getY(pt[1]);
+                if(px < minX) minX = px; if(px > maxX) maxX = px;
+                if(py < minY) minY = py; if(py > maxY) maxY = py;
+                return {x: px, y: py};
+            });
+            
+            poly.style.left = minX + '%';
+            poly.style.top = minY + '%';
+            poly.style.width = (maxX - minX) + '%';
+            poly.style.height = (maxY - minY) + '%';
+            
+            const clipPts = pts.map(pt => {
+                const cx = ((pt.x - minX) / (maxX - minX)) * 100;
+                const cy = ((pt.y - minY) / (maxY - minY)) * 100;
+                return `${cx.toFixed(1)}% ${cy.toFixed(1)}%`;
+            });
+            
+            poly.style.clipPath = `polygon(${clipPts.join(', ')})`;
+            poly.textContent = b.title;
+            
+            poly.addEventListener('click', (e) => {
+                e.stopPropagation();
+                activateBiome(b, e.clientX, e.clientY);
+            });
+            graph.appendChild(poly);
+        });
+
+        const pointer = document.getElementById('pointer');
+        graph.addEventListener('mousemove', (e) => {
+            const rect = graph.getBoundingClientRect();
+            // Just move pointer
+            pointer.style.opacity = 1;
+            pointer.style.left = (e.clientX - rect.left) + 'px';
+            pointer.style.top = (e.clientY - rect.top) + 'px';
+        });
+
+        graph.addEventListener('mouseleave', () => pointer.style.opacity = 0);
+
+        function activateBiome(b, cx, cy) {
+            document.querySelectorAll('.biome-poly').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const header = document.getElementById('b-header');
+            header.style.background = `linear-gradient(135deg, ${b.color}, #0f172a)`;
+            document.getElementById('b-emoji').textContent = b.emoji;
+            document.getElementById('b-title').textContent = b.title;
+            document.getElementById('b-title').style.color = b.textColor || '#fff';
+            
+            document.getElementById('b-stats').style.display = 'grid';
+            document.getElementById('b-temp').textContent = b.temp;
+            document.getElementById('b-prec').textContent = b.prec;
+            
+            document.getElementById('b-desc').textContent = b.desc;
+            document.getElementById('b-desc').style.borderLeftColor = b.color;
+            
+            document.getElementById('b-flora').style.display = 'block';
+            document.getElementById('f-val').textContent = b.flora;
+            document.getElementById('a-val').textContent = b.fauna;
+            
+            // If pointer wasn't updated via hover (e.g. mobile)
+            if(cx !== undefined) {
+                const rect = graph.getBoundingClientRect();
+                pointer.style.opacity = 1;
+                pointer.style.left = (cx - rect.left) + 'px';
+                pointer.style.top = (cy - rect.top) + 'px';
+            }
+        }
+        
+        // Trigger initial
+        activateBiome(biomes[6]); // Rainforest
+    </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — ქიმიური ბმები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #14b8a6, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 400px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5); padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.05); }
+        .hud span { color: #14b8a6; font-weight: bold; }
+
+        .controls { display: flex; gap: 15px; padding: 20px; background: #111827; border-radius: 12px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+        
+        .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
+        .ctrl-group label { font-size: 0.8rem; color: #64748b; }
+        select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 10px 15px; border-radius: 8px; outline: none; font-family: inherit; font-size: 0.9rem; cursor: pointer; min-width: 250px; }
+        button { background: linear-gradient(135deg, #14b8a6, #0ea5e9); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; font-size: 0.9rem; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(20,184,166,0.3); }
+
+        .info-panel { background: #1e293b; border-radius: 12px; padding: 16px 20px; margin-top: 15px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #14b8a6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+
+        /* Animation Layers */
+        .atom { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; transition: 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); z-index: 2; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
+        .atom::after { content:''; position: absolute; top:0; left:0; right:0; bottom:0; border-radius:50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: -1; }
+        
+        .orbit { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.15); top: 50%; left: 50%; transform: translate(-50%, -50%); transition: 1.5s; z-index: 1; }
+        
+        .electron { position: absolute; width: 10px; height: 10px; background: #facc15; border-radius: 50%; z-index: 3; box-shadow: 0 0 8px #facc15; transition: 1s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        
+        /* Specific visuals */
+        .a-na { background: linear-gradient(135deg, #ef4444, #b91c1c); width: 80px; height: 80px; }
+        .a-cl { background: linear-gradient(135deg, #10b981, #047857); width: 90px; height: 90px; }
+        .a-h  { background: linear-gradient(135deg, #8b5cf6, #5b21b6); width: 60px; height: 60px; }
+        .a-o  { background: linear-gradient(135deg, #3b82f6, #1d4ed8); width: 75px; height: 75px; }
+
+        .msg-box { position: absolute; bottom: 30px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px; font-weight: bold; opacity: 0; transition: 0.5s; backdrop-filter: blur(5px); }
+        .msg-box.show { opacity: 1; transform: translateY(-10px); }
+    </style>
+</head>
+<body>
+    <h1>🔗 ქიმიური ბმები</h1>
+    <p class="subtitle">დააკვირდი როგორ იზიარებენ ან გადასცემენ ატომები ელექტრონებს</p>
+
+    <div class="container">
+        <div class="sim-area" id="sim-area">
+            <div class="hud">ბმის ტიპი: <span id="bond-type">—</span></div>
+            <!-- Atoms will be injected here -->
+            <div class="msg-box" id="msg-box"></div>
+        </div>
+
+        <div class="controls">
+            <div class="ctrl-group">
+                <label>აირჩიე რეაქცია:</label>
+                <select id="reaction-type">
+                    <option value="ionic">ნატრიუმი და ქლორი (Na + Cl → NaCl)</option>
+                    <option value="covalent1">წყალბადი და წყალბადი (H + H → H₂)</option>
+                    <option value="covalent2">ჟანგბადი და წყალბადები (O + 2H → H₂O)</option>
+                </select>
+            </div>
+            <button onclick="startSimulation()">▶ ბმის ფორმირება</button>
+            <button onclick="resetSimulation()" style="background: #334155;">↺ განულება</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ბმების ტიპები:</strong><br>
+            • <strong>იონური ბმა (Ionic):</strong> ერთი ატომი სრულად გადასცემს ელექტრონს მეორეს. წარმოიქმნება დადებითი (კატიონი) და უარყოფითი (ანიონი) იონები, რომლებიც ერთმანეთს მიიზიდავენ.<br>
+            • <strong>კოვალენტური ბმა (Covalent):</strong> არამეტალის ატომები იზიარებენ ელექტრონების წყვილს, რათა ორივემ მიაღწიოს მდგრად ელექტრონულ გარსს.
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const simArea = document.getElementById('sim-area');
+        const cx = 450; // approx center
+        const cy = 200;
+
+        let animInterval;
+        let elementsDOM = [];
+
+        function clearSim() {
+            clearInterval(animInterval);
+            elementsDOM.forEach(el => el.remove());
+            elementsDOM = [];
+            document.getElementById('msg-box').className = 'msg-box';
+        }
+
+        function createAtom(name, type, x, y, size, outerElectrons, rOrbit) {
+            const atom = document.createElement('div');
+            atom.className = `atom a-${type.toLowerCase()}`;
+            atom.style.left = `${x}px`;
+            atom.style.top = `${y}px`;
+            atom.style.width = `${size}px`;
+            atom.style.height = `${size}px`;
+            atom.style.marginLeft = `-${size/2}px`;
+            atom.style.marginTop = `-${size/2}px`;
+            atom.innerHTML = name;
+
+            const orbit = document.createElement('div');
+            orbit.className = 'orbit';
+            orbit.style.width = `${rOrbit*2}px`;
+            orbit.style.height = `${rOrbit*2}px`;
+            atom.appendChild(orbit);
+
+            const electronNodes = [];
+            for(let i=0; i<outerElectrons; i++) {
+                const eNodes = document.createElement('div');
+                eNodes.className = 'electron';
+                eNodes.dataset.angle = (i/outerElectrons) * Math.PI * 2;
+                eNodes.dataset.radius = rOrbit;
+                simArea.appendChild(eNodes);
+                electronNodes.push({ node: eNodes, currentAngle: parseFloat(eNodes.dataset.angle), active: true });
+            }
+
+            simArea.appendChild(atom);
+            const dataObj = { atom, orbit, electrons: electronNodes, x, y, rOrbit, charge: 0, sharedNode: null };
+            elementsDOM.push(dataObj);
+            return dataObj;
+        }
+
+        function updateElectronsPos(obj, angleOffset = 0) {
+            obj.electrons.forEach(el => {
+                if(!el.active) return;
+                el.currentAngle += 0.02; // rotation speed
+                const ax = parseFloat(obj.atom.style.left);
+                const ay = parseFloat(obj.atom.style.top);
+                const r = obj.rOrbit;
+                
+                el.node.style.left = `${ax + Math.cos(el.currentAngle) * r - 5}px`;
+                el.node.style.top = `${ay + Math.sin(el.currentAngle) * r - 5}px`;
+            });
+        }
+
+        function resetSimulation() {
+            clearSim();
+            const type = document.getElementById('reaction-type').value;
+
+            if (type === 'ionic') {
+                document.getElementById('bond-type').textContent = '—';
+                // Na: 1 valence e, Cl: 7 valence e
+                createAtom('Na', 'na', cx - 180, cy, 80, 1, 65);
+                createAtom('Cl', 'cl', cx + 180, cy, 90, 7, 75);
+            } else if (type === 'covalent1') {
+                document.getElementById('bond-type').textContent = '—';
+                // H: 1 valence e
+                createAtom('H', 'h', cx - 120, cy, 60, 1, 45);
+                createAtom('H', 'h', cx + 120, cy, 60, 1, 45);
+            } else if (type === 'covalent2') {
+                document.getElementById('bond-type').textContent = '—';
+                // O: 6 valence e, H: 1 valence e
+                createAtom('H', 'h', cx - 180, cy + 50, 60, 1, 45);
+                createAtom('O', 'o', cx, cy, 75, 6, 60);
+                createAtom('H', 'h', cx + 180, cy + 50, 60, 1, 45);
+            }
+
+            animInterval = setInterval(() => {
+                elementsDOM.forEach(obj => updateElectronsPos(obj));
+            }, 30);
+        }
+
+        function showMessage(msg, color) {
+            const m = document.getElementById('msg-box');
+            m.innerHTML = msg;
+            m.style.border = `2px solid ${color}`;
+            m.style.color = color;
+            m.classList.add('show');
+        }
+
+        function startSimulation() {
+            const type = document.getElementById('reaction-type').value;
+
+            if (type === 'ionic') {
+                document.getElementById('bond-type').textContent = 'იონური (Na⁺ Cl⁻)';
+                const na = elementsDOM[0];
+                const cl = elementsDOM[1];
+                
+                // Move together slightly
+                na.atom.style.left = `${cx - 90}px`;
+                cl.atom.style.left = `${cx + 90}px`;
+                
+                // Transfer electron from Na to Cl
+                setTimeout(() => {
+                    const eToMove = na.electrons[0];
+                    eToMove.active = false; // stop rotation relative to Na
+                    
+                    // Add to Cl
+                    cl.electrons.push({ node: eToMove.node, currentAngle: Math.PI, active: true });
+                    na.electrons = []; // Na loses valence shell
+                    na.orbit.style.opacity = '0'; // Orbit disappears
+                    
+                    na.atom.innerHTML = 'Na⁺';
+                    cl.atom.innerHTML = 'Cl⁻';
+                    showMessage('მიზიდულობა სრულად გადაცემული ელექტრონის გამო!', '#facc15');
+                }, 1500);
+
+            } else if (type === 'covalent1') {
+                document.getElementById('bond-type').textContent = 'კოვალენტური არაპოლარული (H₂)';
+                const h1 = elementsDOM[0];
+                const h2 = elementsDOM[1];
+
+                // Merge orbits
+                h1.atom.style.left = `${cx - 30}px`;
+                h2.atom.style.left = `${cx + 30}px`;
+
+                setTimeout(() => {
+                    // Stop regular rotation, position in middle
+                    h1.electrons[0].active = false;
+                    h2.electrons[0].active = false;
+                    
+                    h1.electrons[0].node.style.left = `${cx - 5}px`;
+                    h1.electrons[0].node.style.top = `${cy - 12}px`;
+                    
+                    h2.electrons[0].node.style.left = `${cx - 5}px`;
+                    h2.electrons[0].node.style.top = `${cy + 8}px`;
+
+                    showMessage('ელექტრონების გაზიარება საერთო ბმის შესაქმნელად!', '#0ea5e9');
+                }, 1500);
+
+            } else if (type === 'covalent2') {
+                document.getElementById('bond-type').textContent = 'კოვალენტური პოლარული (H₂O)';
+                const h1 = elementsDOM[0];
+                const o = elementsDOM[1];
+                const h2 = elementsDOM[2];
+
+                h1.atom.style.left = `${cx - 70}px`;
+                h1.atom.style.top = `${cy + 40}px`;
+                
+                h2.atom.style.left = `${cx + 70}px`;
+                h2.atom.style.top = `${cy + 40}px`;
+
+                setTimeout(() => {
+                    h1.electrons[0].active = false;
+                    h2.electrons[0].active = false;
+                    
+                    // Stop two of oxygen's electrons to share
+                    o.electrons[0].active = false;
+                    o.electrons[1].active = false;
+                    
+                    // Shared pair 1 (Left H)
+                    h1.electrons[0].node.style.left = `${cx - 48}px`; h1.electrons[0].node.style.top = `${cy + 22}px`;
+                    o.electrons[0].node.style.left = `${cx - 38}px`; o.electrons[0].node.style.top = `${cy + 30}px`;
+
+                    // Shared pair 2 (Right H)
+                    h2.electrons[0].node.style.left = `${cx + 38}px`; h2.electrons[0].node.style.top = `${cy + 22}px`;
+                    o.electrons[1].node.style.left = `${cx + 28}px`; o.electrons[1].node.style.top = `${cy + 30}px`;
+
+                    showMessage('წყლის მოლეკულა წარმოიქმნა გაზიარებული ელექტრონებით.', '#14b8a6');
+                }, 1500);
+            }
+        }
+
+        // Init
+        document.getElementById('reaction-type').addEventListener('change', resetSimulation);
+        resetSimulation();
+
+    </script>
+</body>
+</html>

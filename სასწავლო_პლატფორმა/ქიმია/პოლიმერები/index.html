@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — პოლიმერები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; position: relative; height: 400px; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        .hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); }
+        .val-hl { color: #ec4899; font-weight: bold; font-size: 1.1rem; }
+
+        .controls { background: #111827; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        
+        button { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; color: white; }
+        button:hover { transform: translateY(-2px); }
+        
+        .btn-start { background: linear-gradient(135deg, #ec4899, #8b5cf6); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
+        .btn-reset { background: #334155; }
+
+        .info-panel { background: #1e293b; border-left: 3px solid #ec4899; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🔗 პოლიმერები (პოლიმერიზაცია)</h1>
+    <p class="subtitle">დააკვირდი როგორ ერთდება მცირე მოლეკულები (მონომერები) დიდ ჯაჭვად (პოლიმერი)</p>
+
+    <div class="container">
+        <div class="sim-area" id="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">
+                <div>თავისუფალი მონომერები: <span class="val-hl" id="count-free" style="color:#0ea5e9;">20</span></div>
+                <div>პოლიმერის ჯაჭვის სიგრძე: <span class="val-hl" id="count-chain">0</span></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" id="btn-start" onclick="startPoly()">⚡ პოლიმერიზაციის დაწყება</button>
+            <button class="btn-reset" onclick="resetSim()">↺ განულება</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 პოლიმერები:</strong> გიგანტური მოლეკულები (მაკრომოლეკულები), რომლებიც შედგება ბევრი მცირე განმეორებადი ერთეულისგან (მონომერებისგან).<br>
+            • <strong>პოლიმერიზაციის რეაქცია:</strong> ორმაგი ბმების ($C=C$) გაწყვეტა და მათი მეშვეობით მონომერების გადაბმა ერთ გრძელ ჯაჭვად.<br>
+            • <strong>მაგალითები:</strong> ეთილენი $\rightarrow$ პოლიეთილენი (პლასტმასი), ამინომჟავები $\rightarrow$ ცილები, ნუკლეოტიდები $\rightarrow$ დნმ.
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const simArea = document.getElementById('sim-area');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = simArea.offsetWidth * devicePixelRatio; canvas.height = simArea.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = simArea.offsetWidth; H = simArea.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        let monomers = [];
+        let polymerChain = [];
+        let running = false;
+        let catalyst = null;
+
+        function resetSim() {
+            monomers = [];
+            polymerChain = [];
+            running = false;
+            catalyst = null;
+            document.getElementById('btn-start').disabled = false;
+            document.getElementById('btn-start').style.opacity = '1';
+
+            for(let i=0; i<30; i++) {
+                monomers.push({
+                    id: i,
+                    x: 30 + Math.random() * (W - 60),
+                    y: 30 + Math.random() * (H - 60),
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    angle: Math.random() * Math.PI,
+                    va: (Math.random() - 0.5) * 0.1
+                });
+            }
+            updateHUD();
+        }
+
+        function startPoly() {
+            if(running) return;
+            running = true;
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('btn-start').style.opacity = '0.5';
+
+            // Add radical/catalyst
+            catalyst = { x: 50, y: H/2, vx: 4, vy: 0 };
+        }
+
+        function updateHUD() {
+            document.getElementById('count-free').textContent = monomers.length;
+            document.getElementById('count-chain').textContent = polymerChain.length;
+        }
+
+        function drawMonomer(x, y, a, isPoly) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(a);
+
+            // Draw C=C or C-C
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            if(!isPoly) {
+                // Double bond
+                ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(10, -3); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-10, 3); ctx.lineTo(10, 3); ctx.stroke();
+            } else {
+                // Single bond + connectors
+                ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
+            }
+            
+            // C atoms
+            ctx.fillStyle = '#333';
+            ctx.beginPath(); ctx.arc(-10, 0, 8, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(10, 0, 8, 0, Math.PI*2); ctx.fill();
+
+            // H bonds & atoms
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-15, -12); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-15, 12); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(15, -12); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(15, 12); ctx.stroke();
+            
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath(); ctx.arc(-15, -12, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(-15, 12, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(15, -12, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(15, 12, 4, 0, Math.PI*2); ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function animate() {
+            ctx.clearRect(0,0,W,H);
+
+            // Polymer chain logic
+            if(running && catalyst) {
+                // Determine target - tip of the chain or catalyst
+                let targetX = catalyst.x;
+                let targetY = catalyst.y;
+                if(polymerChain.length > 0) {
+                    let last = polymerChain[polymerChain.length - 1];
+                    targetX = last.x + Math.cos(last.angle) * 30; // End of bond
+                    targetY = last.y + Math.sin(last.angle) * 30;
+                }
+
+                // Check collision with nearest monomer
+                let closestIndex = -1;
+                let minDist = 40;
+                for(let i=0; i<monomers.length; i++) {
+                    let m = monomers[i];
+                    let d = Math.sqrt((m.x - targetX)**2 + (m.y - targetY)**2);
+                    if(d < minDist) { minDist = d; closestIndex = i; }
+                }
+
+                if(closestIndex !== -1) {
+                    // Attach to chain
+                    let m = monomers.splice(closestIndex, 1)[0];
+                    
+                    // Simple ik-like attachment
+                    let newAngle = 0;
+                    if(polymerChain.length > 0) {
+                        let prev = polymerChain[polymerChain.length-1];
+                        // wiggle a bit
+                        newAngle = prev.angle + (Math.random() * 0.5 - 0.25);
+                        m.x = prev.x + Math.cos(newAngle) * 35;
+                        m.y = prev.y + Math.sin(newAngle) * 35;
+                    } else {
+                        m.x = catalyst.x;
+                        m.y = catalyst.y;
+                    }
+                    m.angle = newAngle;
+                    
+                    polymerChain.push(m);
+
+                    // Catalyst moves forward
+                    catalyst.x += 1;
+                    if(catalyst.x > W) running = false; // hit end
+                    updateHUD();
+                } else {
+                    // Catalyst auto-moves to find monomers
+                    catalyst.x += 1;
+                    if(catalyst.y < H/2) catalyst.y += 0.5; else catalyst.y -= 0.5;
+                }
+
+                // Catalyst glow
+                ctx.beginPath(); ctx.arc(targetX, targetY, 15, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(236, 72, 153, 0.5)'; ctx.fill();
+            }
+
+            // Draw Chain
+            if(polymerChain.length > 0) {
+                // Draw backbone
+                ctx.beginPath();
+                ctx.moveTo(polymerChain[0].x, polymerChain[0].y);
+                for(let i=1; i<polymerChain.length; i++) {
+                    ctx.lineTo(polymerChain[i].x, polymerChain[i].y);
+                }
+                ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
+                ctx.lineWidth = 15;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+
+                // Draw units
+                polymerChain.forEach((p, i) => {
+                    // Wiggle chain slightly
+                    p.y += Math.sin(Date.now() * 0.003 + i) * 0.5;
+                    drawMonomer(p.x, p.y, p.angle, true);
+                });
+            }
+
+            // Move and draw free monomers
+            monomers.forEach(m => {
+                m.x += m.vx; m.y += m.vy; m.angle += m.va;
+                if(m.x < 20 || m.x > W-20) m.vx *= -1;
+                if(m.y < 20 || m.y > H-20) m.vy *= -1;
+                drawMonomer(m.x, m.y, m.angle, false);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        resetSim();
+        animate();
+    </script>
+</body>
+</html>

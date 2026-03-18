@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — ეტიმოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #faf5ff; color: #4c1d95; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #7c3aed; font-weight: bold; }
+        .subtitle { text-align: center; color: #8b5cf6; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e9d5ff; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.1); }
+
+        /* Map Area */
+        .map-wrapper { position: relative; width: 100%; height: 350px; background: #e0e7ff; border-radius: 8px; overflow: hidden; border: 2px solid #c7d2fe; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350"><path fill="%23f3f4f6" d="M100,0 Q150,100 250,50 T400,100 T500,50 T600,150 T800,100 V350 H0 V0 Z"/><path fill="%23e5e7eb" d="M300,350 Q350,250 450,300 T600,250 T700,350 Z"/></svg>'); background-size: cover;}
+        
+        .region-label { position: absolute; font-size: 0.8rem; font-weight: bold; color: #6b7280; opacity: 0.8; }
+        .geo-marker { position: absolute; width: 14px; height: 14px; background: #ef4444; border-radius: 50%; border: 3px solid #fecaca; transform: translate(-50%, -50%); z-index: 5;}
+        
+        /* Word Bubble */
+        .word-bubble { position: absolute; background: #7c3aed; color: #fff; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; opacity: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; transform: translate(-50%, -50%); transition: all 2s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;}
+        .word-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #7c3aed transparent transparent transparent;}
+
+        /* Controls */
+        .word-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .w-btn { padding: 10px 15px; border-radius: 8px; border: 2px solid #ddd6fe; background: #faf5ff; color: #6d28d9; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s;}
+        .w-btn:hover { background: #f3e8ff; border-color: #c4b5fd; transform: translateY(-2px); }
+        .w-btn.active { background: #7c3aed; color: #fff; border-color: #5b21b6; }
+
+        /* Panel */
+        .info-panel { background: #fefce8; border-left: 5px solid #eab308; border-radius: 8px; padding: 20px; }
+        .ip-title { font-size: 1.3rem; font-weight: bold; color: #854d0e; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+        .lang-badge { font-size: 0.75rem; background: #eab308; color: #fff; padding: 3px 8px; border-radius: 12px; font-weight: normal;}
+        .ip-content { font-size: 0.95rem; color: #713f12; line-height: 1.6; }
+        .ip-path { margin-top: 15px; font-size: 0.9rem; color: #ca8a04; font-weight: bold; display: flex; align-items: center; gap: 10px;}
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #e9d5ff; color: #5b21b6; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #d8b4fe;}
+        .back-btn:hover { background: #d8b4fe; color: #4c1d95; }
+    </style>
+</head>
+<body>
+    <h1>🌍 ეტიმოლოგია</h1>
+    <p class="subtitle">სიტყვების წარმოშობა და მოგზაურობა სხვადასხვა ენიდან ქართულში</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="word-list">
+                <button class="w-btn" id="btn-fanjara" onclick="traceWord('fanjara')">ფანჯარა</button>
+                <button class="w-btn" id="btn-akademia" onclick="traceWord('akademia')">აკადემია</button>
+                <button class="w-btn" id="btn-shakari" onclick="traceWord('shakari')">შაქარი</button>
+                <button class="w-btn" id="btn-kartofili" onclick="traceWord('kartofili')">კარტოფილი</button>
+            </div>
+
+            <div class="map-wrapper">
+                <div class="region-label" style="top: 20%; left: 20%;">ევროპა</div>
+                <div class="region-label" style="top: 80%; left: 70%;">სპარსეთი / სპარსული ყურე</div>
+                <div class="region-label" style="top: 60%; left: 30%;">საბერძნეთი</div>
+                <div class="region-label" style="top: 15%; left: 80%;">რუსეთი</div>
+                
+                <div class="geo-marker" style="top: 45%; left: 55%;" title="საქართველო"></div>
+                <div class="region-label" style="top: 38%; left: 54%; color: #b91c1c;">საქართველო</div>
+
+                <div class="word-bubble" id="word-bubble">სიტყვა</div>
+            </div>
+
+            <div class="info-panel" id="info-panel" style="margin-top:20px; display:none;">
+                <div class="ip-title" id="ip-title">
+                    სიტყვა <span class="lang-badge" id="lang-badge">ენა</span>
+                </div>
+                <div class="ip-content" id="ip-content">
+                    აღწერა...
+                </div>
+                <div class="ip-path" id="ip-path">
+                    <!-- Path -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const etymologies = {
+            fanjara: {
+                word: "ფანჯარა", lang: "სპარსული", original: "پنجره (პანჯარე)",
+                desc: "ქართულ ენაში უამრავი სიტყვა შემოვიდა სპარსულიდან ხანგრძლივი კულტურული და პოლიტიკური კონტაქტების შედეგად. 'პანჯარე' ნიშნავდა სარკმელს, გისოსებიან მინიან ღიობს.",
+                path: "🇮🇷 სპარსული ➔ 🇬🇪 ქართული",
+                startX: "75%", startY: "80%", endX: "55%", endY: "45%", color: "#ea580c"
+            },
+            akademia: {
+                word: "აკადემია", lang: "ბერძნული", original: "Ἀκαδημία (აკადემია)",
+                desc: "მომდინარეობს ძველი საბერძნეთიდან, სადაც ფილოსოფოსი პლატონი ასწავლიდა ბაღში, რომელიც გმირ 'აკადემოსის' სახელს ატარებდა. ევროპული ენების გავლით შემოვიდა ქართულშიც.",
+                path: "🇬🇷 ბერძნული ➔ 🌍 ევროპული ენები ➔ 🇬🇪 ქართული",
+                startX: "32%", startY: "58%", endX: "55%", endY: "45%", color: "#2563eb"
+            },
+            shakari: {
+                word: "შაქარი", lang: "სანსკრიტი / არაბული", original: "შარკარა ➔ სუქქარ",
+                desc: "სიტყვა წარმოიშვა ინდოეთში (სანსკრიტზე უხეშ ქვიშას/შაქარს ნიშნავდა). შემდეგ გადავიდა სპარსულში, არაბულში ('სუქქარ') და იქიდან გავრცელდა მთელ მსოფლიოში (Sugar, Zucker, შაქარი).",
+                path: "🇮🇳 სანსკრიტი ➔ 🇸🇦 არაბული ➔ 🇬🇪 ქართული",
+                // Starting from far right (India approximation), then to Persia/Arabia, then Geo
+                startX: "90%", startY: "85%", endX: "55%", endY: "45%", color: "#16a34a"
+            },
+            kartofili: {
+                word: "კარტოფილი", lang: "გერმანული / რუსული", original: "Kartoffel ➔ Картофель",
+                desc: "მცენარე ამერიკიდან შემოიტანეს ევროპაში. ქართულში ეს სიტყვა შემოვიდა რუსულის გავლით, რომელმაც თავის მხრივ გერმანული 'Kartoffel'-დან (იტალიური ტარტუფოლო-დან) ისესხა XIX საუკუნეში.",
+                path: "🇩🇪 გერმანული ➔ 🇷🇺 რუსული ➔ 🇬🇪 ქართული",
+                startX: "22%", startY: "18%", endX: "55%", endY: "45%", color: "#9333ea"
+            }
+        };
+
+        function traceWord(id) {
+            const data = etymologies[id];
+            
+            // UI
+            document.querySelectorAll('.w-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+            
+            document.getElementById('info-panel').style.display = 'block';
+            document.getElementById('ip-title').innerHTML = `${data.word} <span class="lang-badge" style="background:${data.color}">${data.lang}</span>`;
+            document.getElementById('ip-content').innerHTML = `<b>ორიგინალი სიტყვა:</b> ${data.original}<br><br>${data.desc}`;
+            document.getElementById('ip-path').innerHTML = data.path;
+
+            // Animation
+            const bubble = document.getElementById('word-bubble');
+            bubble.style.transition = 'none'; // reset
+            bubble.style.opacity = '1';
+            bubble.style.backgroundColor = data.color;
+            bubble.querySelector('::after') ? bubble.querySelector('::after').style.borderColor = `${data.color} transparent transparent transparent` : null;
+            
+            // Set start position
+            bubble.style.left = data.startX;
+            bubble.style.top = data.startY;
+            bubble.textContent = data.original;
+            
+            // Trigger reflow
+            bubble.offsetHeight;
+
+            // Animate to Georgia
+            bubble.style.transition = 'all 2.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            bubble.style.left = data.endX;
+            bubble.style.top = data.endY;
+            
+            // Change word to Georgian when it arrives
+            setTimeout(() => {
+                bubble.textContent = data.word;
+            }, 1800);
+        }
+
+    </script>
+</body>
+</html>

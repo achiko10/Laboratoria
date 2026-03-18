@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — ფსიქოლოგია ლიტერატურაში</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fdf2f8; color: #831843; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #be185d; }
+        .subtitle { text-align: center; color: #db2777; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #fbcfe8; box-shadow: 0 4px 15px rgba(219, 39, 119, 0.1); }
+
+        /* Character Select */
+        .char-select { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;}
+        .c-btn { padding: 10px 15px; border: 2px solid #f9a8d4; border-radius: 8px; background: #fff; color: #be185d; font-weight: bold; cursor: pointer; transition: 0.2s;}
+        .c-btn:hover { background: #fce7f3; }
+        .c-btn.active { background: #be185d; color: #fff; border-color: #9d174d; }
+
+        /* Analysis Area */
+        .workspace { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .workspace { grid-template-columns: 1fr; } }
+        
+        .portrait-area { background: #fdf2f8; border: 2px dashed #f9a8d4; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; position: relative;}
+        
+        .c-avatar { font-size: 6rem; line-height: 1; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
+        .c-name { font-size: 1.3rem; font-weight: bold; color: #9d174d; margin-bottom: 5px; }
+        .c-desc { font-size: 0.9rem; color: #831843; text-align: center; margin-bottom: 20px; line-height: 1.6;}
+
+        /* Meter */
+        .meter-container { width: 100%; margin-top: auto; }
+        .meter-lbl { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #db2777; margin-bottom: 5px; }
+        .meter-bar { width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; position: relative;}
+        .meter-fill { height: 100%; background: linear-gradient(90deg, #10b981, #facc15, #ef4444); width: 50%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .meter-marker { position: absolute; top:0; height:100%; width:4px; background: #000; border-radius: 2px; transition: left 0.5s; left: 50%; transform: translateX(-50%); box-shadow: 0 0 4px #fff;}
+
+        /* Traits List */
+        .traits-area { background: #fff; border: 1px solid #fbcfe8; border-radius: 12px; padding: 20px;}
+        .t-title { font-weight: bold; color: #be185d; margin-bottom: 15px; border-bottom: 2px solid #fce7f3; padding-bottom: 5px; font-size: 1.1rem;}
+        
+        .trait-list { display: flex; flex-direction: column; gap: 10px; }
+        .trait-item { padding: 12px; background: #fdf2f8; border: 1px solid #f9a8d4; border-radius: 8px; font-size: 0.9rem; color: #831843; display: flex; align-items: flex-start; gap: 10px; transition: 0.2s;}
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;}
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #be185d; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .t-info { cursor: help; color: #db2777; font-weight: bold; margin-left: auto; font-size: 1.1rem; }
+        
+        /* Modal for trait info */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:100;}
+        .modal-content { background: #fff; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; border: 2px solid #f9a8d4; }
+        .modal-title { font-weight: bold; color: #be185d; font-size: 1.2rem; margin-bottom: 10px; border-bottom: 1px solid #fce7f3; padding-bottom: 5px;}
+        .modal-desc { color: #831843; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;}
+        .close-btn { width: 100%; padding: 10px; background: #fce7f3; color: #be185d; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;}
+
+        .res-box { margin-top: 15px; padding: 15px; background: #fefce8; border: 1px dashed #eab308; border-radius: 8px; font-size: 0.9rem; color: #854d0e; font-weight: bold; text-align: center; display: none;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #fce7f3; color: #9d174d; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #fbcfe8; text-align: center;}
+        .back-btn:hover { background: #fbcfe8; color: #831843; }
+    </style>
+</head>
+<body>
+    <h1>🧠 ფსიქოლოგია ლიტერატურაში</h1>
+    <p class="subtitle">პერსონაჟთა შინაგანი კონფლიქტებისა და ფსიქოლოგიური მდგომარეობის ანალიზი</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="char-select">
+                <button class="c-btn active" onclick="loadChar('tariel', this)">ტარიელი (ვეფხისტყაოსანი)</button>
+                <button class="c-btn" onclick="loadChar('luarsab', this)">ლუარსაბ თათქარიძე (კაცია-ადამიანი?!)</button>
+            </div>
+
+            <div class="workspace">
+                <div class="portrait-area">
+                    <div class="c-avatar" id="c-avatar">🐅</div>
+                    <div class="c-name" id="c-name">ტარიელი</div>
+                    <div class="c-desc" id="c-desc">დაკარგული სიყვარულის გამო გაუცხოებული, ტყეში გაველურებული რაინდი.</div>
+                    
+                    <div class="meter-container">
+                        <div class="meter-lbl">
+                            <span>სრული ჰარმონია</span>
+                            <span>შემაშფოთებელი შფოთვა</span>
+                            <span>შეშლილობა</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div class="meter-fill" id="meter-fill" style="width: 100%;"></div>
+                            <div class="meter-marker" id="meter-marker" style="left: 20%;"></div>
+                        </div>
+                        <div style="text-align:center; font-size:0.75rem; color:#831843; margin-top:8px;">მენტალური მდგომარეობის შკალა</div>
+                    </div>
+                    
+                    <div class="res-box" id="res-box"></div>
+                </div>
+
+                <div class="traits-area">
+                    <div class="t-title">ფსიქოლოგიური ფაქტორები:</div>
+                    <div class="trait-list" id="trait-list">
+                        <!-- Traits injected here -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-title" id="m-title">Title</div>
+            <div class="modal-desc" id="m-desc">Description</div>
+            <button class="close-btn" onclick="document.getElementById('infoModal').style.display='none'">დახურვა</button>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const charsData = {
+            tariel: {
+                name: "ტარიელი", icon: "🐅",
+                desc: "ნესტან-დარეჯანის დაკარგვის გამო გაუცხოებული, ველურ ბუნებაში შეხიზნული რაინდი. ის განიცდის მძიმე მელანქოლიასა და აფექტურ მდგომარეობებს.",
+                baseState: 20, // 20% harmonic, 80% stress naturally
+                traits: [
+                    { id: "t_loss", name: "საყვარელი ადამიანის დაკარგვა", stress: 40, desc: "უმძიმესი ტრავმა, რამაც გამოიწვია ცხოვრების აზრის დაკარგვა და დეპრესია." },
+                    { id: "t_guilt", name: "დანაშაულის შეგრძნება", stress: 20, desc: "ხვარაზმშას ძის მკვლელობა და ნესტანის გადაკარგვა. საკუთარი ქმედების გამო სინდისის ქენჯნა." },
+                    { id: "t_iso", name: "სოციალური იზოლაცია", stress: 15, desc: "ადამიანებისგან გაქცევა და ველურ გარემოში (გამოქვაბულში) ცხოვრება აძლიერებს მენტალურ დეგრადაციას." },
+                    { id: "t_friend", name: "ავთანდილის გამოჩენა", stress: -30, desc: "ფსიქოლოგიური მხარდაჭერა! მეგობრის თანადგომამ და იმედის გაჩენამ ტარიელის მდგომარეობა დაასტაბილურა." }
+                ]
+            },
+            luarsab: {
+                name: "ლუარსაბ თათქარიძე", icon: "🍗",
+                desc: "XIX საუკუნის ქართველი თავადი. ილია მას იყენებს საზოგადოების ფსიქოლოგიური დაცემისა და პარაზიტული ცხოვრების სტილის დასახატად.",
+                baseState: 50, // Comfy but empty
+                traits: [
+                    { id: "l_maslow", name: "ფიზიოლოგიური მოთხოვნილებები", stress: -20, desc: "მასლოუს იერარქიაში ლუარსაბი მხოლოდ უმდაბლეს საფეხურზეა — კვება და ძილი მისთვის უმაღლესი სიამოვნებაა (ამცირებს სტრესს, მაგრამ ახშობს განვითარებას)." },
+                    { id: "l_cog", name: "კოგნიტური დისონანსი / ილუზია", stress: 10, desc: "მიუხედავად იმისა, რომ ღატაკდება და დეგრადირდება, თავი მაინც 'დიდებულ თავადად' მიაჩნია." },
+                    { id: "l_laz", name: "აპათია / უმოქმედობა", stress: 30, desc: "ფიზიკური და მენტალური სიზარმაცე ანადგურებს პიროვნებას." },
+                    { id: "l_fear", name: "სიახლის შიში", stress: 20, desc: "ყველაფერი ახალი მისთვის საშიშია, რადგან არღვევს მის კომფორტის ზონას." }
+                ]
+            }
+        };
+
+        let currentCharId = 'tariel';
+
+        function loadChar(id, btn) {
+            currentCharId = id;
+            document.querySelectorAll('.c-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const data = charsData[id];
+            document.getElementById('c-avatar').textContent = data.icon;
+            document.getElementById('c-name').textContent = data.name;
+            document.getElementById('c-desc').textContent = data.desc;
+            
+            document.getElementById('res-box').style.display = 'none';
+
+            // Load traits
+            const tl = document.getElementById('trait-list');
+            tl.innerHTML = '';
+            
+            data.traits.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'trait-item';
+                item.innerHTML = `
+                    <label class="switch">
+                        <input type="checkbox" onchange="calcStress()" id="${t.id}">
+                        <span class="slider"></span>
+                    </label>
+                    <div>${t.name}</div>
+                    <div class="t-info" onclick="showInfo('${t.name}', '${t.desc}')">ℹ️</div>
+                `;
+                tl.appendChild(item);
+            });
+
+            calcStress();
+        }
+
+        function calcStress() {
+            const data = charsData[currentCharId];
+            let currentStress = data.baseState;
+
+            data.traits.forEach(t => {
+                const cb = document.getElementById(t.id);
+                if (cb && cb.checked) {
+                    currentStress += t.stress;
+                }
+            });
+
+            // Clamp 0 - 100
+            currentStress = Math.max(0, Math.min(100, currentStress));
+
+            // visual representation: 0 = completely harmonic, 100 = completely stressed/mad
+            const marker = document.getElementById('meter-marker');
+            marker.style.left = currentStress + '%';
+
+            // Result texts
+            const resBox = document.getElementById('res-box');
+            resBox.style.display = 'block';
+
+            if(currentCharId === 'tariel') {
+                if(currentStress >= 80) resBox.innerHTML = "💔 <b>მძიმე მდგომარეობა:</b> ტარიელი სრულად კარგავს გონებას, იხევს სამოსს და ებრძვის მხეცებს.";
+                else if(currentStress >= 50) resBox.innerHTML = "🌧️ <b>ღრმა მელანქოლია:</b> ის მუდმივად ტირის და წარსულს იხსენებს.";
+                else resBox.innerHTML = "🤝 <b>იმედი გაჩნდა:</b> მეგობრის დახმარებით მისი გონება დასტაბილურდა და მოქმედებისთვის მზადაა.";
+            } else {
+                if(currentStress <= 30) resBox.innerHTML = "🍗 <b>აბსოლუტური კომფორტი:</b> თათქარიძე ბედნიერია თავის ილუზორულ, პარაზიტულ სამყაროში.";
+                else resBox.innerHTML = "📉 <b>დეგრადაციის რისკი:</b> რეალობა აწვება, მაგრამ სიზარმაცე ხელს უშლის რაიმეს შეცვლაში.";
+            }
+        }
+
+        function showInfo(title, desc) {
+            document.getElementById('m-title').textContent = title;
+            document.getElementById('m-desc').textContent = desc;
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        // Init
+        setTimeout(calcStress, 100);
+
+    </script>
+</body>
+</html>

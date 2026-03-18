@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — სინტაქსი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fdf4ff; color: #4a044e; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #a21caf; }
+        .subtitle { text-align: center; color: #c026d3; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #f87171; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.1); border: 2px solid #fae8ff; }
+
+        /* Sentence Builder Area */
+        .workspace { background: #faf5ff; border: 2px dashed #d946ef; border-radius: 12px; padding: 30px 20px; display: flex; justify-content: center; align-items: center; min-height: 150px; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;}
+        
+        /* Word Tokens */
+        .word { padding: 10px 20px; background: #fff; border: 2px solid #e879f9; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: #701a75; cursor: pointer; position: relative; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); user-select: none;}
+        .word:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(217, 70, 239, 0.2); border-color: #d946ef; }
+        
+        /* Syntactic Roles (Bottom tags) */
+        .role-tag { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: #4a044e; color: #fdf4ff; white-space: nowrap; font-weight: normal; opacity: 0; transition: 0.3s; pointer-events: none;}
+        .word.analyzed .role-tag { opacity: 1; bottom: -15px; }
+        
+        /* Role Underlines (Traditional syntax lines) */
+        .w-line { position: absolute; bottom: 5px; left: 10%; width: 80%; height: 3px; opacity: 0; transition: 0.3s;}
+        .word.analyzed .w-line { opacity: 1; }
+        
+        /* Underline styles */
+        .u-subject { border-bottom: 2px solid #ea580c; } /* ____ */
+        .u-predicate { border-bottom: 2px solid #dc2626; border-top: 2px solid #dc2626; height: 6px; } /* ==== */
+        .u-object { border-bottom: 2px dashed #0284c7; } /* - - - - */
+        .u-attribute { border-bottom: 2px dotted #16a34a; /* wavy is hard in css, using dotted/dashed composite */ }
+        .u-attribute::after { content:''; position:absolute; bottom:-1px; left:0; width:100%; height:4px; border-bottom: 2px dashed #16a34a; border-radius: 50%;} /* Mock wavy */
+        .u-adverbial { border-bottom: 2px solid #9333ea; border-style: dash-dot; /* _._._. mock */ background-image: linear-gradient(to right, #9333ea 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; background-position: bottom; height:1px; border:none;}
+
+        /* Controls */
+        .options-panel { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;}
+        .opt-btn { padding: 10px 15px; border-radius: 8px; border: 2px solid #f0abfc; background: #fff; color: #a21caf; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .opt-btn:hover { background: #fae8ff; border-color: #d946ef; }
+        .opt-btn.active { background: #d946ef; color: #fff; border-color: #a21caf; }
+
+        /* Legend */
+        .legend { display: flex; flex-wrap: wrap; gap: 15px; background: #fdf4ff; padding: 15px; border-radius: 8px; border: 1px solid #f5d0fe; justify-content: center; font-size: 0.85rem;}
+        .l-item { display: flex; align-items: center; gap: 8px; }
+        .l-line { width: 30px; height: 3px; }
+        
+        .msg-box { text-align: center; margin-top: 15px; font-weight: bold; color: #16a34a; min-height: 24px;}
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #fae8ff; color: #a21caf; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #f0abfc;}
+        .back-btn:hover { background: #f5d0fe; color: #86198f; }
+
+        /* Selection Mode styles */
+        body.mode-subject .word:hover { border-color: #ea580c; background: #fff7ed; }
+        body.mode-predicate .word:hover { border-color: #dc2626; background: #fef2f2; }
+        body.mode-object .word:hover { border-color: #0284c7; background: #f0f9ff; }
+        body.mode-attribute .word:hover { border-color: #16a34a; background: #f0fdf4; }
+        body.mode-adverbial .word:hover { border-color: #9333ea; background: #faf5ff; }
+
+    </style>
+</head>
+<body>
+    <h1>🧩 სინტაქსი — წინადადების გარჩევა</h1>
+    <p class="subtitle">აირჩიეთ წინადადების წევრი ქვემოთ და დააკლიკეთ შესაბამის სიტყვას</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="options-panel">
+                <button class="opt-btn" onclick="setMode('subject', this)">ქვემდებარე (ვინ? რა?)</button>
+                <button class="opt-btn" onclick="setMode('predicate', this)">შემასმენელი (რას შვრება?)</button>
+                <button class="opt-btn" onclick="setMode('object', this)">დამატება (ვის? რას?)</button>
+                <button class="opt-btn" onclick="setMode('attribute', this)">განსაზღვრება (როგორი?)</button>
+                <button class="opt-btn" onclick="setMode('adverbial', this)">გარემოება (როგორ? სად?)</button>
+            </div>
+
+            <div class="workspace" id="workspace">
+                <!-- Word tokens -->
+                <div class="word" onclick="applyRole(this)" data-correct="attribute">
+                    პატარა
+                    <div class="w-line"></div>
+                    <div class="role-tag">განსაზღვრება</div>
+                </div>
+                <div class="word" onclick="applyRole(this)" data-correct="subject">
+                    ბიჭმა
+                    <div class="w-line"></div>
+                    <div class="role-tag">ქვემდებარე</div>
+                </div>
+                <div class="word" onclick="applyRole(this)" data-correct="adverbial">
+                    სწრაფად
+                    <div class="w-line"></div>
+                    <div class="role-tag">გარემოება</div>
+                </div>
+                <div class="word" onclick="applyRole(this)" data-correct="predicate">
+                    წაიკითხა
+                    <div class="w-line"></div>
+                    <div class="role-tag">შემასმენელი</div>
+                </div>
+                <div class="word" onclick="applyRole(this)" data-correct="attribute">
+                    საინტერესო
+                    <div class="w-line"></div>
+                    <div class="role-tag">განსაზღვრება</div>
+                </div>
+                <div class="word" onclick="applyRole(this)" data-correct="object">
+                    წიგნი
+                    <div class="w-line"></div>
+                    <div class="role-tag">დამატება</div>
+                </div>
+            </div>
+
+            <div class="msg-box" id="msg-box">აირჩიეთ წევრი და მიუსადაგეთ სიტყვებს.</div>
+
+            <div style="display:flex; justify-content:center; gap: 10px; margin-bottom:20px;">
+                <button class="opt-btn" style="background:#f1f5f9; color:#475569; border:none;" onclick="resetValues()">↻ თავიდან</button>
+                <button class="opt-btn" style="background:#10b981; color:#fff; border:none;" onclick="autoSolve()">✓ ამოხსნა</button>
+            </div>
+
+            <div class="legend">
+                <div class="l-item">
+                    <div class="l-line" style="border-bottom: 2px solid #ea580c;"></div> ქვემდებარე
+                </div>
+                <div class="l-item">
+                    <div class="l-line" style="border-bottom: 2px solid #dc2626; border-top: 2px solid #dc2626; height:6px;"></div> შემასმენელი
+                </div>
+                <div class="l-item">
+                    <div class="l-line" style="border-bottom: 2px dashed #0284c7;"></div> დამატება
+                </div>
+                <div class="l-item">
+                    <div class="l-line" style="border-bottom: 2px dotted #16a34a;"></div> განსაზღვრება
+                </div>
+                <div class="l-item">
+                    <div class="l-line" style="background-image: linear-gradient(to right, #9333ea 50%, transparent 50%); background-size: 6px 1px; background-repeat: repeat-x; background-position: center; height:1px;"></div> გარემოება
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        let currentMode = null;
+        let wordsMatched = 0;
+        const totalWords = 6;
+
+        const roleNames = {
+            'subject': 'ქვემდებარე',
+            'predicate': 'შემასმენელი',
+            'object': 'დამატება',
+            'attribute': 'განსაზღვრება',
+            'adverbial': 'გარემოება'
+        };
+
+        function setMode(mode, btn) {
+            currentMode = mode;
+            
+            // UI Body Class for hover effects
+            document.body.className = '';
+            document.body.classList.add('mode-' + mode);
+
+            // Active button state
+            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('msg-box').textContent = `ამჟამად ირჩევთ: ${roleNames[mode]} (დააკლიკეთ შესაბამის სიტყვას)`;
+            document.getElementById('msg-box').style.color = '#a21caf';
+        }
+
+        function applyRole(wordEl) {
+            if(!currentMode) {
+                document.getElementById('msg-box').textContent = "ჯერ აირჩიეთ წინადადების წევრი ზედა მენიუდან!";
+                document.getElementById('msg-box').style.color = '#dc2626';
+                return;
+            }
+
+            const correctRole = wordEl.getAttribute('data-correct');
+            
+            if (currentMode === correctRole) {
+                // Correct match
+                wordEl.classList.add('analyzed');
+                
+                // Clear existing lines to replace
+                const wLine = wordEl.querySelector('.w-line');
+                wLine.className = `w-line u-${currentMode}`;
+                
+                wordEl.querySelector('.role-tag').textContent = roleNames[currentMode];
+                wordEl.style.borderColor = '#22c55e'; // Green border briefly
+
+                setTimeout(() => wordEl.style.borderColor = '#e879f9', 500);
+
+                document.getElementById('msg-box').textContent = "სწორია! 👏";
+                document.getElementById('msg-box').style.color = '#16a34a';
+
+                checkWin();
+            } else {
+                // Incorrect match
+                wordEl.style.animation = 'shake 0.4s';
+                document.getElementById('msg-box').textContent = "შეცდომაა. სცადეთ ხელახლა.";
+                document.getElementById('msg-box').style.color = '#dc2626';
+                
+                setTimeout(() => wordEl.style.animation = '', 400);
+            }
+        }
+
+        function checkWin() {
+            const analyzedCount = document.querySelectorAll('.word.analyzed').length;
+            if(analyzedCount === totalWords) {
+                document.getElementById('msg-box').textContent = "გილოცავთ! წინადადება სრულად გაირჩა! 🎉";
+                document.getElementById('msg-box').style.color = '#16a34a';
+                document.body.className = ''; // remove hover styling
+                document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+                currentMode = null;
+            }
+        }
+
+        function autoSolve() {
+            document.querySelectorAll('.word').forEach(wordEl => {
+                const role = wordEl.getAttribute('data-correct');
+                wordEl.classList.add('analyzed');
+                const wLine = wordEl.querySelector('.w-line');
+                wLine.className = `w-line u-${role}`;
+                wordEl.querySelector('.role-tag').textContent = roleNames[role];
+            });
+            document.getElementById('msg-box').textContent = "ავტომატურად ამოხსნილია.";
+            document.getElementById('msg-box').style.color = '#a21caf';
+            document.body.className = '';
+        }
+
+        function resetValues() {
+            document.querySelectorAll('.word').forEach(wordEl => {
+                wordEl.classList.remove('analyzed');
+                wordEl.querySelector('.w-line').className = 'w-line';
+            });
+            document.getElementById('msg-box').textContent = "აირჩიეთ წევრი და მიუსადაგეთ სიტყვებს.";
+            document.getElementById('msg-box').style.color = '#16a34a';
+        }
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }`;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>

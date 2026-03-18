@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — რენესანსი (აღორძინების ეპოქა)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fafaf9; color: #292524; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #78350f; font-weight: bold; font-family: 'Times New Roman', serif; }
+        .subtitle { text-align: center; color: #92400e; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 15px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e7e5e4; }
+        
+        .gallery-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #fef08a; padding-bottom: 10px; margin-bottom: 20px; }
+        .g-title { font-size: 1.2rem; font-weight: bold; color: #78350f; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 8px 16px; background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: #57534e; transition: 0.2s; }
+        .tab:hover { background: #e7e5e4; color: #292524; }
+        .tab.active { background: #78350f; color: #fff; border-color: #78350f; }
+
+        .museum-room { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; display: none; animation: fadeIn 0.5s; }
+        .museum-room.active { display: grid; }
+        @media (max-width: 600px) { .museum-room.active { grid-template-columns: 1fr; } }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        .exhibit { background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; position: relative;}
+        .exhibit:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        
+        .ex-img-placeholder { height: 180px; background: #e7e5e4; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #a8a29e; position: relative; }
+        
+        .ex-info { padding: 15px; }
+        .ex-title { font-weight: bold; font-size: 1.1rem; color: #78350f; margin-bottom: 5px; }
+        .ex-author { font-size: 0.8rem; color: #9a3412; font-weight: bold; margin-bottom: 10px; }
+        .ex-desc { font-size: 0.85rem; color: #57534e; line-height: 1.6; }
+
+        /* Detail Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #fff; border-radius: 12px; max-width: 600px; width: 100%; padding: 30px; position: relative; border: 4px solid #fef08a; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #a8a29e; font-weight: bold; border: none; background: none; }
+        .close-btn:hover { color: #ef4444; }
+
+        .info-box { background: #fefce8; border-left: 4px solid #eab308; border-radius: 8px; padding: 15px; margin-top: 15px; display: flex; gap: 15px; align-items: center;}
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #e7e5e4; color: #57534e; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; }
+        .back-btn:hover { background: #d6d3d1; color: #292524; }
+    </style>
+</head>
+<body>
+    <h1>🎨 რენესანსი (აღორძინების ეპოქა)</h1>
+    <p class="subtitle">ვირტუალური მუზეუმი (XIV - XVII საუკუნეები)</p>
+
+    <div class="app">
+        <div class="card">
+            <div class="gallery-header">
+                <div class="g-title">🏛️ ფლორენციის აკადემია - ვირტუალური ტური</div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('art')">🎨 ხელოვნება და არქიტექტურა</div>
+                <div class="tab" onclick="showTab('science')">🔭 მეცნიერება და გამოგონებები</div>
+                <div class="tab" onclick="showTab('lit')">📜 ლიტერატურა</div>
+            </div>
+
+            <!-- Art Tab -->
+            <div class="museum-room active" id="tab-art">
+                <div class="exhibit" onclick="openModal('monalisa')">
+                    <div class="ex-img-placeholder" style="background:#fde047;">🖼️</div>
+                    <div class="ex-info">
+                        <div class="ex-title">მონა ლიზა (ჯოკონდა)</div>
+                        <div class="ex-author">ლეონარდო და ვინჩი (1503)</div>
+                        <div class="ex-desc">მსოფლიოს ყველაზე ცნობილი პორტრეტი, შესრულებული სფუმატოს ტექნიკით, რაც უზრუნველყოფს კონტურების რბილ გადასვლას.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('david')">
+                    <div class="ex-img-placeholder" style="background:#e5e7eb;">🗽</div>
+                    <div class="ex-info">
+                        <div class="ex-title">დავითის ქანდაკება</div>
+                        <div class="ex-author">მიქელანჯელო (1504)</div>
+                        <div class="ex-desc">მარმარილოში გამოკვეთილი 5-მეტრიანი სკულპტურა წარმოადგენს ბიბლიური გმირის, დავითის, სილამაზეს და ფიზიკურ სიძლიერეს.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('athens')">
+                    <div class="ex-img-placeholder" style="background:#fecdd3;">🏛️</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ათენის სკოლა (ფრესკა)</div>
+                        <div class="ex-author">რაფაელი (1511)</div>
+                        <div class="ex-desc">ვატიკანის სასახლეში დახატული ფრესკა, სადაც გამოსახულნი არიან ანტიკური სამყაროს უდიდესი ფილოსოფოსები: პლატონი და არისტოტელე.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('dome')">
+                    <div class="ex-img-placeholder" style="background:#fed7aa;">⛪</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ფლორენციის ტაძრის გუმბათი</div>
+                        <div class="ex-author">ფილიპო ბრუნელესკი (1436)</div>
+                        <div class="ex-desc">საინჟინრო საოცრება და რენესანსული არქიტექტურის პირველი უდიდესი მიღწევა. ის აშენდა დამხმარე ხარაჩოების გარეშე.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Science Tab -->
+            <div class="museum-room" id="tab-science">
+                <div class="exhibit" onclick="openModal('vitruvian')">
+                    <div class="ex-img-placeholder" style="background:#d9f99d;">🧍</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ვიტრუვიელი ადამიანი</div>
+                        <div class="ex-author">ლეონარდო და ვინჩი (1490)</div>
+                        <div class="ex-desc">ადამიანის სხეულის იდეალური პროპორციების კვლევა, სადაც შერწყმულია ხელოვნება და მათემატიკა/ანატომია.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('heliocentrism')">
+                    <div class="ex-img-placeholder" style="background:#bfdbfe;">☀️</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ჰელიოცენტრული მოდელი</div>
+                        <div class="ex-author">ნიკოლოზ კოპერნიკი (1543)</div>
+                        <div class="ex-desc">მეცნიერული რევოლუციის დასაწყისი: თეორია, რომლის მიხედვითაც სამყაროს ცენტრში არა დედამიწა, არამედ მზეა.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('printing')">
+                    <div class="ex-img-placeholder" style="background:#e4e4e7;">🖨️</div>
+                    <div class="ex-info">
+                        <div class="ex-title">საბეჭდი დაზგა</div>
+                        <div class="ex-author">იოჰანეს გუტენბერგი (1440)</div>
+                        <div class="ex-desc">ინფორმაციის გავრცელების რევოლუცია. მასობრივად დაიწყო წიგნების ბეჭდვა, რამაც ხელი შეუწყო განათლების გავრცელებას ევროპაში.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('telescope')">
+                    <div class="ex-img-placeholder" style="background:#cdd1e4;">🔭</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ტელესკოპის გაუმჯობესება</div>
+                        <div class="ex-author">გალილეო გალილეი (1609)</div>
+                        <div class="ex-desc">გალილეომ ტელესკოპით დაამტკიცა კოპერნიკის თეორია, აღმოაჩინა იუპიტერის მთვარეები და მზის ლაქები.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lit Tab -->
+            <div class="museum-room" id="tab-lit">
+                <div class="exhibit" onclick="openModal('dante')">
+                    <div class="ex-img-placeholder" style="background:#fbcfe8;">📖</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ღვთიური კომედია</div>
+                        <div class="ex-author">დანტე ალიგიერი (1320)</div>
+                        <div class="ex-desc">იტალიური რენესანსის წინამორბედი ნაწარმოები, სადაც ავტორი მოგზაურობს ჯოჯოხეთში, განსაწმენდელსა და სამოთხეში.</div>
+                    </div>
+                </div>
+                <div class="exhibit" onclick="openModal('shakespeare')">
+                    <div class="ex-img-placeholder" style="background:#ddd6fe;">🎭</div>
+                    <div class="ex-info">
+                        <div class="ex-title">ჰამლეტი, რომეო და ჯულიეტა</div>
+                        <div class="ex-author">უილიამ შექსპირი (1590+)</div>
+                        <div class="ex-desc">ინგლისური რენესანსის უდიდესი დრამატურგი. მისი პიესები ღრმად იკვლევს ადამიანის ფსიქოლოგიასა და პიროვნულ თავისუფლებას (ჰუმანიზმი).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <div style="font-size:2.5rem;">🌟</div>
+            <div>
+                <b style="color:#a16207; font-size:1.1rem; display:block;">ჰუმანიზმი (Humanism)</b>
+                რენესანსის მთავარი ფილოსოფია იყო ჰუმანიზმი. შუა საუკუნეებისგან განსხვავებით, სადაც მთავარი ფოკუსი ღმერთი და რელიგია იყო, რენესანსის ეპოქაში ყურადღების ცენტრში მოექცა თითოეული <b>ადამიანი</b>, მისი გონება, ნიჭი და პოტენციალი. ხელოვანებმა დაუბრუნდნენ ძველი საბერძნეთისა და რომის კულტურულ იდეალებს.
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">✖</button>
+            <div style="text-align:center; font-size:4rem; margin-bottom:15px;" id="m-icon"></div>
+            <h2 style="color:#78350f; margin-bottom:5px;" id="m-title">Title</h2>
+            <h4 style="color:#d97706; margin-bottom:15px; border-bottom:1px solid #e7e5e4; padding-bottom:10px;" id="m-author">Author</h4>
+            <p style="color:#57534e; line-height:1.6;" id="m-desc">Desc...</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.museum-room').forEach(r => r.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        const details = {
+            monalisa: { icon: "🖼️", title: "მონა ლიზა", author: "ლეონარდო და ვინჩი", desc: "მონა ლიზას პორტრეტში და ვინჩიმ გამოიყენა პერსპექტივა და ჰუმანიზმის იდეალები. სახის იდუმალი გამომეტყველება და სფუმატოს ტექნიკა (ხაზების დაბურვა) მას ერთ-ერთ ყველაზე რეალისტურ და ცოცხალ ნახატად აქცევს შუა საუკუნეების ბრტყელი ხელოვნების შემდეგ." },
+            david: { icon: "🗽", title: "დავითის ქანდაკება", author: "მიქელანჯელო", desc: "რენესანსის სკულპტურული შედევრი. იგი ასახავს ადამიანის სხეულის ანატომიურ სრულყოფილებას, რაც ანტიკური ხელოვნების აღორძინებაა. დავითი წარმოადგენს ფლორენციის რესპუბლიკის სამოქალაქო თავისუფლების სიმბოლოს." },
+            athens: { icon: "🏛️", title: "ათენის სკოლა", author: "რაფაელი", desc: "ფრესკაზე ცენტრალური ფიგურები პლატონი და არისტოტელე არიან. პლატონი იშვერს ხელს ზეცისკენ (იდეების სამყარო), ხოლო არისტოტელე დედამიწისკენ (რეალობა, გამოცდილება). ეს რენესანსის ინტელექტუალური და სააზროვნო რევოლუციის საუკეთესო ვიზუალია." },
+            dome: { icon: "⛪", title: "ფლორენციის ტაძრის გუმბათი", author: "ფილიპო ბრუნელესკი", desc: "რომის პანთეონის შესწავლის შემდგომ, ბრუნელესკიმ შეიმუშავა რვაკუთხა, ორი გარსის მქონე გუმბათი (Duomo), რომელმაც შეცვალა სამშენებლო ინჟინერია და ფლორენციის სიმბოლოდ იქცა." },
+            
+            vitruvian: { icon: "🧍", title: "ვიტრუვიელი ადამიანი", author: "ლეონარდო და ვინჩი", desc: "დაფუძნებულია რომაელი არქიტექტორის, ვიტრუვიუსის ნაშრომზე. ლეონარდომ აჩვენა, რომ ადამიანის სხეულის პროპორციები იდეალურად ჯდება გეომეტრიულ ფიგურებში - კვადრატსა და წრეში. ეს არის ხელოვნებისა და მეცნიერების სინთეზი." },
+            heliocentrism: { icon: "☀️", title: "ჰელიოცენტრული მოდელი", author: "ნიკოლოზ კოპერნიკი", desc: "კოპერნიკმა უარყო ეკლესიის მიერ აღიარებული გეოცენტრული (დედამიწა ცენტრში) მოდელი. მან დაასაბუთა, რომ დედამიწა და სხვა პლანეტები ბრუნავენ მზის გარშემო, რამაც მეცნიერულ რევოლუციას დაუდო სათავე." },
+            printing: { icon: "🖨️", title: "საბეჭდი დაზგა", author: "იოჰანეს გუტენბერგი", desc: "ლითონის მოძრავი ასოების (შრიფტის) თხზვა. ამან შესაძლებელი გახადა წიგნების (პირველ რიგში ბიბლიის) სწრაფი და იაფი ბეჭდვა. შედეგად, ინფორმაცია აღარ იყო მხოლოდ ელიტის ხელში და განათლებამ ფართო მასებში შეაღწია." },
+            telescope: { icon: "🔭", title: "ტელესკოპი", author: "გალილეო გალილეი", desc: "გალილეომ შექმნა ტელესკოპის ძლიერი ვერსია და ცას მიმართა. მან დაინახა მთვარის კრატერები (ანუ ციური სხეულები იდეალური არ იყო) და იუპიტერის თანამგზავრები (მაშასადამე ყველაფერი დედამიწის გარშემო არ ბრუნავდა)." },
+            
+            dante: { icon: "📖", title: "ღვთიური კომედია", author: "დანტე ალიგიერი", desc: "დაწერილია არა ლათინურად (როგორც ეკლესია ითხოვდა), არამედ ხალხურ, იტალიურ ენაზე დიალექტზე, რაც ხელმისაწვდომი იყო ხალხისთვის. ეს იყო უდიდესი ლიტერატურული ეროვნული ნაბიჯი." },
+            shakespeare: { icon: "🎭", title: "შექსპირის შემოქმედება", author: "უილიამ შექსპირი", desc: "შექსპირი იკვლევდა ადამიანის რეალურ ემოციებს: ეჭვიანობას (ოტელო), ამბიციას (მაკბეტი), სიყვარულს (რომეო და ჯულიეტა) და ყოფიერების არსს (ჰამლეტი). მისი ენა დანერგა ასობით ახალი სიტყვა ინგლისურში." }
+        };
+
+        function openModal(id) {
+            const data = details[id];
+            document.getElementById('m-icon').textContent = data.icon;
+            document.getElementById('m-title').textContent = data.title;
+            document.getElementById('m-author').textContent = data.author;
+            document.getElementById('m-desc').textContent = data.desc;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

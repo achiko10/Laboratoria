@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>დინამიკა — ნიუტონის II კანონი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0a0e17; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+
+        .container { max-width: 900px; margin: auto; }
+
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #00d4ff, #7b61ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .sim-area {
+            background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+            overflow: hidden; position: relative;
+        }
+        canvas { display: block; width: 100%; height: 350px; cursor: grab; }
+        canvas:active { cursor: grabbing; }
+
+        .hud {
+            position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7);
+            padding: 10px 14px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8;
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06);
+        }
+        .hud span { color: #00d4ff; font-weight: 600; }
+
+        .formula-bar {
+            background: rgba(123,97,255,0.1); border: 1px solid rgba(123,97,255,0.3);
+            padding: 12px 20px; margin: 16px 0; border-radius: 10px; text-align: center;
+            font-size: 1.3rem; font-weight: 700; letter-spacing: 1px;
+        }
+        .formula-bar .val { color: #00d4ff; }
+        .formula-bar .eq { color: #7b61ff; }
+
+        .controls {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px;
+            background: #0d1220; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; color: #7a84a0; display: flex; justify-content: space-between; }
+        .control-group label b { color: #e0e6f0; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e2740; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #00d4ff, #7b61ff); cursor: pointer; }
+
+        .btn-row { display: flex; gap: 10px; grid-column: 1 / -1; }
+        .btn {
+            flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer;
+            font-family: inherit; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #00d4ff, #7b61ff); color: #fff; }
+        .btn-primary:hover { box-shadow: 0 4px 20px rgba(0,212,255,0.3); transform: translateY(-1px); }
+        .btn-secondary { background: #1e2740; color: #7a84a0; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: #2a3350; color: #e0e6f0; }
+        .btn-danger { background: rgba(255,77,106,0.15); color: #ff4d6a; border: 1px solid rgba(255,77,106,0.3); }
+
+        .toggle-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #7a84a0; }
+        .toggle { width: 36px; height: 20px; background: #1e2740; border-radius: 10px; cursor: pointer; position: relative; transition: 0.3s; }
+        .toggle.on { background: #00d4ff; }
+        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle.on::after { left: 18px; }
+
+        .info-panel {
+            background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+            padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8;
+            border-left: 3px solid #7b61ff;
+        }
+        .info-panel strong { color: #e0e6f0; }
+
+        .back-btn {
+            display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740;
+            color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s;
+        }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ დინამიკა — ნიუტონის II კანონი</h1>
+        <p class="subtitle">გამოიყენე ძალა სხეულზე და დააკვირდი აჩქარებას · F = m·a</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">
+                სიჩქარე: <span id="hud-v">0.0</span> მ/წმ<br>
+                აჩქარება: <span id="hud-a">0.0</span> მ/წმ²<br>
+                მანძილი: <span id="hud-d">0.0</span> მ
+            </div>
+        </div>
+
+        <div class="formula-bar">
+            F = <span class="val" id="f-val">0</span> N &nbsp;<span class="eq">=</span>&nbsp;
+            <span class="val" id="m-val">5</span> kg &nbsp;<span class="eq">×</span>&nbsp;
+            <span class="val" id="a-val">0</span> მ/წმ²
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>ძალა (F): <b><span id="force-val">20</span> N</b></label>
+                <input type="range" id="force" min="0" max="100" value="20">
+            </div>
+            <div class="control-group">
+                <label>მასა (m): <b><span id="mass-val">5</span> kg</b></label>
+                <input type="range" id="mass" min="1" max="50" value="5">
+            </div>
+            <div class="control-group">
+                <div class="toggle-row">
+                    <div class="toggle" id="friction-toggle" onclick="toggleFriction()"></div>
+                    ხახუნის ძალა (μ = <span id="mu-val">0.3</span>)
+                </div>
+            </div>
+            <div class="control-group">
+                <label>ხახუნის კოეფ. (μ): <b><span id="mu-display">0.3</span></b></label>
+                <input type="range" id="mu" min="0" max="100" value="30">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="startSim()">▶ გაშვება</button>
+                <button class="btn btn-secondary" onclick="pauseSim()">⏸ პაუზა</button>
+                <button class="btn btn-danger" onclick="resetSim()">↺ გასუფთავება</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ნიუტონის II კანონი:</strong> სხეულზე მოქმედი ტოლქმედი ძალა ტოლია სხეულის მასისა და აჩქარების ნამრავლის: <strong>F = m·a</strong>.<br>
+            • <strong>მასის გაზრდა</strong> → იგივე ძალით ნაკლები აჩქარება<br>
+            • <strong>ხახუნი</strong> ამცირებს ეფექტურ ძალას: F<sub>eff</sub> = F − μ·m·g<br>
+            • 🎯 სცადე: რა ძალა სჭირდება 50 kg სხეულს რომ დაიძრას ხახუნით?
+        </div>
+
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+
+        function resize() {
+            canvas.width = canvas.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.offsetWidth;
+            H = canvas.offsetHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // State
+        let boxX = 60, boxVel = 0, boxAcc = 0, distance = 0;
+        let running = false, frictionOn = false;
+        let trail = [];
+        const g = 9.81;
+        const boxW = 60, boxH = 50;
+        const groundY = H - 50;
+
+        // Sliders
+        const forceSlider = document.getElementById('force');
+        const massSlider = document.getElementById('mass');
+        const muSlider = document.getElementById('mu');
+
+        forceSlider.oninput = updateValues;
+        massSlider.oninput = updateValues;
+        muSlider.oninput = updateValues;
+
+        function getForce() { return +forceSlider.value; }
+        function getMass() { return +massSlider.value; }
+        function getMu() { return +muSlider.value / 100; }
+
+        function updateValues() {
+            document.getElementById('force-val').textContent = getForce();
+            document.getElementById('mass-val').textContent = getMass();
+            document.getElementById('mu-display').textContent = getMu().toFixed(2);
+            document.getElementById('mu-val').textContent = getMu().toFixed(2);
+        }
+
+        function toggleFriction() {
+            frictionOn = !frictionOn;
+            document.getElementById('friction-toggle').classList.toggle('on', frictionOn);
+        }
+
+        function startSim() { running = true; }
+        function pauseSim() { running = false; }
+        function resetSim() {
+            running = false;
+            boxX = 60; boxVel = 0; boxAcc = 0; distance = 0;
+            trail = [];
+        }
+
+        function update() {
+            if (!running) return;
+            const F = getForce();
+            const m = getMass();
+            const mu = getMu();
+
+            let Fnet = F;
+            if (frictionOn) {
+                const Ff = mu * m * g;
+                if (boxVel > 0.01) Fnet = F - Ff;
+                else if (F > Ff) Fnet = F - Ff;
+                else { Fnet = 0; boxVel = 0; }
+            }
+
+            boxAcc = Fnet / m;
+            boxVel += boxAcc * 0.016;
+            if (boxVel < 0) boxVel = 0;
+            boxX += boxVel * 2;
+            distance += boxVel * 0.016;
+
+            // Wrap around
+            if (boxX > W + boxW) { boxX = -boxW; }
+
+            trail.push({ x: boxX + boxW / 2, y: groundY - boxH });
+            if (trail.length > 200) trail.shift();
+
+            // Update HUD
+            document.getElementById('hud-v').textContent = boxVel.toFixed(1);
+            document.getElementById('hud-a').textContent = boxAcc.toFixed(2);
+            document.getElementById('hud-d').textContent = distance.toFixed(1);
+
+            // Update formula bar
+            document.getElementById('f-val').textContent = Fnet.toFixed(1);
+            document.getElementById('m-val').textContent = m;
+            document.getElementById('a-val').textContent = boxAcc.toFixed(2);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+        }
+
+        function drawGround() {
+            const gy = groundY + 5;
+            ctx.fillStyle = '#1a2332';
+            ctx.fillRect(0, gy, W, H - gy);
+            ctx.strokeStyle = '#2a3a4e';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+            // Hash marks
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            for (let x = 0; x < W; x += 20) {
+                ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x + 10, gy + 15); ctx.stroke();
+            }
+        }
+
+        function drawBox() {
+            const bx = boxX, by = groundY - boxH + 5;
+            // Shadow
+            ctx.fillStyle = 'rgba(0,212,255,0.08)';
+            ctx.fillRect(bx + 3, by + 3, boxW, boxH);
+            // Box
+            const grad = ctx.createLinearGradient(bx, by, bx, by + boxH);
+            grad.addColorStop(0, '#2a7fff');
+            grad.addColorStop(1, '#1a4fa0');
+            ctx.fillStyle = grad;
+            ctx.fillRect(bx, by, boxW, boxH);
+            ctx.strokeStyle = '#4a9fff';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(bx, by, boxW, boxH);
+            // Mass label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(getMass() + ' kg', bx + boxW / 2, by + boxH / 2 + 5);
+
+            // Force arrow
+            const F = getForce();
+            if (F > 0) {
+                const arrowLen = Math.min(F * 1.5, 120);
+                const ax = bx + boxW + 5, ay = by + boxH / 2;
+                ctx.strokeStyle = '#ff4d6a';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(bx + boxW, ay); ctx.lineTo(bx - arrowLen - 10, ay); ctx.stroke();
+                // Arrow tip
+                ctx.fillStyle = '#ff4d6a';
+                ctx.beginPath();
+                ctx.moveTo(bx + boxW + 5, ay);
+                ctx.lineTo(bx + boxW - 8, ay - 7);
+                ctx.lineTo(bx + boxW - 8, ay + 7);
+                ctx.fill();
+                // Label
+                ctx.fillStyle = '#ff4d6a';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('F = ' + F + 'N →', bx - 5, by - 8);
+            }
+
+            // Friction arrow
+            if (frictionOn && boxVel > 0.01) {
+                const Ff = getMu() * getMass() * g;
+                const fLen = Math.min(Ff * 1.2, 80);
+                const fy = by + boxH / 2 + 15;
+                ctx.strokeStyle = '#ffb830';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(bx + boxW, fy); ctx.lineTo(bx + boxW + fLen, fy); ctx.stroke();
+                ctx.fillStyle = '#ffb830';
+                ctx.beginPath();
+                ctx.moveTo(bx - 3, fy);
+                ctx.lineTo(bx + 8, fy - 5);
+                ctx.lineTo(bx + 8, fy + 5);
+                ctx.fill();
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('← Ff = ' + Ff.toFixed(1) + 'N', bx + boxW + 5, fy - 5);
+            }
+        }
+
+        function drawTrail() {
+            if (trail.length < 2) return;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0,212,255,0.15)';
+            ctx.lineWidth = 1;
+            trail.forEach((p, i) => {
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.stroke();
+        }
+
+        function drawSpeedometer() {
+            const cx = W - 60, cy = 60, r = 35;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0.8 * Math.PI, 2.2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            // Filled arc
+            const maxV = 50;
+            const ratio = Math.min(boxVel / maxV, 1);
+            const endAngle = 0.8 * Math.PI + ratio * 1.4 * Math.PI;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0.8 * Math.PI, endAngle);
+            ctx.strokeStyle = boxVel > 30 ? '#ff4d6a' : '#00d4ff';
+            ctx.stroke();
+            ctx.fillStyle = '#e0e6f0';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(boxVel.toFixed(1), cx, cy + 5);
+            ctx.font = '8px sans-serif';
+            ctx.fillStyle = '#7a84a0';
+            ctx.fillText('მ/წმ', cx, cy + 16);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+            drawGrid();
+            drawGround();
+            drawTrail();
+            drawBox();
+            drawSpeedometer();
+            update();
+            requestAnimationFrame(animate);
+        }
+        animate();
+        updateValues();
+    </script>
+</body>
+</html>

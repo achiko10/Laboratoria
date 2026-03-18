@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — საქართველოს ოქროს ხანა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #2f1d2e; color: #fdf6e3; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #fbbf24; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .subtitle { text-align: center; color: #d6d3d1; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .card { background: #4a2f47; border-radius: 12px; padding: 25px; border: 1px solid #704769; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+
+        /* Timeline Controls */
+        .tl-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        .tl-header { display: flex; justify-content: space-between; align-items: flex-end; }
+        .tl-year { font-family: 'Courier New', monospace; font-size: 2.5rem; font-weight: bold; color: #fbbf24; line-height: 1; }
+        .tl-monarch { font-size: 1.2rem; font-weight: bold; color: #e879f9; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #2f1d2e; outline: none; margin-top: 10px; cursor: pointer; border: 1px solid #704769; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fbbf24; border: 3px solid #fdf6e3; box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); }
+
+        /* Map and Visuals Container */
+        .visual-cont { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
+        @media (max-width: 768px) { .visual-cont { grid-template-columns: 1fr; } }
+        
+        /* Interactive Map Area */
+        .map-area { position: relative; width: 100%; aspect-ratio: 4/3; background: #dcd0ba; border-radius: 8px; overflow: hidden; border: 2px solid #92400e; box-shadow: inset 0 0 20px rgba(146, 64, 14, 0.4); display: flex; align-items: center; justify-content: center; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><path fill="%23c2b280" d="M0,0 H400 V300 H0 Z"/><path fill="%239ea192" d="M0,0 Q100,50 150,0 M200,300 Q150,200 0,150" opacity="0.4" /></svg>'); background-size: cover;}
+        
+        /* Dynamic Territory Blob */
+        .territory { position: absolute; background: rgba(139, 92, 246, 0.4); border: 2px dashed #8b5cf6; border-radius: 50%; transition: all 0.5s ease-in-out; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4c1d95; text-shadow: 0 0 5px #fff; font-size: 0.9rem;}
+        
+        .capital { position: absolute; width: 12px; height: 12px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; transition: 0.5s; z-index: 10; box-shadow: 0 0 5px #000; display:flex; justify-content:center;}
+        .c-label { position: absolute; top: -20px; font-size: 0.75rem; color: #7f1d1d; font-weight: bold; background: rgba(255,255,255,0.8); padding: 1px 4px; border-radius: 3px; white-space: nowrap;}
+
+        /* Info Panel */
+        .info-panel { background: #5c3b58; border-radius: 8px; padding: 20px; border: 1px solid #85537e; display: flex; flex-direction: column; gap: 15px; }
+        .ip-title { font-weight: bold; font-size: 1.1rem; color: #fbcfe8; border-bottom: 1px solid #85537e; padding-bottom: 5px; }
+        .ip-desc { font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; }
+        
+        .ach-list { display: flex; flex-direction: column; gap: 10px; margin-top: auto;}
+        .ach-item { display: flex; align-items: flex-start; gap: 10px; background: #4a2f47; padding: 10px; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #fbbf24;}
+        .ach-icon { font-size: 1.2rem; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #4a2f47; color: #e2e8f0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; border: 1px solid #704769; font-weight: bold; }
+        .back-btn:hover { background: #5c3b58; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>👑 საქართველოს ოქროს ხანა</h1>
+    <p class="subtitle">დავით აღმაშენებლიდან თამარ მეფემდე (XI - XIII სს.)</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="tl-controls">
+                <div class="tl-header">
+                    <div class="tl-monarch" id="m-name">გიორგი II (კრიზისი)</div>
+                    <div class="tl-year" id="m-year">1089</div>
+                </div>
+                <input type="range" id="year-slider" min="1089" max="1213" value="1089" oninput="updateEra()">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#a1a1aa; padding: 0 5px;">
+                    <span>1089 (დავით IV)</span>
+                    <span>1121 (დიდგორი)</span>
+                    <span>1184 (თამარი)</span>
+                    <span>1213</span>
+                </div>
+            </div>
+
+            <div class="visual-cont">
+                <!-- Map Area -->
+                <div class="map-area">
+                    <div style="position:absolute; bottom:10px; left:10px; font-size:0.7rem; color:#78350f; font-weight:bold; opacity:0.6;">შავი ზღვა</div>
+                    <div style="position:absolute; bottom:10px; right:10px; font-size:0.7rem; color:#78350f; font-weight:bold; opacity:0.6;">კასპიის ზღვა</div>
+                    
+                    <div class="territory" id="territory">საქართველო</div>
+                    <div class="capital" id="capital"><div class="c-label" id="c-label">ქუთაისი</div></div>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="info-panel">
+                    <div class="ip-title" id="ip-title">ქვეყანა მძიმე მდგომარეობაშია</div>
+                    <div class="ip-desc" id="ip-desc">
+                        1089 წელს ტახტზე ადის 16 წლის დავით IV. ქვეყანა აოხრებულია თურქ-სელჩუკთა შემოსევებით ("დიდი თურქობა"), მეფეს არ აქვს არმია და დედაქალაქი თბილისი მტრის ხელშია. დაიწყო გრძელი, მაგრამ წარმატებული ბრძოლა ქვეყნის გაერთიანებისთვის.
+                    </div>
+
+                    <div class="ach-list" id="ach-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const slider = document.getElementById('year-slider');
+        const territory = document.getElementById('territory');
+        const capital = document.getElementById('capital');
+        const cLabel = document.getElementById('c-label');
+        const monarch = document.getElementById('m-name');
+        
+        function updateEra() {
+            let year = parseInt(slider.value);
+            document.getElementById('m-year').textContent = year;
+
+            let mName = "";
+            let title = "";
+            let desc = "";
+            let achievements = [];
+            
+            // Map params: width, height, top, left (in %), border radius
+            let tW, tH, tT, tL, tRad;
+            // Capital params: top, left (in %)
+            let cT, cL, cText;
+
+            if (year < 1104) {
+                mName = "დავით IV აღმაშენებელი";
+                title = "ტერიტორიების შემოერთების დასაწყისი";
+                desc = "ახალგაზრდა მეფემ დაიწყო ეკლესიის რეფორმა (რუის-ურბნისის კრება, 1104 წ.), შექმნა მუდმივი არმია (მონა-სპა) და დაიწყო სელჩუკების წინააღმდეგ თავდასხმები. მან შემოიერთა კახეთ-ჰერეთი.";
+                achievements = [
+                    {i: "⛪", t: "რუის-ურბნისის კრება (1104)", d: "ეკლესიის გაწმენდა უღირსი სასულიერო პირებისგან."}
+                ];
+                tW = 30; tH = 30; tT = 30; tL = 35; tRad = "40%";
+                cT = 40; cL = 35; cText = "ქუთაისი";
+                territory.style.background = "rgba(139, 92, 246, 0.4)";
+                
+            } else if (year < 1121) {
+                mName = "დავით IV აღმაშენებელი";
+                title = "რეფორმები და გაძლიერება";
+                desc = "დავითმა რეფორმები გაატარა სამხედრო და სასამართლო სფეროში (სავაზირო, სააჯო კარვის დაარსება). 1106 წელს დაიწყო გელათის მონასტრისა და აკადემიის მშენებლობა.";
+                achievements = [
+                    {i: "🎓", t: "გელათის აკადემია", d: "მეცნიერებისა და განათლების უდიდესი ცენტრი ('ახალი ათენი')."},
+                    {i: "⚔️", t: "ყივჩაღთა ჩამოსახლება", d: "40,000 ოჯახი მუდმივი არმიის შესაქმნელად (1118 წ.)"}
+                ];
+                tW = 45; tH = 40; tT = 25; tL = 30; tRad = "30%";
+                cT = 40; cL = 35; cText = "ქუთაისი";
+                territory.style.background = "rgba(124, 58, 237, 0.5)";
+
+            } else if (year >= 1121 && year <= 1125) {
+                mName = "დავით IV აღმაშენებელი";
+                title = "დიდგორის ბრძოლა! ⚔️";
+                desc = "1121 წლის 12 აგვისტოს, დიდგორის ველზე დავითმა блилияნტური ტაქტიკით გაანადგურა მაჰმადიანთა უზარმაზარი კოალიცია ('ძლევაჲ საკვირველი'). 1122 წელს გაათავისუფლა თბილისი და დედაქალაქი იქ გადმოიტანა.";
+                achievements = [
+                    {i: "🏆", t: "ძლევაჲ საკვირველი (1121)", d: "ქართველთა უდიდესი სამხედრო გამარჯვება."},
+                    {i: "🏰", t: "თბილისის გათავისუფლება (1122)", d: "დედაქალაქის გადმოტანა 400 წლიანი არაბული მმართველობის შემდეგ."}
+                ];
+                tW = 60; tH = 50; tT = 20; tL = 25; tRad = "50% 40% 60% 30%";
+                cT = 45; cL = 50; cText = "თბილისი";
+                territory.style.background = "rgba(109, 40, 217, 0.6)";
+                territory.style.borderColor = "#c084fc"; // Highlight
+
+            } else if (year > 1125 && year < 1184) {
+                mName = "გიორგი III (და ა.შ.)";
+                title = "საზღვრების განმტკიცება";
+                desc = "დავითის მემკვიდრეებმა შეინარჩუნეს და ოდნავ გააფართოვეს ქვეყნის საზღვრები. აშენდა მნიშვნელოვანი ციხესიმაგრეები. გიორგი III-მ ტახტი თავის ქალიშვილს, თამარს გადაულოცა (1178 წელს თანამოსაყდრედ).";
+                achievements = [
+                    {i: "🛡️", t: "ანისის შემოერთება", d: "მეზობელი სომხეთის ტერიტორიების ნაწილის მიერთება."}
+                ];
+                tW = 65; tH = 55; tT = 18; tL = 22; tRad = "50% 40% 60% 30%";
+                cT = 45; cL = 50; cText = "თბილისი";
+                territory.style.background = "rgba(76, 29, 149, 0.5)";
+
+            } else if (year >= 1184) {
+                mName = "თამარ მეფე";
+                title = "პიკი — საქართველოს იმპერია";
+                desc = "თამარის ეპოქაში საქართველომ თავის უდიდეს პოლიტიკურ, ეკონომიკურ და კულტურულ ძლიერებას მიაღწია. მოიგო შამქორისა (1195) და ბასიანის (1202) ბრძოლები. შოთა რუსთაველმა დაწერა 'ვეფხისტყაოსანი'.";
+                achievements = [
+                    {i: "⚔️", t: "ბასიანის ბრძოლა (1202)", d: "თურქ-სელჩუკთა დიდი კოალიციის დამარცხება."},
+                    {i: "📖", t: "კულტურული აყვავება", d: "'ვეფხისტყაოსანი', ვარძიის მონასტრის მშენებლობა."},
+                    {i: "🏛️", t: "ტრაპიზონის იმპერია (1204)", d: "მოკავშირე სახელმწიფოს დაარსება შავი ზღვის სანაპიროზე."}
+                ];
+                tW = 85; tH = 70; tT = 10; tL = 10; tRad = "40% 50% 30% 60%";
+                cT = 45; cL = 50; cText = "თბილისი";
+                territory.style.background = "rgba(192, 132, 252, 0.6)"; // Golden purple
+                territory.style.borderColor = "#fcd34d"; // Gold border
+                territory.style.boxShadow = "0 0 20px rgba(251, 191, 36, 0.5)";
+            }
+
+            // Apply updates
+            monarch.textContent = mName;
+            document.getElementById('ip-title').textContent = title;
+            document.getElementById('ip-desc').textContent = desc;
+            
+            territory.style.width = tW + '%';
+            territory.style.height = tH + '%';
+            territory.style.top = tT + '%';
+            territory.style.left = tL + '%';
+            territory.style.borderRadius = tRad;
+
+            capital.style.top = cT + '%';
+            capital.style.left = cL + '%';
+            cLabel.textContent = cText;
+
+            // Render Achievements
+            const list = document.getElementById('ach-list');
+            list.innerHTML = '';
+            achievements.forEach(a => {
+                list.innerHTML += `
+                    <div class="ach-item">
+                        <div class="ach-icon">${a.i}</div>
+                        <div>
+                            <div style="font-weight:bold; color:#fbcfe8; margin-bottom:2px;">${a.t}</div>
+                            <div style="color:#cbd5e1;">${a.d}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Init
+        updateEra();
+    </script>
+</body>
+</html>

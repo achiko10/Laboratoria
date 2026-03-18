@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — გლობალიზაცია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 15px; overflow-x: hidden; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #38bdf8; font-weight: bold;}
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 1000px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Map Container */
+        .map-wrapper { position: relative; width: 100%; height: 450px; background: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: hidden; box-shadow: inset 0 0 50px rgba(0,0,0,0.5);}
+        
+        /* Stylized SVG Map of the World */
+        #world-map { position: absolute; top:0; left:0; width:100%; height:100%; fill: #334155; stroke: #475569; stroke-width: 1;}
+
+        /* Nodes/Pins on Map */
+        .pin { position: absolute; width: 20px; height: 20px; background: #38bdf8; border-radius: 50%; border: 3px solid #0f172a; transform: translate(-50%, -50%); cursor: pointer; transition: 0.3s; z-index: 10; box-shadow: 0 0 10px #38bdf8;}
+        .pin:hover { transform: translate(-50%, -50%) scale(1.3); background: #facc15; box-shadow: 0 0 15px #facc15;}
+        
+        .pin.active { background: #facc15; box-shadow: 0 0 15px #facc15; border-color: #fff; transform: translate(-50%, -50%) scale(1.2);}
+
+        /* Animated Ship/Plane */
+        #transport { position: absolute; font-size: 1.5rem; transform: translate(-50%, -50%); z-index: 5; transition: left 2s ease-in-out, top 2s ease-in-out; display: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));}
+
+        /* SVG Line connection */
+        #route-svg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; pointer-events: none;}
+        .route-path { fill: none; stroke: #fcd34d; stroke-width: 3; stroke-dasharray: 10, 10; opacity: 0.5;}
+
+        /* Info Card */
+        .info-card { background: #1e293b; border-radius: 12px; padding: 25px; border: 1px solid #475569; border-top: 4px solid #38bdf8; min-height: 150px; display: flex; align-items: flex-start; gap: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);}
+        @media (max-width: 600px) { .info-card { flex-direction: column; align-items: center; text-align: center;} }
+        
+        .ic-icon { font-size: 4rem; background: #0f172a; border-radius: 50%; min-width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border: 1px solid #334155;}
+        .ic-content { flex: 1; }
+        
+        .ic-step { color: #38bdf8; font-family: monospace; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .ic-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; color: #f8fafc;}
+        .ic-desc { font-size: 0.95rem; color: #cbd5e1; line-height: 1.6;}
+
+        /* Controls */
+        .controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .btn-nav { padding: 10px 25px; background: #0f172a; border: 1px solid #64748b; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;}
+        .btn-nav:hover:not(:disabled) { background: #334155; border-color: #38bdf8; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #0f172a; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #334155; text-align: center;}
+        .back-btn:hover { background: #1e293b; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>🌍 გლობალიზაცია</h1>
+    <p class="subtitle">ერთი მაისურის მოგზაურობა შექმნიდან მომხმარებლამდე (გლობალური მიწოდების ჯაჭვი)</p>
+    
+    <div class="app">
+        
+        <div class="map-wrapper" id="map-wrap">
+            <!-- Simplified abstract map using SVG rects for continents to keep code compact but visual -->
+            <svg id="world-map">
+                <!-- N. America --> <rect x="10%" y="20%" width="30%" height="25%" rx="10"/>
+                <!-- S. America --> <rect x="20%" y="45%" width="20%" height="35%" rx="10"/>
+                <!-- Europe/Asia --><rect x="45%" y="15%" width="45%" height="30%" rx="10"/>
+                <!-- Africa -->     <rect x="45%" y="45%" width="25%" height="35%" rx="10"/>
+                <!-- Australia -->  <rect x="75%" y="65%" width="15%" height="20%" rx="10"/>
+            </svg>
+            
+            <svg id="route-svg"></svg>
+            
+            <!-- Pins positioned relative to % -->
+            <div class="pin" id="pin-0" style="left: 65%; top: 35%;" onclick="goToStep(0)"></div> <!-- India area -->
+            <div class="pin" id="pin-1" style="left: 80%; top: 30%;" onclick="goToStep(1)"></div> <!-- China area -->
+            <div class="pin" id="pin-2" style="left: 50%; top: 25%;" onclick="goToStep(2)"></div> <!-- Italy area -->
+            <div class="pin" id="pin-3" style="left: 55%; top: 30%;" onclick="goToStep(3)"></div> <!-- Georgia area -->
+
+            <div id="transport">🚢</div>
+        </div>
+
+        <div class="info-card">
+            <div class="ic-icon" id="ic-icon">🌱</div>
+            <div class="ic-content">
+                <div class="ic-step" id="ic-step">ეტაპი 1 / 4</div>
+                <div class="ic-title" id="ic-title">ნედლეულის მოპოვება (ინდოეთი)</div>
+                <div class="ic-desc" id="ic-desc">ბამბა მოჰყავთ და იღებენ ინდოეთის პლანტაციებში. გლობალიზაციის გამო კომპანიები ეძებენ ქვეყნებს, სადაც მუშახელი და კლიმატი იდეალურია ნედლეულის იაფად მისაღებად.</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-nav" id="btn-prev" onclick="prevStep()">← წინა</button>
+            <button class="btn-nav" id="btn-next" onclick="nextStep()" style="background:#38bdf8; color:#0f172a; border-color:#38bdf8;">შემდეგი ➞</button>
+        </div>
+
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const stepsData = [
+            {
+                country: "ინდოეთი", title: "ნედლეულის მოპოვება", icon: "🌱", transport: "🚢",
+                x: 65, y: 35, // percent coordinates
+                desc: "ბამბა მოჰყავთ და აგროვებენ ინდოეთის პლანტაციებში. ტრანსნაციონალური კორპორაციები იყენებენ განვითარებად ქვეყნებს იაფი ნედლეულის და მუშახელის გამო."
+            },
+            {
+                country: "ჩინეთი", title: "წარმოება და შეკერვა", icon: "🏭", transport: "✈️",
+                x: 80, y: 30,
+                desc: "ინდოეთიდან ბამბა გემით იგზავნება ჩინეთის ქარხნებში. აქ ხდება ძაფის დართვა, ქსოვა, შეღებვა და მაისურის შეკერვა. ჩინეთი მსოფლიოს უდიდესი მწარმოებელია ეფექტური ინფრასტრუქტურის გამო."
+            },
+            {
+                country: "იტალია", title: "დიზაინი და ბრენდინგი", icon: "🎨", transport: "🚚",
+                x: 50, y: 25,
+                desc: "მიუხედავად იმისა, რომ მაისური ჩინეთშია შეკერილი, დიზაინი, მარკეტინგი და ბრენდის მართვა ხორციელდება მილანში (იტალია). აქ პროდუქტს ემატება ყველაზე დიდი ფინანსური ღირებულება ('ბრენდის ძალა')."
+            },
+            {
+                country: "საქართველო", title: "რეალიზაცია", icon: "🛍️", transport: "✅",
+                x: 55, y: 30,
+                desc: "საბოლოო პროდუქტი იყიდება თბილისის სავაჭრო ცენტრში. ერთი უბრალო მაისურის უკან დგას გლობალური ეკონომიკური ქსელი, რომელიც აკავშირებს ფერმერს 인დოეთში, მუშას ჩინეთში და დიზაინერს იტალიაში."
+            }
+        ];
+
+        let currentStep = 0;
+
+        function updateUI() {
+            const data = stepsData[currentStep];
+            
+            // Text updates
+            document.getElementById('ic-step').textContent = `ეტაპი ${currentStep + 1} / ${stepsData.length}: ${data.country}`;
+            document.getElementById('ic-title').textContent = data.title;
+            document.getElementById('ic-desc').textContent = data.desc;
+            document.getElementById('ic-icon').textContent = data.icon;
+
+            // Buttons
+            document.getElementById('btn-prev').disabled = (currentStep === 0);
+            
+            const btnNext = document.getElementById('btn-next');
+            if (currentStep === stepsData.length - 1) {
+                btnNext.disabled = true;
+                btnNext.style.background = '#0f172a';
+                btnNext.style.color = '#fff';
+            } else {
+                btnNext.disabled = false;
+                btnNext.style.background = '#38bdf8';
+                btnNext.style.color = '#0f172a';
+            }
+
+            // Pins
+            document.querySelectorAll('.pin').forEach((p, idx) => {
+                p.classList.remove('active');
+                if(idx === currentStep) p.classList.add('active');
+            });
+
+            // Transport animation
+            const transport = document.getElementById('transport');
+            transport.style.display = 'block';
+            transport.textContent = data.transport;
+            transport.style.left = data.x + '%';
+            // Offset a bit so it sits above the pin
+            transport.style.top = (data.y - 5) + '%';
+            
+            if(data.transport === "✅") {
+                transport.style.display = 'none';
+            }
+
+            drawRoutes();
+        }
+
+        function drawRoutes() {
+            const svg = document.getElementById('route-svg');
+            svg.innerHTML = ''; // clear
+
+            // Draw line from step 0 up to current step
+            for (let i = 0; i < currentStep; i++) {
+                const start = stepsData[i];
+                const end = stepsData[i+1];
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x + '%');
+                line.setAttribute('y1', start.y + '%');
+                line.setAttribute('x2', end.x + '%');
+                line.setAttribute('y2', end.y + '%');
+                line.setAttribute('class', 'route-path');
+                
+                svg.appendChild(line);
+            }
+        }
+
+        function nextStep() {
+            if(currentStep < stepsData.length - 1) {
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        function prevStep() {
+            if(currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function goToStep(idx) {
+            currentStep = idx;
+            updateUI();
+        }
+
+        // Init
+        updateUI();
+
+    </script>
+</body>
+</html>

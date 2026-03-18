@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — დემოგრაფია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Pyramid Chart Area */
+        .chart-wrap { position: relative; width: 100%; height: 400px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .chart-header { display: flex; text-align: center; font-weight: bold; font-size: 0.9rem; padding-bottom: 10px; }
+        .chart-header .male { flex: 1; color: #3b82f6; border-right: 1px solid rgba(255,255,255,0.1); }
+        .chart-header .female { flex: 1; color: #ec4899; }
+        
+        .axis-y { position: absolute; left: 50%; top: 40px; bottom: 40px; width: 40px; margin-left: -20px; display: flex; flex-direction: column-reverse; justify-content: space-between; text-align: center; z-index: 10; pointer-events: none; }
+        .age-lbl { font-size: 0.65rem; color: #cbd5e1; background: #1e293b; height: 14px; line-height: 14px; font-weight: bold; }
+
+        .bars-container { display: flex; flex-direction: column-reverse; justify-content: space-between; height: 100%; padding-top: 30px; }
+        .bar-row { display: flex; width: 100%; height: 12px; align-items: center; position: relative; }
+        
+        .bar-left-wrap { flex: 1; display: flex; justify-content: flex-end; padding-right: 25px; }
+        .bar-left { height: 100%; background: #3b82f6; border-radius: 4px 0 0 4px; transition: width 0.5s ease-in-out; }
+        
+        .bar-right-wrap { flex: 1; display: flex; justify-content: flex-start; padding-left: 25px; }
+        .bar-right { height: 100%; background: #ec4899; border-radius: 0 4px 4px 0; transition: width 0.5s ease-in-out; }
+
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: bold; background: #334155; color: white; transition: 0.2s; border: 2px solid transparent; text-align: left; display: flex; align-items: center; justify-content: space-between;}
+        .btn:hover { background: #475569; }
+        .btn.active { background: rgba(168,85,247,0.1); border-color: #a855f7; color: #e879f9; }
+
+        .info-box { background: #0f172a; border-left: 3px solid #a855f7; border-radius: 8px; padding: 15px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-title { font-weight: bold; color: #e879f9; font-size: 1.1rem; margin-bottom: 5px; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat { background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: #f8fafc; font-family: 'Courier New'; }
+        .stat-lbl { font-size: 0.7rem; color: #64748b; margin-top: 5px; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>👥 დემოგრაფია</h1>
+    <p class="subtitle">მოსახლეობის ასაკობრივ-სქესობრივი პირამიდები</p>
+    
+    <div class="app">
+        <div class="card">
+            <h3 style="text-align:center; color:#cbd5e1; margin-bottom:15px;" id="c-title">განვითარებადი ქვეყნის მოდელი</h3>
+            <div class="chart-wrap">
+                <div class="chart-header">
+                    <div class="male">მამრობითი ♂</div>
+                    <div class="female">მდედრობითი ♀</div>
+                </div>
+                
+                <div class="axis-y" id="axis-y">
+                    <!-- populated by JS -->
+                </div>
+
+                <div class="bars-container" id="bars">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#64748b; margin-top:5px; padding:0 25px;">
+                <span>მოსახლეობის % (მამრ.)</span>
+                <span>მოსახლეობის % (მდედრ.)</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="btn-group">
+                <button class="btn active" id="btn-dev" onclick="setMode('developing')">
+                    🌍 განვითარებადი ქვეყანა
+                    <span style="font-size:1.2rem;">🔺</span>
+                </button>
+                <button class="btn" id="btn-trans" onclick="setMode('transition')">
+                    📈 გარდამავალი ეკონომიკა
+                    <span style="font-size:1.2rem;">🗽</span>
+                </button>
+                <button class="btn" id="btn-developed" onclick="setMode('developed')">
+                    🏛️ განვითარებული ქვეყანა
+                    <span style="font-size:1.2rem;">🏛️</span>
+                </button>
+                <button class="btn" id="btn-aging" onclick="setMode('aging')">
+                    👵 დაბერებადი მოსახლეობა
+                    <span style="font-size:1.2rem;">🏺</span>
+                </button>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat"><div class="stat-val" id="s-birth">მაღალი</div><div class="stat-lbl">შობადობა</div></div>
+                <div class="stat"><div class="stat-val" id="s-death" style="color:#ef4444;">მაღალი</div><div class="stat-lbl">სიკვდილიანობა</div></div>
+                <div class="stat"><div class="stat-val" id="s-life">60 წ.</div><div class="stat-lbl">სიც. ხანგრძლივობა</div></div>
+                <div class="stat"><div class="stat-val" id="s-growth" style="color:#22c55e;">სწრაფი</div><div class="stat-lbl">ზრდის ტემპი</div></div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title" id="info-title">ექსპანსიური პირამიდა (სამკუთხედი)</div>
+                <div id="info-desc">
+                    ფართო ფუძე მიუთითებს მაღალ შობადობაზე. ვიწრო თავი მიუთითებს მაღალ სიკვდილიანობასა და სიცოცხლის დაბალ ხანგრძლივობაზე. მოსახლეობა სწრაფად იზრდება და დიდი ნაწილი ბავშვები არიან (მაგ: აფრიკის ქვეყნები).
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const ages = ['0-4','5-9','10-14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54','55-59','60-64','65-69','70-74','75-79','80-84','85+'];
+        
+        // Profiles (M and F % values out of 100% total, but here normalized to relative max width of say 10% per bar to fit chart)
+        // Values here are visual percentage of the half-width. So 100 = full width (approx 10% of total population).
+        
+        const profiles = {
+            developing: {
+                title: "განვითარებადი ქვეყნის მოდელი (მაგ: ნიგერია)",
+                ptype: "ექსპანსიური პირამიდა (სამკუთხედი)",
+                desc: "ფართო ფუძე მიუთითებს მაღალ შობადობაზე. მალევე ვიწროვდება, რაც მიუთითებს მაღალ სიკვდილიანობასა და სიცოცხლის დაბალ ხანგრძლივობაზე. მოსახლეობა სწრაფად იზრდება.",
+                birth: "მაღალი", death: "მაღალი", life: "55-60 წ.", growth: "სწრაფი (2-3%)",
+                m: [95, 85, 75, 65, 55, 45, 38, 30, 25, 20, 15, 10, 8, 5, 3, 2, 1, 0.5],
+                f: [93, 83, 73, 64, 55, 46, 39, 31, 26, 21, 16, 11, 9, 6, 4, 3, 1.5, 1]
+            },
+            transition: {
+                title: "გარდამავალი ეკონომიკის მოდელი (მაგ: ინდოეთი)",
+                ptype: "შენელებული ზრდა (ზარი)",
+                desc: "შობადობა იწყებს კლებას (ფუძე მცირდება), სამედიცინო მომსახურების გაუმჯობესების გამო სიკვდილიანობაც იკლებს. მოსახლეობა კვლავ იზრდება, მაგრამ უფრო ნელა.",
+                birth: "საშუალო", death: "საშუალო", life: "65-70 წ.", growth: "ზომიერი (1.5%)",
+                m: [80, 82, 85, 80, 75, 70, 65, 60, 50, 45, 35, 25, 20, 15, 10, 6, 3, 1],
+                f: [78, 80, 83, 78, 73, 68, 63, 58, 48, 43, 36, 27, 22, 17, 12, 8, 4, 1.5]
+            },
+            developed: {
+                title: "განვითარებული ქვეყნის მოდელი (მაგ: აშშ)",
+                ptype: "სტაციონარული პირამიდა",
+                desc: "შობადობა და სიკვდილიანობა დაბალია და თითქმის ტოლი. სიცოცხლის ხანგრძლივობა მაღალია. მოსახლეობის ზრდა თითქმის 0-ის ტოლია, ფორმა კოლოფს/სვეტს გავს.",
+                birth: "დაბალი", death: "დაბალი", life: "75-80 წ.", growth: "სტაბილური (0%)",
+                m: [60, 61, 62, 63, 65, 66, 65, 62, 60, 58, 55, 50, 45, 35, 25, 15, 8, 4],
+                f: [58, 59, 60, 61, 63, 64, 63, 60, 58, 56, 54, 51, 47, 39, 30, 20, 12, 8]
+            },
+            aging: {
+                title: "დაბერებადი მოსახლეობის მოდელი (მაგ: იაპონია)",
+                ptype: "კონსტრიქციული პირამიდა (ურნა)",
+                desc: "შობადობა ძალიან დაბალია. ფუძე უფრო ვიწროა ვიდრე შუა ნაწილი. მოხუცებულთა წილი დიდია. მოსახლეობის საერთო რაოდენობა მცირდება.",
+                birth: "ძალიან დაბალი", death: "დაბალი", life: "80-85+ წ.", growth: "უარყოფითი (-0.5%)",
+                m: [40, 42, 45, 48, 52, 58, 65, 70, 75, 78, 80, 75, 65, 55, 45, 30, 15, 8],
+                f: [38, 40, 43, 46, 50, 56, 63, 68, 73, 76, 79, 76, 68, 60, 52, 38, 22, 14]
+            }
+        };
+
+        const axisY = document.getElementById('axis-y');
+        const bars = document.getElementById('bars');
+
+        // Init UI
+        ages.forEach((age, i) => {
+            // axis label
+            let lbl = document.createElement('div');
+            lbl.className = 'age-lbl';
+            lbl.textContent = age;
+            axisY.appendChild(lbl);
+
+            // bar rows
+            let row = document.createElement('div');
+            row.className = 'bar-row';
+            
+            let lWrap = document.createElement('div'); lWrap.className = 'bar-left-wrap';
+            let lBar = document.createElement('div'); lBar.className = 'bar-left'; lBar.id = 'ml-'+i;
+            lWrap.appendChild(lBar);
+            
+            let rWrap = document.createElement('div'); rWrap.className = 'bar-right-wrap';
+            let rBar = document.createElement('div'); rBar.className = 'bar-right'; rBar.id = 'fm-'+i;
+            rWrap.appendChild(rBar);
+            
+            row.appendChild(lWrap);
+            row.appendChild(rWrap);
+            bars.appendChild(row);
+        });
+
+        function setMode(mode) {
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + (mode === 'transition' ? 'trans' : mode)).classList.add('active');
+
+            const p = profiles[mode];
+            document.getElementById('c-title').textContent = p.title;
+            document.getElementById('info-title').textContent = p.ptype;
+            document.getElementById('info-desc').textContent = p.desc;
+            
+            document.getElementById('s-birth').textContent = p.birth;
+            document.getElementById('s-death').textContent = p.death;
+            document.getElementById('s-life').textContent = p.life;
+            document.getElementById('s-growth').textContent = p.growth;
+            
+            if(p.death === 'მაღალი') document.getElementById('s-death').style.color = '#ef4444';
+            else document.getElementById('s-death').style.color = '#cbd5e1';
+
+            if(p.growth.includes('-')) document.getElementById('s-growth').style.color = '#ef4444';
+            else if(p.growth.includes('0%')) document.getElementById('s-growth').style.color = '#fcd34d';
+            else document.getElementById('s-growth').style.color = '#22c55e';
+
+            // Animate bars
+            for(let i=0; i<ages.length; i++) {
+                document.getElementById('ml-'+i).style.width = p.m[i] + '%';
+                document.getElementById('fm-'+i).style.width = p.f[i] + '%';
+            }
+        }
+
+        // Init
+        setTimeout(() => setMode('developing'), 100);
+
+    </script>
+</body>
+</html>

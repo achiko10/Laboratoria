@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — გეომეტრია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 260px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 500px; cursor: crosshair; }
+        .toolbar { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; z-index: 5; }
+        .tool-btn { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.5); color: #e2e8f0; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; backdrop-filter: blur(5px); }
+        .tool-btn:hover { background: rgba(255,255,255,0.1); }
+        .tool-btn.active { border-color: #6366f1; background: rgba(99,102,241,0.3); }
+        .grid-toggle { position: absolute; top: 10px; right: 10px; z-index: 5; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .panel h3 { font-size: 0.95rem; color: #6366f1; }
+        .result-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .result-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { color: #94a3b8; }
+        .result-val { color: #f8fafc; font-weight: bold; font-family: 'Courier New', monospace; }
+        .shape-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .shape-btn { padding: 10px 5px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; font-family: inherit; font-size: 0.8rem; transition: 0.2s; text-align: center; }
+        .shape-btn:hover { background: #334155; }
+        .shape-btn.active { background: linear-gradient(135deg, #6366f1, #06b6d4); border-color: #6366f1; }
+        .color-row { display: flex; gap: 5px; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-dot.active { border-color: #fff; transform: scale(1.2); }
+        button.clear-btn { padding: 10px; background: #ef4444; border: none; border-radius: 8px; color: white; font-family: inherit; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .formula-box { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #6366f1; }
+        .formula-box b { color: #a5b4fc; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>📐 ინტერაქტიული გეომეტრია</h1>
+    <p class="subtitle">აირჩიე ფიგურა, დახაზე კანვასზე მაუსით, და რეალ-ტაიმში ნახე ფართობი, პერიმეტრი, კუთხეები</p>
+    <div class="app">
+        <div class="canvas-wrap">
+            <div class="toolbar">
+                <button class="tool-btn active" id="tool-rect" onclick="setTool('rect')" title="მართკუთხედი">▭</button>
+                <button class="tool-btn" id="tool-circle" onclick="setTool('circle')" title="წრე">◯</button>
+                <button class="tool-btn" id="tool-tri" onclick="setTool('tri')" title="სამკუთხედი">△</button>
+                <button class="tool-btn" id="tool-line" onclick="setTool('line')" title="მონაკვეთი / საზომი">╱</button>
+                <button class="tool-btn" id="tool-move" onclick="setTool('move')" title="გადაადგილება">✋</button>
+            </div>
+            <label class="grid-toggle" style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:#94a3b8;cursor:pointer;"><input type="checkbox" id="grid-check" checked onchange="showGrid=this.checked"> ბადე</label>
+            <canvas id="canvas"></canvas>
+        </div>
+        <div class="panel">
+            <h3>📏 გაზომვები</h3>
+            <div class="result-card" id="measurements">
+                <div style="color:#64748b; font-size:0.8rem; text-align:center; padding:15px 0;">დახაზე ფიგურა სანახავად</div>
+            </div>
+            <h3>🎨 ფერი</h3>
+            <div class="color-row" id="color-row"></div>
+            <h3>📚 ფორმულები</h3>
+            <div class="formula-box" id="formula-box">
+                <b>მართკუთხედი:</b><br>
+                S = a × b<br>
+                P = 2(a + b)<br>
+                d = √(a² + b²)
+            </div>
+            <button class="clear-btn" onclick="clearAll()">🗑️ გასუფთავება</button>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = canvas.parentElement;
+        let W, H;
+        function resize() {
+            canvas.width = wrap.offsetWidth * devicePixelRatio;
+            canvas.height = wrap.querySelector('canvas').offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = wrap.offsetWidth; H = 500;
+            redraw();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        const colors = ['#6366f1','#06b6d4','#22c55e','#f59e0b','#ef4444','#ec4899','#a78bfa'];
+        let currentColor = colors[0];
+        const colorRow = document.getElementById('color-row');
+        colors.forEach((c,i) => {
+            const d = document.createElement('div');
+            d.className = 'color-dot' + (i===0?' active':'');
+            d.style.background = c;
+            d.onclick = () => { currentColor = c; document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('active')); d.classList.add('active'); redraw(); };
+            colorRow.appendChild(d);
+        });
+
+        let tool = 'rect';
+        let showGrid = true;
+        let shapes = [];
+        let drawing = false;
+        let startX, startY, curX, curY;
+        let dragIndex = -1, dragOffX, dragOffY;
+        const GRID = 20;
+
+        function snap(v) { return Math.round(v/GRID)*GRID; }
+        
+        function setTool(t) {
+            tool = t;
+            document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+            document.getElementById('tool-'+t)?.classList.add('active');
+            const fb = document.getElementById('formula-box');
+            if(t==='rect') fb.innerHTML='<b>მართკუთხედი:</b><br>S = a × b<br>P = 2(a + b)<br>d = √(a² + b²)';
+            else if(t==='circle') fb.innerHTML='<b>წრე:</b><br>S = π × r²<br>C = 2π × r<br>d = 2r';
+            else if(t==='tri') fb.innerHTML='<b>სამკუთხედი:</b><br>S = ½ × a × h<br>P = a + b + c<br>ჰერონის ფორმულა: S = √(s(s-a)(s-b)(s-c))';
+            else if(t==='line') fb.innerHTML='<b>მონაკვეთი:</b><br>სიგრძე = √((x₂-x₁)² + (y₂-y₁)²)<br>შუაწერტილი = ((x₁+x₂)/2, (y₁+y₂)/2)';
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            if(tool === 'move') {
+                for(let i=shapes.length-1; i>=0; i--) {
+                    if(hitTest(shapes[i], mx, my)) {
+                        dragIndex = i;
+                        dragOffX = mx - shapes[i].x;
+                        dragOffY = my - shapes[i].y;
+                        return;
+                    }
+                }
+                return;
+            }
+
+            drawing = true;
+            startX = snap(mx); startY = snap(my);
+            curX = startX; curY = startY;
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            if(dragIndex >= 0) {
+                shapes[dragIndex].x = snap(mx - dragOffX);
+                shapes[dragIndex].y = snap(my - dragOffY);
+                redraw();
+                showMeasurements(shapes[dragIndex]);
+                return;
+            }
+            if(!drawing) return;
+            curX = snap(mx); curY = snap(my);
+            redraw();
+            // Preview
+            drawShape({type:tool, x:startX, y:startY, x2:curX, y2:curY, color:currentColor}, true);
+            showPreviewMeasurements();
+        });
+
+        canvas.addEventListener('mouseup', e => {
+            if(dragIndex >= 0) { dragIndex = -1; return; }
+            if(!drawing) return;
+            drawing = false;
+            const rect = canvas.getBoundingClientRect();
+            curX = snap(e.clientX - rect.left);
+            curY = snap(e.clientY - rect.top);
+            if(Math.abs(curX-startX) > 5 || Math.abs(curY-startY) > 5) {
+                const s = {type:tool, x:startX, y:startY, x2:curX, y2:curY, color:currentColor};
+                shapes.push(s);
+                showMeasurements(s);
+            }
+            redraw();
+        });
+
+        // Touch support
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
+        canvas.addEventListener('touchend', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup',{clientX:0,clientY:0})); }, {passive:false});
+
+        function hitTest(s, mx, my) {
+            const minX = Math.min(s.x, s.x2||s.x) - 10;
+            const maxX = Math.max(s.x, s.x2||s.x) + 10;
+            const minY = Math.min(s.y, s.y2||s.y) - 10;
+            const maxY = Math.max(s.y, s.y2||s.y) + 10;
+            return mx >= minX && mx <= maxX && my >= minY && my <= maxY;
+        }
+
+        function drawShape(s, isPreview) {
+            ctx.globalAlpha = isPreview ? 0.5 : 0.8;
+            ctx.strokeStyle = s.color;
+            ctx.fillStyle = s.color + '22';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash(isPreview ? [6,4] : []);
+
+            const x = Math.min(s.x, s.x2), y = Math.min(s.y, s.y2);
+            const w = Math.abs(s.x2 - s.x), h = Math.abs(s.y2 - s.y);
+
+            if(s.type === 'rect') {
+                ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
+                // Dimensions
+                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
+                ctx.fillText(`${w}`, x+w/2, y-8);
+                ctx.save(); ctx.translate(x-8, y+h/2); ctx.rotate(-Math.PI/2); ctx.fillText(`${h}`, 0, 0); ctx.restore();
+                // Diagonal
+                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+w,y+h); ctx.strokeStyle=s.color+'88'; ctx.stroke();
+                const diag = Math.sqrt(w*w+h*h).toFixed(1);
+                ctx.fillStyle = '#eab308'; ctx.fillText(`d=${diag}`, x+w/2+15, y+h/2-8);
+                ctx.setLineDash([]);
+            } else if(s.type === 'circle') {
+                const r = Math.sqrt(w*w+h*h)/2;
+                const cx = (s.x+s.x2)/2, cy = (s.y+s.y2)/2;
+                ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                // Radius line
+                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+r,cy); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
+                ctx.fillText(`r=${r.toFixed(1)}`, cx+r/2, cy-8);
+                // Center dot
+                ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fillStyle=s.color; ctx.fill();
+            } else if(s.type === 'tri') {
+                const midX = (s.x+s.x2)/2;
+                ctx.beginPath(); ctx.moveTo(midX, s.y); ctx.lineTo(s.x, s.y2); ctx.lineTo(s.x2, s.y2); ctx.closePath(); ctx.fill(); ctx.stroke();
+                // Side labels
+                ctx.fillStyle = s.color; ctx.font = 'bold 12px Courier New'; ctx.textAlign = 'center';
+                const base = Math.abs(s.x2-s.x);
+                const height = Math.abs(s.y2-s.y);
+                const sideL = Math.sqrt((base/2)**2 + height**2).toFixed(1);
+                ctx.fillText(`b=${base}`, (s.x+s.x2)/2, s.y2+15);
+                ctx.fillText(`h=${height}`, midX+20, (s.y+s.y2)/2);
+                // Height dashed line
+                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(midX,s.y); ctx.lineTo(midX,s.y2); ctx.strokeStyle=s.color+'88'; ctx.stroke(); ctx.setLineDash([]);
+            } else if(s.type === 'line') {
+                ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x2,s.y2); ctx.stroke();
+                const len = Math.sqrt((s.x2-s.x)**2+(s.y2-s.y)**2).toFixed(1);
+                const mx = (s.x+s.x2)/2, my = (s.y+s.y2)/2;
+                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
+                ctx.fillText(`${len}`, mx, my-10);
+                // Endpoints
+                ctx.beginPath(); ctx.arc(s.x,s.y,4,0,Math.PI*2); ctx.arc(s.x2,s.y2,4,0,Math.PI*2); ctx.fillStyle=s.color; ctx.fill();
+                // Midpoint
+                ctx.beginPath(); ctx.arc(mx,my,3,0,Math.PI*2); ctx.fillStyle='#eab308'; ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            ctx.setLineDash([]);
+        }
+
+        function redraw() {
+            ctx.clearRect(0,0,W,H);
+            // Grid
+            if(showGrid) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+                for(let x=0;x<=W;x+=GRID) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+                for(let y=0;y<=H;y+=GRID) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+            }
+            shapes.forEach(s => drawShape(s, false));
+        }
+
+        function showPreviewMeasurements() {
+            const w = Math.abs(curX-startX), h = Math.abs(curY-startY);
+            showMeasurements({type:tool, x:startX, y:startY, x2:curX, y2:curY});
+        }
+
+        function showMeasurements(s) {
+            const m = document.getElementById('measurements');
+            const w = Math.abs(s.x2-s.x), h = Math.abs(s.y2-s.y);
+            let html = '';
+            if(s.type === 'rect') {
+                const area = w*h;
+                const perim = 2*(w+h);
+                const diag = Math.sqrt(w*w+h*h);
+                html = `
+                    <div class="result-row"><span class="result-label">სიგანე (a)</span><span class="result-val">${w} px</span></div>
+                    <div class="result-row"><span class="result-label">სიმაღლე (b)</span><span class="result-val">${h} px</span></div>
+                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toLocaleString()} px²</span></div>
+                    <div class="result-row"><span class="result-label">პერიმეტრი (P)</span><span class="result-val" style="color:#06b6d4">${perim} px</span></div>
+                    <div class="result-row"><span class="result-label">დიაგონალი (d)</span><span class="result-val" style="color:#eab308">${diag.toFixed(2)} px</span></div>`;
+            } else if(s.type === 'circle') {
+                const r = Math.sqrt(w*w+h*h)/2;
+                const area = Math.PI*r*r;
+                const circ = 2*Math.PI*r;
+                html = `
+                    <div class="result-row"><span class="result-label">რადიუსი (r)</span><span class="result-val">${r.toFixed(1)} px</span></div>
+                    <div class="result-row"><span class="result-label">დიამეტრი (d)</span><span class="result-val">${(2*r).toFixed(1)} px</span></div>
+                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toFixed(1)} px²</span></div>
+                    <div class="result-row"><span class="result-label">გარშემოწერილობა (C)</span><span class="result-val" style="color:#06b6d4">${circ.toFixed(1)} px</span></div>`;
+            } else if(s.type === 'tri') {
+                const base = w;
+                const height = h;
+                const area = 0.5*base*height;
+                const sideL = Math.sqrt((base/2)**2+height**2);
+                const perim = base + 2*sideL;
+                html = `
+                    <div class="result-row"><span class="result-label">ფუძე (b)</span><span class="result-val">${base} px</span></div>
+                    <div class="result-row"><span class="result-label">სიმაღლე (h)</span><span class="result-val">${height} px</span></div>
+                    <div class="result-row"><span class="result-label">გვერდი</span><span class="result-val">${sideL.toFixed(1)} px</span></div>
+                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toFixed(1)} px²</span></div>
+                    <div class="result-row"><span class="result-label">პერიმეტრი (P)</span><span class="result-val" style="color:#06b6d4">${perim.toFixed(1)} px</span></div>`;
+            } else if(s.type === 'line') {
+                const len = Math.sqrt((s.x2-s.x)**2+(s.y2-s.y)**2);
+                const mx = ((s.x+s.x2)/2).toFixed(0), my = ((s.y+s.y2)/2).toFixed(0);
+                const angle = (Math.atan2(s.y2-s.y, s.x2-s.x)*180/Math.PI).toFixed(1);
+                html = `
+                    <div class="result-row"><span class="result-label">სიგრძე</span><span class="result-val">${len.toFixed(2)} px</span></div>
+                    <div class="result-row"><span class="result-label">Δx</span><span class="result-val">${s.x2-s.x} px</span></div>
+                    <div class="result-row"><span class="result-label">Δy</span><span class="result-val">${s.y2-s.y} px</span></div>
+                    <div class="result-row"><span class="result-label">შუაწერტილი</span><span class="result-val">(${mx}, ${my})</span></div>
+                    <div class="result-row"><span class="result-label">კუთხე</span><span class="result-val" style="color:#eab308">${angle}°</span></div>`;
+            }
+            m.innerHTML = html;
+        }
+
+        function clearAll() { shapes = []; document.getElementById('measurements').innerHTML='<div style="color:#64748b;font-size:0.8rem;text-align:center;padding:15px 0;">დახაზე ფიგურა სანახავად</div>'; redraw(); }
+        redraw();
+    </script>
+</body>
+</html>

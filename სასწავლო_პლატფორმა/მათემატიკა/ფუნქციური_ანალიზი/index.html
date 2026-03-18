@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — ფუნქციური ანალიზი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 500px; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .func-input { display: flex; align-items: center; gap: 5px; }
+        .func-input span { color: #94a3b8; font-size: 0.9rem; }
+        .func-input input { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; outline: none; }
+        .func-input input:focus { border-color: #22c55e; }
+        .func-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0f172a; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .func-color { width: 12px; height: 12px; border-radius: 3px; }
+        .func-expr { flex: 1; font-family: 'Courier New'; font-size: 0.8rem; }
+        .func-del { cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 5px; }
+        .preset-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .preset-btn { padding: 8px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: 'Courier New'; font-size: 0.75rem; transition: 0.2s; }
+        .preset-btn:hover { background: #334155; color: #f8fafc; }
+        .btn { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; width: 100%; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-add { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .btn-clear { background: #ef4444; }
+        .control label { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .control label b { color: #f8fafc; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #3b82f6); cursor: pointer; }
+        .info { background: #0f172a; border-left: 3px solid #22c55e; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.5; }
+        .info b { color: #86efac; }
+        .result-card { background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: #94a3b8; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>📈 ფუნქციის გრაფიკი y = f(x)</h1>
+    <p class="subtitle">ჩაწერე ფუნქცია, დაამატე რამდენიმე, შეადარე — ნახე გრაფიკი რეალ-ტაიმში</p>
+    <div class="app">
+        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div style="font-weight:bold; color:#22c55e; font-size:0.9rem;">ფუნქცია</div>
+            <div class="func-input">
+                <span>y =</span>
+                <input type="text" id="func-input" value="x^2" placeholder="მაგ: sin(x), x^2+1">
+            </div>
+            <button class="btn btn-add" onclick="addFunction()">+ დამატება</button>
+            <div id="func-list"></div>
+            <div style="font-size:0.75rem; color:#64748b;">სწრაფი ფუნქციები:</div>
+            <div class="preset-btns">
+                <button class="preset-btn" onclick="quick('x^2')">x²</button>
+                <button class="preset-btn" onclick="quick('sin(x)')">sin(x)</button>
+                <button class="preset-btn" onclick="quick('cos(x)')">cos(x)</button>
+                <button class="preset-btn" onclick="quick('tan(x)')">tan(x)</button>
+                <button class="preset-btn" onclick="quick('1/x')">1/x</button>
+                <button class="preset-btn" onclick="quick('sqrt(x)')">√x</button>
+                <button class="preset-btn" onclick="quick('abs(x)')">|x|</button>
+                <button class="preset-btn" onclick="quick('x^3')">x³</button>
+                <button class="preset-btn" onclick="quick('2^x')">2ˣ</button>
+                <button class="preset-btn" onclick="quick('log(x)')">ln(x)</button>
+            </div>
+            <div class="control">
+                <label>X დიაპაზონი: <b>±<span id="xr-val">10</span></b></label>
+                <input type="range" id="x-range" min="2" max="50" value="10" oninput="document.getElementById('xr-val').textContent=this.value; draw();">
+            </div>
+            <button class="btn btn-clear" onclick="clearFuncs()">🗑️ ყველა წაშლა</button>
+            <div class="result-card" id="hover-info">მაუსი გადაატარე გრაფიკზე x, y მნიშვნელობების სანახავად</div>
+            <div class="info">
+                <b>რჩევა:</b> ჩაწერე ფუნქცია JS სინტაქსით:<br>
+                <b>x^2</b> = x², <b>sin(x)</b>, <b>cos(x)</b>, <b>tan(x)</b><br>
+                <b>sqrt(x)</b> = √x, <b>abs(x)</b> = |x|<br>
+                <b>PI</b> = π, <b>E</b> = e ≈ 2.718<br>
+                <b>log(x)</b> = ln(x), <b>2^x</b> = 2ˣ
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = canvas.parentElement;
+        let W, H;
+        function resize() {
+            canvas.width = wrap.offsetWidth * devicePixelRatio;
+            canvas.height = 500 * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = wrap.offsetWidth; H = 500;
+            draw();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        const colors = ['#22c55e','#3b82f6','#ef4444','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#f97316'];
+        let funcs = [{expr:'x^2', color:colors[0]}];
+
+        document.getElementById('func-input').addEventListener('keydown', e => { if(e.key==='Enter') addFunction(); });
+
+        function evalExpr(expr, x) {
+            try {
+                const sanitized = expr
+                    .replace(/\^/g, '**')
+                    .replace(/sin/g, 'Math.sin')
+                    .replace(/cos/g, 'Math.cos')
+                    .replace(/tan/g, 'Math.tan')
+                    .replace(/sqrt/g, 'Math.sqrt')
+                    .replace(/abs/g, 'Math.abs')
+                    .replace(/log/g, 'Math.log')
+                    .replace(/PI/g, 'Math.PI')
+                    .replace(/E(?![a-z])/g, 'Math.E');
+                return new Function('x', `return ${sanitized}`)(x);
+            } catch(e) { return NaN; }
+        }
+
+        function addFunction() {
+            const input = document.getElementById('func-input');
+            const expr = input.value.trim();
+            if(!expr) return;
+            // Test
+            const test = evalExpr(expr, 1);
+            if(isNaN(test) && test !== Infinity && test !== -Infinity) { input.style.borderColor='#ef4444'; return; }
+            input.style.borderColor = 'rgba(255,255,255,0.1)';
+            funcs.push({expr, color: colors[funcs.length % colors.length]});
+            input.value = '';
+            renderList();
+            draw();
+        }
+
+        function quick(expr) {
+            document.getElementById('func-input').value = expr;
+            addFunction();
+        }
+
+        function removeFunc(i) { funcs.splice(i, 1); renderList(); draw(); }
+        function clearFuncs() { funcs = []; renderList(); draw(); }
+
+        function renderList() {
+            const list = document.getElementById('func-list');
+            list.innerHTML = funcs.map((f, i) =>
+                `<div class="func-item"><div class="func-color" style="background:${f.color}"></div><span class="func-expr">y = ${f.expr}</span><span class="func-del" onclick="removeFunc(${i})">×</span></div>`
+            ).join('');
+        }
+
+        // Mouse hover
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const xRange = +document.getElementById('x-range').value;
+            const yRange = xRange * (H/W);
+            const x = (mx / W - 0.5) * 2 * xRange;
+            const y = -(my / H - 0.5) * 2 * yRange;
+
+            let html = `<b>x = ${x.toFixed(3)}</b><br>`;
+            funcs.forEach(f => {
+                const val = evalExpr(f.expr, x);
+                html += `<span style="color:${f.color}">y = ${f.expr} → <b>${isFinite(val)?val.toFixed(4):'∞'}</b></span><br>`;
+            });
+            document.getElementById('hover-info').innerHTML = html;
+
+            draw();
+            // Crosshair
+            ctx.setLineDash([4,4]);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(mx,0); ctx.lineTo(mx,H); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0,my); ctx.lineTo(W,my); ctx.stroke();
+            ctx.setLineDash([]);
+            // Point markers
+            funcs.forEach(f => {
+                const val = evalExpr(f.expr, x);
+                if(isFinite(val)) {
+                    const py = H/2 - (val/(2*yRange))*H;
+                    ctx.beginPath(); ctx.arc(mx, py, 5, 0, Math.PI*2);
+                    ctx.fillStyle = f.color; ctx.fill();
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+                }
+            });
+        });
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            const xRange = +document.getElementById('x-range').value;
+            const yRange = xRange * (H/W);
+            const cx = W/2, cy = H/2;
+            const scaleX = W / (2*xRange), scaleY = H / (2*yRange);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+            for(let i = -xRange; i <= xRange; i++) {
+                const px = cx + i*scaleX;
+                ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,H); ctx.stroke();
+            }
+            for(let i = -Math.floor(yRange); i <= Math.floor(yRange); i++) {
+                const py = cy - i*scaleY;
+                ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W,py); ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#64748b'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+            for(let i = -xRange; i <= xRange; i++) {
+                if(i !== 0) ctx.fillText(i, cx + i*scaleX, cy + 14);
+            }
+            ctx.textAlign = 'right';
+            for(let i = -Math.floor(yRange); i <= Math.floor(yRange); i++) {
+                if(i !== 0) ctx.fillText(i, cx - 5, cy - i*scaleY + 4);
+            }
+
+            // Draw functions
+            funcs.forEach(f => {
+                ctx.beginPath(); ctx.strokeStyle = f.color; ctx.lineWidth = 2.5;
+                let started = false;
+                for(let px = 0; px < W; px++) {
+                    const x = (px - cx) / scaleX;
+                    const y = evalExpr(f.expr, x);
+                    if(!isFinite(y) || Math.abs(y) > yRange*5) {
+                        started = false; continue;
+                    }
+                    const py = cy - y * scaleY;
+                    if(!started) { ctx.moveTo(px, py); started = true; }
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+            });
+        }
+
+        renderList();
+        draw();
+    </script>
+</body>
+</html>

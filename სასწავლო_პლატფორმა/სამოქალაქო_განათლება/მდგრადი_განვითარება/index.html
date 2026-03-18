@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — მდგრადი განვითარება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f0fdf4; color: #14532d; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #16a34a; font-weight: bold;}
+        .subtitle { text-align: center; color: #15803d; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        @media (max-width: 800px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #bbf7d0; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.1); }
+
+        /* Gauges */
+        .gauges-container { display: flex; justify-content: space-around; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .gauge-col { display: flex; flex-direction: column; align-items: center; gap: 8px;}
+        .gauge-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: #fff; background: conic-gradient(#10b981 50%, #e2e8f0 0); transition: background 0.3s; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);}
+        .gauge-inner { width: 60px; height: 60px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #334155;}
+        .gauge-title { font-weight: bold; font-size: 0.85rem; color: #475569;}
+
+        /* Sliders Area */
+        .controls-area { display: flex; flex-direction: column; gap: 20px; }
+        
+        .slider-group { background: #fefce8; border-left: 4px solid #facc15; padding: 15px; border-radius: 8px; }
+        .sg-title { font-weight: bold; color: #854d0e; margin-bottom: 10px; display: flex; justify-content: space-between;}
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: #fef08a; border-radius: 4px; outline: none; transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #ca8a04; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        /* Output / City View */
+        .city-view { position: relative; width: 100%; height: 350px; background: linear-gradient(to bottom, #87ceeb 60%, #4ade80 40%); border-radius: 10px; overflow: hidden; border: 2px solid #94a3b8;}
+        
+        .city-sky { position: absolute; width:100%; height:60%; top:0; left:0; transition: background 0.5s;}
+        .city-ground { position: absolute; width:100%; height:40%; bottom:0; left:0; transition: background 0.5s;}
+
+        .icon-layer { position: absolute; font-size: 3rem; bottom: 20px; transition: 0.3s; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.3));}
+
+        #bg-factory { left: 10%; display: none;}
+        #bg-wind { left: 10%; display: none;}
+        
+        #bg-cars { left: 45%; display: none;}
+        #bg-bus { left: 45%; display: none;}
+        
+        #bg-trash { right: 10%; display: none;}
+        #bg-recycle { right: 10%; display: none;}
+
+        .res-box { margin-top: 15px; padding: 15px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; text-align: center; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #dcfce7; color: #166534; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bbf7d0; text-align: center;}
+        .back-btn:hover { background: #bbf7d0; color: #14532d; }
+    </style>
+</head>
+<body>
+    <h1>🌱 მდგრადი განვითარება</h1>
+    <p class="subtitle">მართეთ ქალაქის ბიუჯეტი ისე, რომ დაიცვათ ბალანსი ეკოლოგიას, ეკონომიკასა და საზოგადოებას შორის</p>
+    
+    <div class="app">
+        <!-- Controls -->
+        <div class="card">
+            <h3 style="margin-bottom:15px; color:#14532d; text-align:center;">პოლიტიკის არჩევანი</h3>
+            
+            <div class="controls-area">
+                <div class="slider-group" style="border-color:#3b82f6;">
+                    <div class="sg-title">
+                        <span>ენერგეტიკა</span>
+                        <span id="v-energy" style="color:#2563eb;">წიაღისეული</span>
+                    </div>
+                    <input type="range" id="sl-energy" min="0" max="10" value="0" oninput="updateSim()">
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:5px; display:flex; justify-content:space-between;">
+                        <span>ნახშირი (იაფი)</span><span>მზის/ქარის ენერგია (ძვირი)</span>
+                    </div>
+                </div>
+
+                <div class="slider-group" style="border-color:#f97316;">
+                    <div class="sg-title">
+                        <span>ტრანსპორტი</span>
+                        <span id="v-trans" style="color:#ea580c;">ინდივიდუალური</span>
+                    </div>
+                    <input type="range" id="sl-trans" min="0" max="10" value="0" oninput="updateSim()">
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:5px; display:flex; justify-content:space-between;">
+                        <span>ავტომობილები</span><span>საზ. ტრანსპორტი / ველო</span>
+                    </div>
+                </div>
+
+                <div class="slider-group" style="border-color:#10b981;">
+                    <div class="sg-title">
+                        <span>ნარჩენები</span>
+                        <span id="v-waste" style="color:#059669;">ნაგავსაყრელი</span>
+                    </div>
+                    <input type="range" id="sl-waste" min="0" max="10" value="0" oninput="updateSim()">
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:5px; display:flex; justify-content:space-between;">
+                        <span>ნაგავსაყრელი</span><span>გადამუშავება (Recycling)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="font-size:0.85rem; color:#475569; margin-top:20px; line-height:1.5;">
+                <b>მიზანი:</b> მდგრადი განვითარება ნიშნავს ჩვენი მოთხოვნილებების დაკმაყოფილებას ისე, რომ საფრთხე არ შეექმნას მომავალი თაობების კეთილდღეობას.
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="card">
+            
+            <div class="gauges-container">
+                <div class="gauge-col">
+                    <div class="gauge-title">🌏 ეკოლოგია</div>
+                    <div class="gauge-circle" id="g-eco"><div class="gauge-inner" id="t-eco">0%</div></div>
+                </div>
+                <div class="gauge-col">
+                    <div class="gauge-title">💰 ეკონომიკა (ბიუჯეტი)</div>
+                    <div class="gauge-circle" id="g-econ"><div class="gauge-inner" id="t-econ">100%</div></div>
+                </div>
+                <div class="gauge-col">
+                    <div class="gauge-title">😊 საზოგადოება</div>
+                    <div class="gauge-circle" id="g-soc"><div class="gauge-inner" id="t-soc">50%</div></div>
+                </div>
+            </div>
+
+            <div class="city-view">
+                <div class="city-sky" id="city-sky"></div>
+                <div class="city-ground" id="city-ground"></div>
+                
+                <div class="icon-layer" id="bg-factory">🏭 ☁️</div>
+                <div class="icon-layer" id="bg-wind">🎐 ☀️</div>
+                
+                <div class="icon-layer" id="bg-cars">🚗 🚘</div>
+                <div class="icon-layer" id="bg-bus">🚋 🚲</div>
+                
+                <div class="icon-layer" id="bg-trash">🗑️ 🐀</div>
+                <div class="icon-layer" id="bg-recycle">♻️ 🌲</div>
+            </div>
+
+            <div class="res-box" id="msg-box">
+                <!-- Status Message -->
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const slE = document.getElementById('sl-energy');
+        const slT = document.getElementById('sl-trans');
+        const slW = document.getElementById('sl-waste');
+
+        function updateGauge(id, val, color) {
+            const circ = document.getElementById(`g-${id}`);
+            const t = document.getElementById(`t-${id}`);
+            // Force 0-100 limit
+            val = Math.max(0, Math.min(100, val));
+            circ.style.background = `conic-gradient(${color} ${val}%, #e2e8f0 0)`;
+            t.textContent = Math.round(val) + '%';
+            return val;
+        }
+
+        function updateSim() {
+            const vE = parseInt(slE.value);
+            const vT = parseInt(slT.value);
+            const vW = parseInt(slW.value);
+
+            // Update Labels
+            document.getElementById('v-energy').textContent = vE > 5 ? 'განახლებადი' : 'წიაღისეული';
+            document.getElementById('v-trans').textContent = vT > 5 ? 'მწვანე / საჯარო' : 'ინდივიდუალური';
+            document.getElementById('v-waste').textContent = vW > 5 ? 'გადამუშავება' : 'ნაგავსაყრელი';
+
+            // Calculate Pillars (0 to 10 scale max initially)
+            // Ecology: Increases with greener choices (vE, vT, vW)
+            const ecologyRaw = (vE + vT + vW) / 30; 
+            
+            // Economy/Budget: Decreases with greener choices (initially), assuming they require investment
+            // Start at 100%, each green step costs money.
+            const economyRaw = 1 - ((vE*0.5 + vT*0.7 + vW*0.6) / 30); 
+
+            // Society (Happiness/Health): Increases heavily with Ecology, but dips a bit if economy is too low
+            const societyRaw = (ecologyRaw * 0.7) + (economyRaw * 0.3) + 0.2; // base 0.2
+
+            // Scale to 100
+            const ecoVal = updateGauge('eco', ecologyRaw * 100, '#10b981');
+            const econVal = updateGauge('econ', economyRaw * 100, '#3b82f6');
+            const socVal = updateGauge('soc', societyRaw * 100, '#f59e0b');
+
+            // Update Visuals
+            const sky = document.getElementById('city-sky');
+            const ground = document.getElementById('city-ground');
+            
+            // Smog vs clean sky
+            if (ecoVal < 30) sky.style.background = '#94a3b8'; // gray
+            else if (ecoVal < 60) sky.style.background = '#bae6fd'; // light blue
+            else sky.style.background = '#38bdf8'; // bright blue
+
+            // Dirty vs green ground
+            if (ecoVal < 30) ground.style.background = '#854d0e'; // brown dirt
+            else if (ecoVal < 60) ground.style.background = '#a3e635'; // lime
+            else ground.style.background = '#22c55e'; // rich green
+
+            // Icons
+            document.getElementById('bg-factory').style.display = vE < 5 ? 'block' : 'none';
+            document.getElementById('bg-wind').style.display = vE >= 5 ? 'block' : 'none';
+
+            document.getElementById('bg-cars').style.display = vT < 5 ? 'block' : 'none';
+            document.getElementById('bg-bus').style.display = vT >= 5 ? 'block' : 'none';
+
+            document.getElementById('bg-trash').style.display = vW < 5 ? 'block' : 'none';
+            document.getElementById('bg-recycle').style.display = vW >= 5 ? 'block' : 'none';
+
+            // Feedback Message
+            const msg = document.getElementById('msg-box');
+            if (ecoVal > 70 && econVal > 40 && socVal > 70) {
+                msg.innerHTML = "🏆 <b>იდეალური ბალანსი!</b> თქვენ მიაღწიეთ მდგრად განვითარებას. ეკოლოგია დაცულია და ეკონომიკაც ფუნქციონირებს.";
+                msg.style.background = '#dcfce7'; msg.style.color = '#166534';
+            } else if (econVal < 30) {
+                msg.innerHTML = "⚠️ <b>ეკონომიკური საფრთხე:</b> მწვანე ინიციატივები ძალიან კარგია, მაგრამ გადაჭარბებულმა ხარჯებმა ბიუჯეტი გაანადგურა.";
+                msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
+            } else if (ecoVal < 30) {
+                msg.innerHTML = "🏭 <b>ეკოლოგიური კრიზისი:</b> ეკონომიკა ყვავის, მაგრამ ქალაქში სუნთქვა შეუძლებელია. საზოგადოების ჯანმრთელობა საფრთხეშია.";
+                msg.style.background = '#fef3c7'; msg.style.color = '#92400e';
+            } else {
+                msg.innerHTML = "⚖️ <b>გარდამავალი ეტაპი:</b> სცადეთ იპოვოთ ოქროს შუალედი სამივე მაგისტრალს შორის.";
+                msg.style.background = '#f1f5f9'; msg.style.color = '#334155';
+            }
+        }
+
+        // Init
+        updateSim();
+    </script>
+</body>
+</html>

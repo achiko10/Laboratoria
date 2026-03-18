@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — შუა საუკუნეები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #2f2f2f; color: #f1f1f1; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #ffd700; text-shadow: 2px 2px 4px #000; }
+        .subtitle { text-align: center; color: #a1a1aa; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 340px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #1a1a1a; border-radius: 12px; padding: 20px; border: 2px solid #3f3f46; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        
+        /* Pyramid Area */
+        .pyramid-wrap { position: relative; width: 100%; height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%231a1a1a"/><path d="M0,100 L20,30 L40,100 Z M60,100 L80,20 L100,100 Z" fill="%2327272a" opacity="0.5"/></svg>') no-repeat bottom; background-size: cover; border-radius: 8px; border: 1px solid #3f3f46; }
+
+        .layer { display: flex; align-items: center; justify-content: center; height: 60px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; position: relative; border-radius: 4px; border: 2px solid transparent; text-shadow: 1px 1px 2px #000; }
+        .layer:hover { filter: brightness(1.2); transform: translateY(-2px); z-index: 10; }
+        .layer.active { border-color: #ffd700; filter: brightness(1.2); box-shadow: 0 0 15px rgba(255,215,0,0.3); z-index: 10; transform: scale(1.02); }
+
+        .l-king { width: 20%; background: linear-gradient(135deg, #7c2d12, #991b1b); border-top-left-radius: 50%; border-top-right-radius: 50%; height: 70px; }
+        .l-noble { width: 45%; background: linear-gradient(135deg, #b45309, #d97706); }
+        .l-knight { width: 70%; background: linear-gradient(135deg, #475569, #64748b); }
+        .l-peasant { width: 95%; background: linear-gradient(135deg, #4d7c0f, #65a30d); height: 80px; }
+
+        /* Connections/Arrows */
+        .conn-up { position: absolute; right: -40px; color: #10b981; font-size: 0.8rem; font-weight: normal; writing-mode: vertical-rl; transform: rotate(180deg); opacity: 0; transition: 0.3s; text-shadow: none; display: flex; align-items: center; gap: 5px;}
+        .conn-down { position: absolute; left: -40px; color: #f59e0b; font-size: 0.8rem; font-weight: normal; writing-mode: vertical-rl; opacity: 0; transition: 0.3s; text-shadow: none; display: flex; align-items: center; gap: 5px;}
+        .layer.active .conn-up, .layer.active .conn-down { opacity: 1; right: -60px; left: -60px; }
+
+        /* Panel */
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        .info-panel { background: #27272a; border-radius: 8px; border-left: 4px solid #ffd700; padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        
+        .ip-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #3f3f46; padding-bottom: 10px; }
+        .ip-emoji { font-size: 2.5rem; }
+        .ip-title { font-size: 1.3rem; font-weight: bold; color: #ffd700; }
+        
+        .ip-body { font-size: 0.9rem; color: #d4d4d8; line-height: 1.6; }
+        .ip-exchange { margin-top: 15px; padding: 10px; background: #1a1a1a; border-radius: 6px; border: 1px solid #3f3f46; display: flex; flex-direction: column; gap: 8px; }
+        .ex-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .ex-icon { width: 24px; text-align: center; }
+
+        .castle-btn { margin-top: auto; padding: 12px; background: #3f3f46; border: 2px solid #52525b; border-radius: 8px; color: #fff; font-weight: bold; font-family: inherit; cursor: pointer; transition: 0.2s; text-align: center; }
+        .castle-btn:hover { background: #52525b; border-color: #a1a1aa; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #3f3f46; color: #f4f4f5; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #52525b; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ შუა საუკუნეები</h1>
+    <p class="subtitle">ფეოდალური სისტემის იერარქია. დააკლიკე ფენებს დეტალებისთვის!</p>
+    
+    <div class="app">
+        <div class="card">
+            <h3 style="text-align:center; color:#a1a1aa; margin-bottom:15px; font-size:0.9rem;">ფეოდალური პირამიდა</h3>
+            <div class="pyramid-wrap">
+                <div class="layer l-king" onclick="setLayer('king')" id="ly-king">
+                    👑 მეფე
+                    <div class="conn-down"><span>მიწა და ტიტული</span> ⬇️</div>
+                </div>
+                <div class="layer l-noble" onclick="setLayer('noble')" id="ly-noble">
+                    🏰 დიდებულები (ლორდები)
+                    <div class="conn-up">⬆️ <span>ლოიალობა და ჯარი</span></div>
+                    <div class="conn-down"><span>მიწა (ფეოდი)</span> ⬇️</div>
+                </div>
+                <div class="layer l-knight" onclick="setLayer('knight')" id="ly-knight">
+                    ⚔️ რაინდები (ვასალები)
+                    <div class="conn-up">⬆️ <span>სამხედრო სამსახური</span></div>
+                    <div class="conn-down"><span>დაცვა და მიწა</span> ⬇️</div>
+                </div>
+                <div class="layer l-peasant" onclick="setLayer('peasant')" id="ly-peasant">
+                    🌾 გლეხები და ყმები (სერფები)
+                    <div class="conn-up">⬆️ <span>შრომა, საკვები, გად.</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="info-panel" id="info-panel">
+                <div class="ip-header">
+                    <div class="ip-emoji" id="ip-emoji">🏰</div>
+                    <div class="ip-title" id="ip-title">აირჩიე სოციალური ფენა</div>
+                </div>
+                <div class="ip-body" id="ip-body">
+                    დააკლიკე პირამიდის ნებისმიერ საფეხურს, რათა გაიგო მეტი თითოეული სოციალური კლასის უფლებებისა და მოვალეობების შესახებ ფეოდალურ სისტემაში.
+                </div>
+                <div class="ip-exchange" id="ip-exchange" style="display:none;">
+                    <div class="ex-row" id="ex-gives"><span class="ex-icon">⬆️</span><span id="txt-gives"></span></div>
+                    <div class="ex-row" id="ex-gets"><span class="ex-icon">⬇️</span><span id="txt-gets"></span></div>
+                </div>
+            </div>
+
+            <button class="castle-btn" onclick="alert('შუა საუკუნეებში ციხესიმაგრეები (Castles) ასრულებდნენ როგორც თავდაცვით, ისე პოლიტიკურ ფუნქციას. ისინი წარმოადგენდნენ ლორდის ძალაუფლების ცენტრს.')">
+                🏰 რა როლი ჰქონდა ციხესიმაგრეს?
+            </button>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const layersData = {
+            king: {
+                title: "მეფე (მონარქი)", emoji: "👑", border: "#991b1b",
+                desc: "სახელმწიფოს უმაღლესი მმართველი. ფეოდალურ სისტემაში მეფე ფლობდა ყველა მიწას. მას არ შეეძლო მთელი ქვეყნის მარტო მართვა და დაცვა, ამიტომ მიწის ნაწილს უნაწილებდა უმსხვილეს ფეოდალებს (ბარონებს, ჰერცოგებს) მათი ლოიალობის სანაცვლოდ.",
+                gives: "ანიჭებდა მიწას (Fief) და ტიტულებს.",
+                gets: "იღებდა სამხედრო დახმარებას და გადასახადებს დიდებულებისგან."
+            },
+            noble: {
+                title: "დიდებულები (ლორდები / ბარონები)", emoji: "🏰", border: "#d97706",
+                desc: "მეფის უშუალო ვასალები. ისინი განაგებდნენ უზარმაზარ მამულებს, აგებდნენ ციხესიმაგრეებს და ჰყავდათ საკუთარი ჯარი. ლორდები მეფეს ერთგულებას (Homage) ფიცავდნენ.",
+                gives: "მეფეს აძლევდნენ ლოიალობის ფიცსა და შეიარაღებულ რაინდებს ომის დროს. რაინდებს უნაწილებდნენ მიწას.",
+                gets: "მეფისგან იღებდნენ მიწას. რაინდებისგან იღებდნენ დაცვას და გადასახადებს."
+            },
+            knight: {
+                title: "რაინდები (მცირე ფეოდალები)", emoji: "⚔️", border: "#64748b",
+                desc: "პროფესიონალი მებრძოლები, რომლებიც ემსახურებოდნენ ლორდებს. სამხედრო სამსახურის სანაცვლოდ ისინი იღებდნენ მიწასა და გლეხებს. რაინდება იცავდნენ რაინდულ კოდექსს (Chivalry).",
+                gives: "ლორდებს აძლევდნენ სამხედრო სამსახურს. გლეხებს აძლევდნენ ფიზიკურ დაცვას.",
+                gets: "ლორდისგან იღებდნენ მიწას. გლეხებისგან იღებდნენ საკვებს და მუშახელს."
+            },
+            peasant: {
+                title: "გლეხები და ყმები (სერფები)", emoji: "🌾", border: "#65a30d",
+                desc: "მოსახლეობის 90%. ისინი მუშაობდნენ მიწაზე. ყმები (Serfs) მიმაგრებულნი იყვნენ მიწაზე და არ შეეძლოთ ლორდის მამულის დატოვება მისი ნებართვის გარეშე. მათი შრომა კვებავდა მთელ პირამიდას.",
+                gives: "რაინდებსა და ლორდებს აძლევდნენ უფასო შრომას, საკვებს და იხდიდნენ გადასახადებს.",
+                gets: "იღებდნენ მიწის პატარა ნაკვეთზე მუშაობისა და ცხოვრების უფლებას და ფიზიკურ დაცვას თავდასხმებისგან."
+            }
+        };
+
+        function setLayer(id) {
+            document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+            document.getElementById('ly-' + id).classList.add('active');
+
+            const data = layersData[id];
+            
+            document.getElementById('ip-title').textContent = data.title;
+            document.getElementById('ip-emoji').textContent = data.emoji;
+            document.getElementById('ip-body').textContent = data.desc;
+            
+            const panel = document.getElementById('info-panel');
+            panel.style.borderLeftColor = data.border;
+
+            document.getElementById('ip-exchange').style.display = 'flex';
+            document.getElementById('txt-gives').innerHTML = `<b style="color:#10b981;">გასცემს:</b> ` + data.gives;
+            document.getElementById('txt-gets').innerHTML = `<b style="color:#f59e0b;">იღებს:</b> ` + data.gets;
+        }
+
+        // Init optional
+        setLayer('peasant');
+    </script>
+</body>
+</html>

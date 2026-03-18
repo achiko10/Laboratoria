@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ატომური ფიზიკა — ბორის მოდელი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #050510; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #00e5ff, #aa00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+        .sim-area { background: #080818; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; position: relative; }
+        canvas { display: block; width: 100%; height: 450px; }
+        .energy-panel { position: absolute; right: 12px; top: 12px; background: rgba(0,0,0,0.8); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); font-size: 0.7rem; min-width: 150px; }
+        .energy-panel h4 { color: #aa00ff; font-size: 0.8rem; margin-bottom: 8px; }
+        .energy-level { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer; padding: 3px 6px; border-radius: 4px; transition: 0.2s; }
+        .energy-level:hover { background: rgba(170,0,255,0.15); }
+        .energy-level.active { background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.3); }
+        .el-bar { height: 2px; flex: 1; background: #2a2a4a; position: relative; }
+        .el-bar-fill { position: absolute; left: 0; top: -1px; height: 4px; border-radius: 2px; transition: width 0.3s; }
+        .el-label { font-size: 0.7rem; color: #7a84a0; min-width: 22px; }
+        .el-energy { font-size: 0.65rem; color: #5a6a8a; min-width: 50px; text-align: right; }
+        .controls { display: flex; gap: 10px; padding: 16px; background: #0d1020; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; justify-content: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.8rem; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #00e5ff, #aa00ff); color: #fff; }
+        .btn-primary:hover { box-shadow: 0 4px 15px rgba(0,229,255,0.3); }
+        .btn-secondary { background: #1e2740; color: #7a84a0; }
+        .btn-secondary:hover { background: #2a3350; color: #e0e6f0; }
+        .photon-display { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; color: #7a84a0; white-space: nowrap; }
+        .info-panel { background: #0d1020; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8; border-left: 3px solid #aa00ff; }
+        .info-panel strong { color: #e0e6f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+        select { background: #1e2740; color: #e0e6f0; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚛️ ატომური ფიზიკა — ბორის მოდელი</h1>
+        <p class="subtitle">აირჩიე ელემენტი · დააკლიკე ენერგეტიკულ დონეზე ელექტრონის გადახტომისთვის</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="energy-panel">
+                <h4>ენერგეტიკული დონეები</h4>
+                <div id="energy-levels"></div>
+            </div>
+            <div class="photon-display" id="photon-display">
+                ⚡ დააკლიკე ენერგეტიკულ დონეზე
+            </div>
+        </div>
+
+        <div class="controls">
+            <select id="element" onchange="changeElement()">
+                <option value="1">წყალბადი (H) — Z=1</option>
+                <option value="2">ჰელიუმი (He) — Z=2</option>
+                <option value="3">ლითიუმი (Li) — Z=3</option>
+                <option value="6">ნახშირბადი (C) — Z=6</option>
+                <option value="8">ჟანგბადი (O) — Z=8</option>
+            </select>
+            <button class="btn btn-primary" onclick="exciteRandom()">⚡ აღგზნება</button>
+            <button class="btn btn-secondary" onclick="resetAtom()">↺ საწყისი</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ბორის ატომის მოდელი:</strong> ელექტრონები ბრუნავენ ბირთვის ირგვლივ განსაზღვრულ ენერგეტიკულ დონეებზე (n=1,2,3...).<br>
+            • <strong>აღგზნება:</strong> ელექტრონი „ხტება" მაღალ დონეზე (ენერგიის შთანთქმა)<br>
+            • <strong>გადასვლა ქვემოთ:</strong> ელექტრონი უშვებს ფოტონს (სინათლეს) ΔE = E_high - E_low<br>
+            • 🎯 <strong>ექსპერიმენტი:</strong> რა ფერის ფოტონი იშვება n=3 → n=2 გადასვლაზე?
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.offsetWidth; H = canvas.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        let Z = 1; // atomic number
+        let electronLevel = 1; // current level
+        let targetLevel = 1;
+        let transitioning = false;
+        let transitionProgress = 0;
+        let photons = [];
+        let time = 0;
+        const maxLevel = 6;
+
+        // Energy for hydrogen-like: E_n = -13.6 * Z² / n² eV
+        function getEnergy(n) { return -13.6 * Z * Z / (n * n); }
+
+        function getOrbitRadius(n) { return 30 + n * 28; }
+
+        function wavelengthToColor(wl) {
+            // Approximate wavelength (nm) to RGB
+            let r = 0, g = 0, b = 0;
+            if (wl >= 380 && wl < 440) { r = -(wl - 440) / 60; b = 1; }
+            else if (wl >= 440 && wl < 490) { g = (wl - 440) / 50; b = 1; }
+            else if (wl >= 490 && wl < 510) { g = 1; b = -(wl - 510) / 20; }
+            else if (wl >= 510 && wl < 580) { r = (wl - 510) / 70; g = 1; }
+            else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / 65; }
+            else if (wl >= 645 && wl <= 780) { r = 1; }
+            else { r = 0.5; g = 0; b = 0.5; } // UV/IR
+            return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
+        }
+
+        function energyToWavelength(dE) {
+            // E = hc/λ → λ = hc/E, dE in eV → λ in nm
+            return 1240 / Math.abs(dE);
+        }
+
+        function buildEnergyLevels() {
+            const container = document.getElementById('energy-levels');
+            container.innerHTML = '';
+            for (let n = 1; n <= maxLevel; n++) {
+                const E = getEnergy(n);
+                const div = document.createElement('div');
+                div.className = 'energy-level' + (n === electronLevel ? ' active' : '');
+                div.innerHTML = `
+                    <span class="el-label">n=${n}</span>
+                    <div class="el-bar"><div class="el-bar-fill" style="width:${Math.max(5, 100 + E * 5)}%;background:${n === electronLevel ? '#00e5ff' : '#aa00ff'}"></div></div>
+                    <span class="el-energy">${E.toFixed(2)} eV</span>
+                `;
+                div.onclick = () => jumpToLevel(n);
+                container.appendChild(div);
+            }
+        }
+
+        function jumpToLevel(n) {
+            if (n === electronLevel || transitioning) return;
+            const fromLevel = electronLevel;
+            const toLevel = n;
+            targetLevel = n;
+            transitioning = true;
+            transitionProgress = 0;
+
+            if (n < electronLevel) {
+                // Emit photon
+                const dE = getEnergy(fromLevel) - getEnergy(toLevel);
+                const wl = energyToWavelength(dE);
+                const color = wavelengthToColor(wl);
+                document.getElementById('photon-display').innerHTML = `💡 ფოტონი: λ = ${wl.toFixed(0)} nm · ΔE = ${Math.abs(dE).toFixed(2)} eV · <span style="color:${color}">●</span>`;
+                // Create photon
+                const cx = W / 2 - 30, cy = H / 2;
+                const angle = Math.random() * Math.PI * 2;
+                photons.push({ x: cx, y: cy, vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3, color, life: 1 });
+            } else {
+                document.getElementById('photon-display').innerHTML = `⬆️ ენერგიის შთანთქმა: n=${fromLevel} → n=${toLevel}`;
+            }
+        }
+
+        function exciteRandom() {
+            if (transitioning) return;
+            const n = Math.min(electronLevel + 1 + Math.floor(Math.random() * 3), maxLevel);
+            if (n !== electronLevel) jumpToLevel(n);
+        }
+
+        function resetAtom() {
+            electronLevel = 1; targetLevel = 1; transitioning = false;
+            photons = [];
+            buildEnergyLevels();
+            document.getElementById('photon-display').innerHTML = '⚡ დააკლიკე ენერგეტიკულ დონეზე';
+        }
+
+        function changeElement() {
+            Z = +document.getElementById('element').value;
+            resetAtom();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+            const cx = W / 2 - 30, cy = H / 2;
+
+            // Stars
+            for (let i = 0; i < 50; i++) {
+                const sx = (i * 137.5) % W, sy = (i * 97.3 + 50) % H;
+                ctx.fillStyle = `rgba(150,160,200,${0.2 + Math.sin(time + i) * 0.1})`;
+                ctx.fillRect(sx, sy, 1, 1);
+            }
+
+            // Draw orbits
+            for (let n = 1; n <= maxLevel; n++) {
+                const r = getOrbitRadius(n);
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.strokeStyle = n === electronLevel ? 'rgba(0,229,255,0.2)' : 'rgba(255,255,255,0.04)';
+                ctx.lineWidth = n === electronLevel ? 1.5 : 0.5;
+                ctx.stroke();
+
+                // Level labels
+                ctx.fillStyle = '#3a3a5a';
+                ctx.font = '9px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`n=${n}`, cx + r + 5, cy - 3);
+            }
+
+            // Nucleus
+            const nucleusR = 6 + Z * 0.8;
+            const ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, nucleusR);
+            ng.addColorStop(0, '#ff4444');
+            ng.addColorStop(0.6, '#cc2222');
+            ng.addColorStop(1, '#880000');
+            ctx.beginPath();
+            ctx.arc(cx, cy, nucleusR, 0, Math.PI * 2);
+            ctx.fillStyle = ng;
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 8px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Z=${Z}`, cx, cy + 3);
+
+            // Nucleus glow
+            const ngg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+            ngg.addColorStop(0, 'rgba(255,50,50,0.15)');
+            ngg.addColorStop(1, 'rgba(255,50,50,0)');
+            ctx.fillStyle = ngg;
+            ctx.fillRect(cx - 30, cy - 30, 60, 60);
+
+            // Electron
+            let eLevel = electronLevel;
+            let eProgress = 0;
+            if (transitioning) {
+                transitionProgress += 0.02;
+                if (transitionProgress >= 1) {
+                    transitionProgress = 1;
+                    electronLevel = targetLevel;
+                    transitioning = false;
+                    buildEnergyLevels();
+                }
+                eProgress = transitionProgress;
+            }
+
+            const fromR = getOrbitRadius(electronLevel);
+            const toR = getOrbitRadius(targetLevel);
+            const currentR = transitioning ? fromR + (toR - fromR) * eProgress : fromR;
+            const eAngle = time * (3 / (electronLevel * electronLevel)) * 2;
+            const ex = cx + Math.cos(eAngle) * currentR;
+            const ey = cy + Math.sin(eAngle) * currentR;
+
+            // Electron glow
+            const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, 12);
+            eg.addColorStop(0, 'rgba(0,229,255,0.5)');
+            eg.addColorStop(1, 'rgba(0,229,255,0)');
+            ctx.fillStyle = eg;
+            ctx.fillRect(ex - 12, ey - 12, 24, 24);
+
+            // Electron body
+            ctx.beginPath();
+            ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+            ctx.fillStyle = transitioning ? '#ff00ff' : '#00e5ff';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(ex, ey, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+
+            // Photons
+            photons = photons.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.008;
+                if (p.life <= 0) return false;
+
+                // Photon wave
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+                // Glow
+                const pg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 15);
+                pg.addColorStop(0, p.color + '60');
+                pg.addColorStop(1, p.color + '00');
+                ctx.fillStyle = pg;
+                ctx.fillRect(p.x - 15, p.y - 15, 30, 30);
+                ctx.globalAlpha = 1;
+                return true;
+            });
+
+            time += 0.03;
+            requestAnimationFrame(animate);
+        }
+
+        buildEnergyLevels();
+        animate();
+    </script>
+</body>
+</html>

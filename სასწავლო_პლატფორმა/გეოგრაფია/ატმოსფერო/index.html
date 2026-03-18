@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — ატმოსფერო</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .card { background: #1e293b; border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .atm-container { position: relative; height: 500px; background: linear-gradient(to top, #7dd3fc, #0ea5e9, #1e40af, #172554, #000000); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); cursor: crosshair; }
+        .layer-line { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(255,255,255,0.3); z-index: 5; }
+        .layer-label { position: absolute; right: 10px; color: rgba(255,255,255,0.8); font-size: 0.75rem; transform: translateY(-100%); padding-bottom: 2px; text-shadow: 1px 1px 2px #000; }
+        .mountain { position: absolute; bottom: 0; left: 10%; width: 25%; height: 18%; background: linear-gradient(to top, #475569, #94a3b8); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); z-index: 10; }
+        .cloud { position: absolute; bottom: 12%; left: 30%; font-size: 2rem; z-index: 10; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+        .plane { position: absolute; bottom: 25%; right: 20%; font-size: 1.5rem; z-index: 10; transform: scaleX(-1); }
+        .meteor { position: absolute; bottom: 65%; left: 40%; font-size: 1.5rem; z-index: 10; transform: rotate(-45deg); }
+        .satellite { position: absolute; top: 10%; right: 30%; font-size: 1.5rem; z-index: 10; }
+        .aurora { position: absolute; top: 25%; left: 0; right: 0; height: 15%; background: linear-gradient(to bottom, rgba(34,197,94,0), rgba(34,197,94,0.3), rgba(34,197,94,0)); filter: blur(10px); z-index: 1; }
+        .probe { position: absolute; width: 14px; height: 14px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); z-index: 20; box-shadow: 0 0 10px #ef4444; transition: top 0.1s; pointer-events: none; }
+        
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        .stat-box { background: #0f172a; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-val { font-family: 'Courier New'; font-size: 1.5rem; font-weight: bold; color: #38bdf8; margin-top: 5px; }
+        .stat-label { font-size: 0.8rem; color: #94a3b8; }
+        .info-box { background: #0f172a; border-left: 3px solid #38bdf8; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #bae6fd; }
+        .composition-bar { display: flex; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .comp { display: flex; justify-content: center; align-items: center; font-size: 0.65rem; color: #000; font-weight: bold; }
+        
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>☁️ ატმოსფერო</h1>
+    <p class="subtitle">შეისწავლე დედამიწის ჰაერის შრეები. ამოძრავე მაუსი სურათზე სიმაღლის შესაცვლელად!</p>
+    <div class="app">
+        <div class="card" style="padding:0;">
+            <div class="atm-container" id="atm" onmousemove="updateProbe(event)" ontouchmove="updateProbeTouch(event)">
+                <div class="probe" id="probe" style="top: 95%; left: 50%;"></div>
+                
+                <!-- Objects -->
+                <div class="mountain"></div>
+                <div class="cloud">☁️</div>
+                <div class="plane">✈️</div>
+                <div class="meteor">☄️</div>
+                <div class="aurora"></div>
+                <div class="satellite">🛰️</div>
+                <!-- Boundaries (y is inverse altitude, bottom is 0) -->
+                <!-- Troposphere: 0-12km -->
+                <div class="layer-line" style="bottom: 12%;"><span class="layer-label">ტროპოსფერო (12 კმ)</span></div>
+                <!-- Stratosphere: 12-50km -->
+                <div class="layer-line" style="bottom: 35%; border-top-color:#fcd34d;"><span class="layer-label" style="color:#fcd34d;">სტრატოსფერო (ოზონის შრე) (50 კმ)</span></div>
+                <!-- Mesosphere: 50-85km -->
+                <div class="layer-line" style="bottom: 60%;"><span class="layer-label">მეზოსფერო (85 კმ)</span></div>
+                <!-- Thermosphere: 85-600km (compressed scale) -->
+                <div class="layer-line" style="bottom: 85%;"><span class="layer-label">თერმოსფერო (600 კმ)</span></div>
+            </div>
+            <div style="text-align:center; font-size:0.75rem; color:#64748b; padding:10px;">მასშტაბი პირობითია</div>
+        </div>
+        <div class="panel">
+            <div class="stat-box">
+                <div class="stat-label">🚀 ამჟამინდელი სიმაღლე</div>
+                <div class="stat-val" id="val-alt">0 <span style="font-size:1rem;color:#64748b">კმ</span></div>
+                
+                <div style="height:15px;"></div>
+                <div class="stat-label">🌡️ ტემპერატურა</div>
+                <div class="stat-val" id="val-temp" style="color:#ef4444;">+15 <span style="font-size:1rem;color:#64748b">°C</span></div>
+                
+                <div style="height:15px;"></div>
+                <div class="stat-label">🌬️ ატმოსფერული წნევა</div>
+                <div class="stat-val" id="val-press" style="color:#22c55e;">1013 <span style="font-size:1rem;color:#64748b">hPa</span></div>
+            </div>
+            <div class="info-box">
+                <div style="font-size:1.1rem; font-weight:bold; color:#38bdf8; margin-bottom:5px;" id="layer-title">ტროპოსფერო</div>
+                <div id="layer-desc">ყველაზე დაბალი შრე, სადაც ფორმირდება ამინდი. შეიცავს ატმოსფეროს მასის 80%-ს. სიმაღლესთან ერთად ტემპერატურა ეცემა.</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">🧪 ჰაერის შემადგენლობა (ქვედა შრეებში)</div>
+                <div class="composition-bar">
+                    <div class="comp" style="width:78%; background:#38bdf8;">N₂ (78%)</div>
+                    <div class="comp" style="width:21%; background:#22c55e;">O₂ (21%)</div>
+                    <div class="comp" style="width:1%; background:#94a3b8;">1%</div>
+                </div>
+                <div style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">აზოტი, ჟანგბადი, არგონი და სათბურის აირები (CO₂).</div>
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const maxAltVisual = 100; // visual percentage maps to some altitude
+        const container = document.getElementById('atm');
+        const probe = document.getElementById('probe');
+        function updateProbe(e) {
+            const rect = container.getBoundingClientRect();
+            let y = e.clientY - rect.top;
+            if(y < 0) y = 0;
+            if(y > rect.height) y = rect.height;
+            
+            probe.style.top = y + 'px';
+            probe.style.left = (e.clientX - rect.left) + 'px';
+            const pctBottom = 1 - (y / rect.height); // 0 at bottom, 1 at top
+            calculateStats(pctBottom);
+        }
+        function updateProbeTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = container.getBoundingClientRect();
+            let y = touch.clientY - rect.top;
+            if(y < 0) y = 0;
+            if(y > rect.height) y = rect.height;
+            
+            probe.style.top = y + 'px';
+            probe.style.left = (touch.clientX - rect.left) + 'px';
+            const pctBottom = 1 - (y / rect.height);
+            calculateStats(pctBottom);
+        }
+        function calculateStats(pct) {
+            let alt, temp, press, layerTitle, layerDesc;
+            // Mapping visual percentage to altitude (non-linear for better visualization)
+            if(pct <= 0.12) { // Troposphere
+                const localPct = pct / 0.12;
+                alt = localPct * 12; // 0-12 km
+                temp = 15 - (localPct * 75); // 15 to -60 C
+                press = 1013 * Math.pow(1 - 0.0225577 * (alt*1000), 5.25588); // Barometric formula approx
+                layerTitle = "ტროპოსფერო";
+                layerDesc = "ყველაზე დაბალი შრე, სადაც ფორმირდება ამინდი და ღრუბლები. შეიცავს ატმოსფეროს მასის 80%-ს. სიმაღლესთან ერთად ტემპერატურა ეცემა. აქ დაფრინავენ სამოქალაქო თვითმფრინავების ნაწილი.";
+            } else if (pct <= 0.35) { // Stratosphere
+                const localPct = (pct - 0.12) / (0.35 - 0.12);
+                alt = 12 + localPct * (50 - 12); // 12-50 km
+                temp = -60 + (localPct * 60); // -60 to 0 C (due to ozone absorption)
+                press = 226 * Math.exp(-0.00015 * (alt*1000 - 11000));
+                layerTitle = "სტრატოსფერო";
+                layerDesc = "შეიცავს ოზონის შრეს, რომელიც გვიცავს მზის ულტრაიისფერი გამოსხივებისგან. ოზონის მიერ ენერგიის შთანთქმის გამო, ტემპერატურა აქ სიმაღლესთან ერთად იზრდება. კომერციული ავიაცია ამ შრის ქვედა ნაწილში დაფრინავს ტურბულენციის თავიდან ასაცილებლად.";
+            } else if (pct <= 0.60) { // Mesosphere
+                const localPct = (pct - 0.35) / (0.60 - 0.35);
+                alt = 50 + localPct * (85 - 50); // 50-85 km
+                temp = 0 - (localPct * 90); // 0 to -90 C (coldest)
+                press = 1 * Math.exp(-0.0002 * (alt*1000 - 50000));
+                layerTitle = "მეზოსფერო";
+                layerDesc = "ატმოსფეროს ყველაზე ცივი ფენა (-90°C მდე). აქ იწვებიან მეტეორები დედამიწისკენ ვარდნისას, რასაც ჩვენ 'ვარსკვლავის მოწყვეტას' ვეძახით.";
+            } else if (pct <= 0.85) { // Thermosphere
+                const localPct = (pct - 0.60) / (0.85 - 0.60);
+                alt = 85 + localPct * (600 - 85); // 85-600 km
+                temp = -90 + (localPct * 1590); // -90 to +1500 C
+                press = 0.001 * Math.exp(-0.0003 * (alt*1000 - 85000));
+                layerTitle = "თერმოსფერო";
+                layerDesc = "ჰაერი უკიდურესად იშვიათია. მზის რადიაციის შთანთქმის გამო ტემპერატურა 1500°C-ს აღწევს, თუმცა სიცარიელის გამო სითბოს ვერ ვიგრძნობდით. აქ ფორმირდება პოლარული ნათება (Aurora) და მოძრაობს საერთაშორისო კოსმოსური სადგური (ISS).";
+            } else { // Exosphere
+                const localPct = (pct - 0.85) / (1.0 - 0.85);
+                alt = 600 + localPct * 9400; // 600-10000+ km
+                temp = 1500;
+                press = 0;
+                layerTitle = "ეგზოსფერო";
+                layerDesc = "გარე, დამცავი შრე, რომელიც ერწყმის კოსმოსურ ვაკუუმს. აქ მოძრაობენ ამინდის და სხვა სატელიტები.";
+            }
+            // UI
+            if(press < 0) press = 0;
+            document.getElementById('val-alt').innerHTML = `${alt.toFixed(1)} <span style="font-size:1rem;color:#64748b">კმ</span>`;
+            document.getElementById('val-temp').innerHTML = `${temp.toFixed(0)} <span style="font-size:1rem;color:#64748b">°C</span>`;
+            
+            // Format pressure
+            let pStr = press.toFixed(press < 1 ? 4 : 0);
+            if(press < 0.0001) pStr = "~0";
+            document.getElementById('val-press').innerHTML = `${pStr} <span style="font-size:1rem;color:#64748b">hPa</span>`;
+            
+            document.getElementById('layer-title').textContent = layerTitle;
+            document.getElementById('layer-desc').textContent = layerDesc;
+            // Temperature color
+            const tempEl = document.getElementById('val-temp');
+            if(temp > 20) tempEl.style.color = '#ef4444';
+            else if(temp > 0) tempEl.style.color = '#f59e0b';
+            else if(temp > -30) tempEl.style.color = '#38bdf8';
+            else tempEl.style.color = '#818cf8';
+        }
+        // Init
+        calculateStats(0);
+    </script>
+</body>
+</html>

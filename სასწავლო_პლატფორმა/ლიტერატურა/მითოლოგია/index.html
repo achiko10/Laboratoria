@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — მითოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Georgian:wght@300;400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif Georgian', serif; background: #1e293b; color: #f8fafc; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #facc15; text-shadow: 1px 1px 5px rgba(250, 204, 21, 0.3); }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; font-family: sans-serif;}
+        
+        .app { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #334155; border-radius: 12px; padding: 25px; border: 1px solid #475569; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); }
+
+        /* Character List (Sidebar) */
+        .char-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 10px;}
+        .char-list::-webkit-scrollbar { width: 6px; }
+        .char-list::-webkit-scrollbar-thumb { background: #64748b; border-radius: 3px; }
+
+        .char-btn { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #e2e8f0; font-family: sans-serif; font-weight: bold;}
+        .char-btn:hover { background: #0f172a; border-color: #facc15; transform: translateX(5px);}
+        .char-btn.active { background: #0f172a; border-color: #facc15; border-left: 4px solid #facc15; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+
+        .c-icon { font-size: 1.8rem; background: #334155; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid #64748b;}
+
+        /* Detail Panel */
+        .detail-panel { display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; animation: fadeIn 0.5s ease-in-out;}
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        .dp-img { width: 120px; height: 120px; font-size: 5rem; background: #1e293b; border: 3px solid #facc15; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; box-shadow: 0 0 20px rgba(250, 204, 21, 0.2);}
+        
+        .dp-name { font-size: 2rem; color: #facc15; margin-bottom: 5px; font-weight: bold;}
+        .dp-role { font-size: 1rem; color: #94a3b8; font-family: sans-serif; margin-bottom: 25px; font-style: italic; background: #0f172a; padding: 5px 15px; border-radius: 20px; border: 1px solid #475569;}
+        
+        .dp-desc { font-size: 1rem; color: #e2e8f0; line-height: 1.7; text-align: left; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px dashed #64748b; width: 100%;}
+        
+        .dp-symbol { margin-top: 20px; display: inline-block; background: #451a03; color: #fcd34d; padding: 8px 15px; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 0.85rem; border: 1px solid #b45309;}
+
+        .empty-state { text-align: center; color: #64748b; margin-top: 50px; font-size: 1.2rem; font-style: italic;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #334155; color: #facc15; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #64748b; font-family: sans-serif;}
+        .back-btn:hover { background: #475569; color: #fff; border-color: #facc15;}
+    </style>
+</head>
+<body>
+    <h1 style="font-family: 'Noto Serif Georgian', serif;">✨ ქართული მითოლოგია</h1>
+    <p class="subtitle">შეისწავლეთ უძველესი მითების მთავარი პერსონაჟები და მათი სიმბოლოები</p>
+    
+    <div class="app">
+        
+        <div class="card" style="padding: 15px;">
+            <div style="color:#94a3b8; font-size:0.8rem; margin-bottom:10px; text-transform:uppercase; font-family:sans-serif; text-align:center;">პერსონაჟები</div>
+            <div class="char-list">
+                <div class="char-btn" id="btn-amirani" onclick="showChar('amirani')">
+                    <div class="c-icon">⛓️</div>
+                    <div>ამირანი</div>
+                </div>
+                <div class="char-btn" id="btn-dali" onclick="showChar('dali')">
+                    <div class="c-icon">🧝‍♀️</div>
+                    <div>დალი</div>
+                </div>
+                <div class="char-btn" id="btn-ochokochi" onclick="showChar('ochokochi')">
+                    <div class="c-icon">👹</div>
+                    <div>ოჩოკოჩი</div>
+                </div>
+                <div class="char-btn" id="btn-kopala" onclick="showChar('kopala')">
+                    <div class="c-icon">🏹</div>
+                    <div>კოპალა</div>
+                </div>
+                <div class="char-btn" id="btn-devi" onclick="showChar('devi')">
+                    <div class="c-icon">🧟‍♂️</div>
+                    <div>დევები</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div id="empty-state" class="empty-state">
+                <div style="font-size:4rem; margin-bottom:15px; opacity:0.5;">📜</div>
+                აირჩიეთ პერსონაჟი მარცხენა მენიუდან <br>მათი ისტორიის წასაკითხად.
+            </div>
+
+            <div class="detail-panel" id="detail-panel" style="display:none;">
+                <div class="dp-img" id="dp-img">⛓️</div>
+                <div class="dp-name" id="dp-name">ამირანი</div>
+                <div class="dp-role" id="dp-role">ღმერთებთან მებრძოლი გმირი</div>
+                
+                <div class="dp-desc" id="dp-desc">
+                    ამირანი ქართული მითოლოგიის ყველაზე ცნობილი გმირია. მან ღმერთებს შეჰბედა და ხალხს ცეცხლი მოუტანა (ბერძნული პრომეთეს ანალოგი). ამის გამო ღმერთებმა დასაჯეს და კავკასიონის მთაზე მიაჯაჭვეს. <br><br>მის გულს ყოველდღიურად არწივი კორტნის, ხოლო მისი ერთგული ძაღლი 'ყურშა' ჯაჭვს ლოკავს, რათა გაათხელოს და ამირანმა გათავისუფლება შეძლოს.
+                </div>
+
+                <div class="dp-symbol" id="dp-symbol">
+                    სიმბოლიკა: დაუმორჩილებლობა და თავისუფლებისკენ სწრაფვა
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const chars = {
+            amirani: {
+                name: "ამირანი", role: "ტიტანური გმირი, ღმერთებთან მებრძოლი", icon: "⛓️",
+                desc: "ამირანი ქართული მითოლოგიის ყველაზე ცნობილი გმირია, მონადირე დარჯელანისა და ქალღმერთ დალის შვილი. ნათლიამ, იესო ქრისტემ (ან უზენაესმა ღმერთმა), უბოძა ზებუნებრივი ძალა. როცა მან ღმერთებს ბრძოლა დაუწყო და ხალხს იარაღის ჭედვის საიდუმლო (ან ცეცხლი) ასწავლა, იგი დასაჯეს და კავკასიონის კლდეზე მიაჯაჭვეს.<br><br>მისი მუდმივი თანამგზავრია ფრთოსანი მფრინავი ძაღლი <b>ყურშა</b>.",
+                symbol: "სიმბოლიკა: ადამიანის მარადიული სწრაფვა თავისუფლებისკენ"
+            },
+            dali: {
+                name: "დალი", role: "ნადირობის ქალღმერთი", icon: "🧝‍♀️",
+                desc: "დალი ძირითადად სვანურ მითოლოგიაში გვხვდება. ის არის ნადირობის, ტყის ცხოველების (ჯიხვის, არჩვის) მფარველი ულამაზესი ქალღმერთი, ოქროსფერი თმებით, რომელიც მაღალ კლდეებში ცხოვრობს.<br><br>მონადირეებს იგი უწესებს მკაცრ კანონებს: არ შეიძლება იმაზე მეტი ცხოველის მოკვლა, რამდენიც ოჯახს სჭირდება სარჩენად. წესის დამრღვევ მონადირეს დალი სასტიკად სჯის (კლდეზე აშტერებს და უფსკრულში აგდებს).",
+                symbol: "სიმბოლიკა: ბუნების კანონების პატივისცემა (ეკოლოგიური ბალანსი)"
+            },
+            ochokochi: {
+                name: "ოჩოკოჩი", role: "ტყის ავი სული", icon: "👹",
+                desc: "მეგრულ მითოლოგიაში ოჩოკოჩი არის ტყის ბანჯგვლიანი, ადამიანისა და ვაცის (თხის) ნაჯვარი არსება. მისი მთავარი იარაღი მკერდზე გამოზრდილი ცულისებრი ძვალია, რომლითაც მსხვერპლს შუაზე ჭრის.<br><br>მას არ აქვს მეტყველების უნარი, მხოლოდ ბუტბუტებს ან ღრიალებს. ხშირად ემტერება მონადირეებს და ცდილობს ტყის მფარველ ტყაშმაფასთან (დალის მეგრული ანალოგი) დაახლოებას.",
+                symbol: "სიმბოლიკა: ველური ბუნების საშიში და უმართავი ძალა"
+            },
+            kopala: {
+                name: "კოპალა", role: "ხვთისშვილი, დევების რისხვა", icon: "🏹",
+                desc: "აღმოსავლეთ საქართველოს მთიანეთში (ფშავი, ხევსურეთი) კოპალა არის უძლიერესი 'ხვთისშვილი' (ნახევარღმერთი/გმირი). იგი იბრძვის ბოროტი ძალების — დევებისა და ქაჯების წინააღმდეგ.<br><br>ლეგენდის თანახმად, კოპალამ ლოდების სროლით დაამარცხა დევები, გაათავისუფლა მდინარე არაგვის ხეობა და ადამიანებს სიმშვიდე მოუტანა. მისი სალოცავები დღემდეა შემორჩენილი მთაში.",
+                symbol: "სიმბოლიკა: სიკეთის გამარჯვება ბოროტებაზე, ქაოსის დასრულება"
+            },
+            devi: {
+                name: "დევები", role: "ბოროტი გიგანტური არსებები", icon: "🧟‍♂️",
+                desc: "დევები გავრცელებულია როგორც ქართულ, ისე ზოგადად კავკასიურ და ირანულ ზღაპრებსა და მითებში. ისინი არიან ულამაზო, მრავალთავიანი (სამი, შვიდი, ცხრა თავი) გიგანტები, რომლებიც გამოირჩევიან უდიდესი ფიზიკური ძალით, მაგრამ გონებრივი სისუსტით.<br><br>ცხოვრობენ მიწისქვეშეთში ან ღრმა გამოქვაბულებში, იტაცებენ მზეთუნახავებს და აოხრებენ სოფლებს. გაბედული გმირები მათ ძირითადად ეშმაკობითა და სიმამაცით ამარცხებენ.",
+                symbol: "სიმბოლიკა: უხეში ფიზიკური ძალა და სიბრიყვე"
+            }
+        };
+
+        function showChar(id) {
+            // Update Menu
+            document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+
+            // Hide empty state, show panel
+            document.getElementById('empty-state').style.display = 'none';
+            
+            const panel = document.getElementById('detail-panel');
+            panel.style.display = 'none'; // reset for animation
+            
+            const data = chars[id];
+            document.getElementById('dp-img').textContent = data.icon;
+            document.getElementById('dp-name').textContent = data.name;
+            document.getElementById('dp-role').textContent = data.role;
+            document.getElementById('dp-desc').innerHTML = data.desc;
+            document.getElementById('dp-symbol').textContent = data.symbol;
+
+            // Trigger reflow and animate
+            setTimeout(() => {
+                panel.style.display = 'flex';
+            }, 10);
+        }
+    </script>
+</body>
+</html>

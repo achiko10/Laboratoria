@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ელექტროობა — ომის კანონი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0a0e17; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ffd700, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .sim-area { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 400px; }
+
+        .formula-bar {
+            background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.25);
+            padding: 14px 20px; margin: 16px 0; border-radius: 10px; text-align: center;
+            font-size: 1.1rem; font-weight: 700; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;
+        }
+        .formula-item { display: flex; align-items: center; gap: 6px; }
+        .formula-item .label { color: #7a84a0; font-size: 0.85rem; }
+        .formula-item .value { color: #ffd700; font-size: 1.4rem; }
+        .formula-item .unit { color: #9ca3b8; font-size: 0.8rem; }
+
+        .controls {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px;
+            background: #0d1220; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; color: #7a84a0; display: flex; justify-content: space-between; }
+        .control-group label b { color: #e0e6f0; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e2740; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ff8c00); cursor: pointer; }
+
+        .toggle-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #7a84a0; grid-column: 1 / -1; justify-content: center; }
+        .toggle { width: 36px; height: 20px; background: #1e2740; border-radius: 10px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
+        .toggle.on { background: #00d4ff; }
+        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle.on::after { left: 18px; }
+
+        .info-panel {
+            background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+            padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8;
+            border-left: 3px solid #ffd700;
+        }
+        .info-panel strong { color: #e0e6f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ ელექტროობა — ომის კანონი</h1>
+        <p class="subtitle">შეცვალე ძაბვა და წინააღმდეგობა · შეამოწმე V = I·R</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="formula-bar">
+            <div class="formula-item">
+                <span class="label">ძაბვა:</span>
+                <span class="value" id="fb-v">9.0</span>
+                <span class="unit">V</span>
+            </div>
+            <div class="formula-item">
+                <span class="label">=</span>
+            </div>
+            <div class="formula-item">
+                <span class="label">დენი:</span>
+                <span class="value" id="fb-i">0.90</span>
+                <span class="unit">A</span>
+            </div>
+            <div class="formula-item">
+                <span class="label">×</span>
+            </div>
+            <div class="formula-item">
+                <span class="label">წინაღმდ.:</span>
+                <span class="value" id="fb-r">10</span>
+                <span class="unit">Ω</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>ძაბვა (V): <b><span id="v-val">9</span> V</b></label>
+                <input type="range" id="voltage" min="1" max="24" value="9" step="0.5">
+            </div>
+            <div class="control-group">
+                <label>წინააღმდეგობა (R): <b><span id="r-val">10</span> Ω</b></label>
+                <input type="range" id="resistance" min="1" max="100" value="10">
+            </div>
+            <div class="toggle-row">
+                <div class="toggle on" id="switch-toggle" onclick="toggleSwitch()"></div>
+                <span>წრედის ჩამრთველი</span>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ომის კანონი:</strong> ელექტრული წრედში დენის ძალა პირდაპირ პროპორციულია ძაბვის და უკუპროპორციულია წინააღმდეგობის: <strong>I = V / R</strong><br>
+            • <strong>ძაბვის გაზრდა</strong> → დენის ძალა იზრდება (ელექტრონები სწრაფად მოძრაობს)<br>
+            • <strong>წინააღმდეგობის გაზრდა</strong> → დენი მცირდება (ნათურა ჩნდება)<br>
+            • 🎯 <strong>ექსპერიმენტი:</strong> რა წინააღმდეგობაზე ჩაქრება ნათურა?
+        </div>
+
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() {
+            canvas.width = canvas.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.offsetWidth; H = canvas.offsetHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        let switchOn = true;
+        let electrons = [];
+        let time = 0;
+
+        const voltageSlider = document.getElementById('voltage');
+        const resistanceSlider = document.getElementById('resistance');
+        voltageSlider.oninput = updateCircuit;
+        resistanceSlider.oninput = updateCircuit;
+
+        function toggleSwitch() {
+            switchOn = !switchOn;
+            document.getElementById('switch-toggle').classList.toggle('on', switchOn);
+        }
+
+        function getV() { return +voltageSlider.value; }
+        function getR() { return +resistanceSlider.value; }
+        function getI() { return switchOn ? getV() / getR() : 0; }
+
+        function updateCircuit() {
+            document.getElementById('v-val').textContent = getV();
+            document.getElementById('r-val').textContent = getR();
+            document.getElementById('fb-v').textContent = getV().toFixed(1);
+            document.getElementById('fb-r').textContent = getR();
+            document.getElementById('fb-i').textContent = getI().toFixed(2);
+        }
+
+        // Create circuit path points (rectangular loop)
+        function getCircuitPath() {
+            const mx = W / 2, my = H / 2;
+            const hw = 180, hh = 110;
+            return [
+                { x: mx - hw, y: my - hh }, // top-left (battery +)
+                { x: mx + hw, y: my - hh }, // top-right
+                { x: mx + hw, y: my + hh }, // bottom-right (bulb)
+                { x: mx - hw, y: my + hh }, // bottom-left
+            ];
+        }
+
+        // Initialize electrons along path
+        function initElectrons() {
+            electrons = [];
+            for (let i = 0; i < 30; i++) {
+                electrons.push({ t: i / 30, speed: 0 });
+            }
+        }
+        initElectrons();
+
+        function getPointOnPath(t, points) {
+            t = ((t % 1) + 1) % 1;
+            const totalSegs = points.length;
+            const segIndex = Math.floor(t * totalSegs);
+            const segT = (t * totalSegs) - segIndex;
+            const p1 = points[segIndex % totalSegs];
+            const p2 = points[(segIndex + 1) % totalSegs];
+            return {
+                x: p1.x + (p2.x - p1.x) * segT,
+                y: p1.y + (p2.y - p1.y) * segT,
+            };
+        }
+
+        function drawWires(path) {
+            ctx.strokeStyle = '#3a4a6a';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            path.forEach((p, i) => {
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function drawBattery(path) {
+            const x = path[0].x - 20, y = (path[0].y + path[3].y) / 2;
+            // Battery body
+            ctx.fillStyle = '#1a2a40';
+            ctx.fillRect(x - 18, y - 30, 36, 60);
+            ctx.strokeStyle = '#4a6a8a';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x - 18, y - 30, 36, 60);
+            // + -
+            ctx.fillStyle = '#ff4d6a';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('+', x, y - 16);
+            ctx.fillStyle = '#4a9fff';
+            ctx.fillText('−', x, y + 22);
+            // Voltage label
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(getV() + 'V', x, y + 45);
+        }
+
+        function drawResistor(path) {
+            const x = path[1].x + 20, y = (path[1].y + path[2].y) / 2;
+            // Zigzag
+            ctx.strokeStyle = '#ff8c00';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 25);
+            for (let i = 0; i < 6; i++) {
+                const yy = y - 25 + i * 8.33;
+                ctx.lineTo(x + (i % 2 === 0 ? 12 : -12), yy + 4);
+            }
+            ctx.lineTo(x, y + 25);
+            ctx.stroke();
+            // Label
+            ctx.fillStyle = '#ff8c00';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(getR() + 'Ω', x + 30, y + 5);
+        }
+
+        function drawBulb(path) {
+            const x = (path[2].x + path[3].x) / 2, y = path[2].y + 15;
+            const I = getI();
+            const brightness = Math.min(I / 2.5, 1);
+
+            // Glow
+            if (switchOn && brightness > 0.05) {
+                const gr = ctx.createRadialGradient(x, y - 15, 0, x, y - 15, 60 * brightness);
+                gr.addColorStop(0, `rgba(255,215,0,${brightness * 0.4})`);
+                gr.addColorStop(1, 'rgba(255,215,0,0)');
+                ctx.fillStyle = gr;
+                ctx.fillRect(x - 80, y - 80, 160, 120);
+            }
+            // Bulb circle
+            ctx.beginPath();
+            ctx.arc(x, y - 15, 18, 0, Math.PI * 2);
+            ctx.fillStyle = switchOn ? `rgba(255,215,0,${0.15 + brightness * 0.7})` : 'rgba(60,60,80,0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#6a7a9a';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            // Filament
+            ctx.strokeStyle = switchOn ? `rgba(255,200,0,${0.5 + brightness * 0.5})` : '#3a3a4a';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x - 5, y - 5);
+            ctx.lineTo(x - 3, y - 20);
+            ctx.lineTo(x + 3, y - 20);
+            ctx.lineTo(x + 5, y - 5);
+            ctx.stroke();
+            // Label
+            ctx.fillStyle = '#9ca3b8';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('💡 ' + (I > 0 ? I.toFixed(2) + 'A' : 'OFF'), x, y + 20);
+        }
+
+        function drawSwitch(path) {
+            const x = (path[0].x + path[1].x) / 2, y = path[0].y - 10;
+            ctx.fillStyle = switchOn ? '#00e5a0' : '#ff4d6a';
+            ctx.fillRect(x - 15, y - 8, 30, 16);
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(switchOn ? 'ON' : 'OFF', x, y + 4);
+        }
+
+        function drawElectrons(path) {
+            if (!switchOn) return;
+            const I = getI();
+            const speed = I * 0.0008;
+
+            electrons.forEach(e => {
+                e.t = (e.t + speed) % 1;
+                const p = getPointOnPath(e.t, path);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#00d4ff';
+                ctx.fill();
+                // Small glow
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,212,255,0.15)';
+                ctx.fill();
+            });
+        }
+
+        function drawAmmeter(path) {
+            const x = W / 2, y = path[0].y - 5;
+            ctx.fillStyle = '#0d1a2a';
+            ctx.beginPath();
+            ctx.arc(x, y, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2a4a6a';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(getI().toFixed(2) + 'A', x, y + 4);
+            ctx.fillStyle = '#5a6a8a';
+            ctx.font = '7px sans-serif';
+            ctx.fillText('AMMETER', x, y + 14);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+            const path = getCircuitPath();
+            drawWires(path);
+            drawBattery(path);
+            drawResistor(path);
+            drawBulb(path);
+            drawSwitch(path);
+            drawElectrons(path);
+            drawAmmeter(path);
+
+            time += 0.016;
+            requestAnimationFrame(animate);
+        }
+        animate();
+        updateCircuit();
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — ქსელები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #3b82f6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .canvas-wrap { background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 400px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; border-color: #3b82f6; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-send { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .btn-reset { background: #ef4444; }
+        .log-area { background: #0f172a; border-radius: 8px; padding: 12px; font-family: 'Courier New'; font-size: 0.75rem; color: #94a3b8; max-height: 150px; overflow-y: auto; line-height: 1.6; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .log-area .packet { color: #22c55e; }
+        .log-area .ack { color: #3b82f6; }
+        .log-area .err { color: #ef4444; }
+        .info-box { background: #0f172a; border-left: 3px solid #3b82f6; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #93c5fd; }
+        .osi-layers { display: flex; flex-direction: column; gap: 3px; }
+        .osi-layer { display: flex; align-items: center; padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; gap: 10px; cursor: pointer; transition: 0.2s; }
+        .osi-layer:hover { transform: translateX(5px); }
+        .osi-layer .num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; color: white; }
+        .osi-layer .name { font-weight: bold; min-width: 100px; }
+        .osi-layer .desc { font-size: 0.75rem; color: #94a3b8; }
+        .osi-layer.highlight { transform: translateX(10px); box-shadow: 0 0 15px rgba(59,130,246,0.2); }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌐 კომპიუტერული ქსელები</h1>
+    <p class="subtitle">ნახე როგორ მოძრაობს მონაცემები ქსელში — OSI მოდელი, TCP/IP, პაკეტის მარშრუტიზაცია</p>
+    <div class="app">
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="setView('packet')">📦 პაკეტის გადაცემა</button>
+                <button class="tab" onclick="setView('osi')">📚 OSI მოდელი</button>
+            </div>
+            <div id="packet-view">
+                <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+                <div class="controls">
+                    <button class="btn btn-send" onclick="sendPacket()">📤 პაკეტის გაგზავნა</button>
+                    <button class="btn btn-send" onclick="sendPacket(true)" style="background:#f59e0b;">📤 + პაკეტის დაკარგვა</button>
+                    <button class="btn btn-reset" onclick="resetNetwork()">↺ განულება</button>
+                </div>
+                <div class="log-area" id="log-area">📋 ქსელის ჟურნალი...\n</div>
+            </div>
+            <div id="osi-view" style="display:none;">
+                <div class="osi-layers" id="osi-layers"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="info-box" id="net-info">
+                <b>TCP/IP პროტოკოლი:</b> მონაცემები იყოფა პაკეტებად, თითოეულს აქვს მისამართი (IP) და პორტი. TCP უზრუნველყოფს საიმედო მიწოდებას — დაკარგული პაკეტი ხელახლა იგზავნება (retransmission).
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = canvas.parentElement;
+        let W, H;
+        function resize() {
+            canvas.width = wrap.offsetWidth * devicePixelRatio;
+            canvas.height = 400 * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = wrap.offsetWidth; H = 400;
+            drawNetwork();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        const nodes = [
+            { id: 'client', label: '💻 კლიენტი', x: 0.12, y: 0.5, ip: '192.168.1.10' },
+            { id: 'router1', label: '📡 როუტერი 1', x: 0.35, y: 0.3, ip: '10.0.0.1' },
+            { id: 'firewall', label: '🛡️ Firewall', x: 0.35, y: 0.7, ip: '10.0.0.2' },
+            { id: 'router2', label: '📡 როუტერი 2', x: 0.6, y: 0.5, ip: '172.16.0.1' },
+            { id: 'server', label: '🖥️ სერვერი', x: 0.88, y: 0.5, ip: '203.0.113.50' }
+        ];
+        const links = [[0,1],[0,2],[1,3],[2,3],[3,4]];
+
+        let packets = [];
+        let animFrame;
+
+        function drawNetwork() {
+            ctx.clearRect(0, 0, W, H);
+            // Links
+            ctx.strokeStyle = 'rgba(59,130,246,0.3)'; ctx.lineWidth = 2;
+            links.forEach(([a, b]) => {
+                ctx.beginPath();
+                ctx.moveTo(nodes[a].x * W, nodes[a].y * H);
+                ctx.lineTo(nodes[b].x * W, nodes[b].y * H);
+                ctx.stroke();
+            });
+            // Nodes
+            nodes.forEach(n => {
+                const x = n.x * W, y = n.y * H;
+                ctx.beginPath(); ctx.arc(x, y, 28, 0, Math.PI * 2);
+                ctx.fillStyle = '#1e293b'; ctx.fill();
+                ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#f8fafc'; ctx.font = '20px serif'; ctx.textAlign = 'center';
+                ctx.fillText(n.label.split(' ')[0], x, y + 5);
+                ctx.fillStyle = '#94a3b8'; ctx.font = '10px Noto Sans Georgian'; ctx.fillText(n.label.split(' ').slice(1).join(' '), x, y + 22);
+                ctx.fillStyle = '#3b82f6'; ctx.font = '9px Courier New'; ctx.fillText(n.ip, x, y - 32);
+            });
+            // Packets
+            packets.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.cx, p.cy, 8, 0, Math.PI * 2);
+                ctx.fillStyle = p.lost ? '#ef4444' : '#22c55e';
+                ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+                if (p.isAck) {
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.beginPath(); ctx.arc(p.cx, p.cy, 6, 0, Math.PI * 2); ctx.fill();
+                }
+            });
+        }
+
+        function addLog(text, cls) {
+            const log = document.getElementById('log-area');
+            const time = new Date().toLocaleTimeString('ka-GE');
+            log.innerHTML += `<span class="${cls||''}">[${time}] ${text}</span>\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function sendPacket(simulateLoss) {
+            const path = [0, 1, 3, 4]; // client -> router1 -> router2 -> server
+            let step = 0;
+            const lossAt = simulateLoss ? 2 : -1;
+
+            addLog('📤 SYN — კავშირის მოთხოვნა (192.168.1.10 → 203.0.113.50)', 'packet');
+
+            const p = { cx: nodes[path[0]].x * W, cy: nodes[path[0]].y * H, lost: false, isAck: false };
+            packets.push(p);
+
+            function animStep() {
+                if (step >= path.length - 1) {
+                    if (p.lost) {
+                        addLog('❌ პაკეტი დაიკარგა! TCP ხელახლა გაგზავნის...', 'err');
+                        packets = packets.filter(x => x !== p);
+                        setTimeout(() => {
+                            addLog('🔄 Retransmission — პაკეტის ხელახალი გაგზავნა', 'packet');
+                            sendPacket(false);
+                        }, 1000);
+                    } else {
+                        addLog('✅ ACK — პაკეტი მიღებულია სერვერმა!', 'ack');
+                        // Send ACK back
+                        setTimeout(() => sendAck(), 500);
+                    }
+                    return;
+                }
+                step++;
+                if (step === lossAt) {
+                    p.lost = true;
+                    addLog('⚠️ პაკეტი დაიკარგა როუტერ 2-ზე!', 'err');
+                }
+                const from = nodes[path[step - 1]], to = nodes[path[step]];
+                addLog(`→ ${from.label} → ${to.label} (hop ${step})`, 'packet');
+                animatePacket(p, from.x * W, from.y * H, to.x * W, to.y * H, () => {
+                    if (!p.lost) animStep();
+                    else { packets = packets.filter(x => x !== p); drawNetwork(); step = path.length; animStep(); }
+                });
+            }
+            animStep();
+        }
+
+        function sendAck() {
+            const path = [4, 3, 1, 0];
+            const p = { cx: nodes[4].x * W, cy: nodes[4].y * H, lost: false, isAck: true };
+            packets.push(p);
+            addLog('📩 ACK — სერვერი ადასტურებს მიღებას', 'ack');
+            let step = 0;
+            function animStep() {
+                if (step >= path.length - 1) {
+                    addLog('✅ კლიენტმა მიიღო ACK — კავშირი დამყარებულია!', 'ack');
+                    packets = packets.filter(x => x !== p);
+                    drawNetwork();
+                    return;
+                }
+                step++;
+                const from = nodes[path[step - 1]], to = nodes[path[step]];
+                animatePacket(p, from.x * W, from.y * H, to.x * W, to.y * H, animStep);
+            }
+            animStep();
+        }
+
+        function animatePacket(p, fx, fy, tx, ty, callback) {
+            let t = 0;
+            const speed = 0.025;
+            function frame() {
+                t += speed;
+                if (t >= 1) { t = 1; p.cx = tx; p.cy = ty; drawNetwork(); callback(); return; }
+                p.cx = fx + (tx - fx) * t;
+                p.cy = fy + (ty - fy) * t;
+                drawNetwork();
+                requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        function resetNetwork() {
+            packets = [];
+            document.getElementById('log-area').innerHTML = '📋 ქსელის ჟურნალი...\n';
+            drawNetwork();
+        }
+
+        // OSI Model
+        const osiLayers = [
+            { num: 7, name: 'აპლიკაცია', color: '#ef4444', protocol: 'HTTP, FTP, SMTP', desc: 'მომხმარებლის ინტერფეისი — ბრაუზერი, ელფოსტა' },
+            { num: 6, name: 'პრეზენტაცია', color: '#f59e0b', protocol: 'SSL/TLS, JPEG', desc: 'მონაცემთა ფორმატი, დაშიფვრა, კომპრესია' },
+            { num: 5, name: 'სესია', color: '#22c55e', protocol: 'NetBIOS, RPC', desc: 'კავშირის მართვა — გახსნა, შენარჩუნება, დახურვა' },
+            { num: 4, name: 'ტრანსპორტი', color: '#3b82f6', protocol: 'TCP, UDP', desc: 'საიმედო მიწოდება (TCP) ან სწრაფი (UDP)' },
+            { num: 3, name: 'ქსელი', color: '#8b5cf6', protocol: 'IP, ICMP', desc: 'IP მისამართი, მარშრუტიზაცია, პაკეტების მიმართვა' },
+            { num: 2, name: 'არხი', color: '#ec4899', protocol: 'Ethernet, WiFi', desc: 'MAC მისამართი, ფრეიმი, შეცდომების კორექცია' },
+            { num: 1, name: 'ფიზიკური', color: '#06b6d4', protocol: 'კაბელი, WiFi', desc: 'ბიტები → ელექტრული/ოპტიკური სიგნალები' },
+        ];
+
+        function buildOSI() {
+            const container = document.getElementById('osi-layers');
+            container.innerHTML = osiLayers.map(l => `
+                <div class="osi-layer" style="background:${l.color}15; border:1px solid ${l.color}33;" 
+                     onmouseenter="highlightLayer(this)" onmouseleave="unhighlightLayer(this)"
+                     onclick="showLayerInfo(${l.num})">
+                    <span class="num" style="background:${l.color}">${l.num}</span>
+                    <span class="name" style="color:${l.color}">${l.name}</span>
+                    <span style="color:${l.color}; font-size:0.7rem; font-family:Courier New">${l.protocol}</span>
+                    <span class="desc">${l.desc}</span>
+                </div>
+            `).join('');
+        }
+
+        function highlightLayer(el) { el.classList.add('highlight'); }
+        function unhighlightLayer(el) { el.classList.remove('highlight'); }
+        function showLayerInfo(num) {
+            const l = osiLayers.find(x => x.num === num);
+            document.getElementById('net-info').innerHTML = `<b>ფენა ${l.num} — ${l.name}:</b> ${l.desc}<br><b>პროტოკოლები:</b> ${l.protocol}`;
+        }
+
+        let currentView = 'packet';
+        function setView(v) {
+            currentView = v;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('packet-view').style.display = v === 'packet' ? 'block' : 'none';
+            document.getElementById('osi-view').style.display = v === 'osi' ? 'block' : 'none';
+            if (v === 'osi') {
+                document.getElementById('net-info').innerHTML = '<b>OSI მოდელი:</b> 7 ფენა ქვემოდან ზემოთ. თითოეული ფენა თავის ფუნქციას ასრულებს. დააკლიკე ფენაზე დეტალების სანახავად.';
+            }
+        }
+
+        buildOSI();
+        drawNetwork();
+    </script>
+</body>
+</html>

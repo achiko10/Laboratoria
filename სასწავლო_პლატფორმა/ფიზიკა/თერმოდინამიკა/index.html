@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>თერმოდინამიკა — იდეალური აირი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0a0e17; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ff6b35, #ff2d5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .sim-area { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; position: relative; }
+        canvas { display: block; width: 100%; height: 380px; }
+
+        .hud { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); padding: 10px 14px; border-radius: 8px; font-size: 0.75rem; line-height: 2; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06); text-align: right; }
+        .hud span { font-weight: 600; }
+        .hud .hot { color: #ff4d6a; }
+        .hud .cold { color: #00d4ff; }
+
+        .formula-bar { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.25); padding: 14px 20px; margin: 16px 0; border-radius: 10px; text-align: center; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+        .formula-bar .val { color: #ff6b35; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px; background: #0d1220; border-top: 1px solid rgba(255,255,255,0.06); }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; color: #7a84a0; display: flex; justify-content: space-between; }
+        .control-group label b { color: #e0e6f0; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e2740; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #ff6b35, #ff2d5e); cursor: pointer; }
+
+        .thermo { position: absolute; left: 12px; bottom: 12px; width: 30px; height: 120px; background: rgba(0,0,0,0.6); border-radius: 15px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+        .thermo-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #ff2d5e, #ff6b35); border-radius: 0 0 15px 15px; transition: height 0.3s; }
+        .thermo-label { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; color: #7a84a0; white-space: nowrap; }
+
+        .info-panel { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8; border-left: 3px solid #ff6b35; }
+        .info-panel strong { color: #e0e6f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 თერმოდინამიკა — იდეალური აირი</h1>
+        <p class="subtitle">აკონტროლე ტემპერატურა და მოცულობა · PV = nRT</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">
+                წნევა: <span class="hot" id="hud-p">0</span> kPa<br>
+                მოცულობა: <span class="cold" id="hud-v">0</span> L<br>
+                ტემპერატურა: <span class="hot" id="hud-t">300</span> K<br>
+                მოლეკულები: <span class="cold" id="hud-n">50</span>
+            </div>
+            <div class="thermo">
+                <div class="thermo-fill" id="thermo-fill" style="height: 50%"></div>
+                <div class="thermo-label">🌡️</div>
+            </div>
+        </div>
+
+        <div class="formula-bar">
+            P × V = n × R × T → <span class="val" id="fb-p">0</span> kPa × <span class="val" id="fb-v">0</span> L = <span class="val" id="fb-nrt">0</span>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>ტემპერატურა (T): <b><span id="t-val">300</span> K</b></label>
+                <input type="range" id="temp" min="100" max="800" value="300">
+            </div>
+            <div class="control-group">
+                <label>მოცულობა (V): <b><span id="v-val">50</span>%</b></label>
+                <input type="range" id="volume" min="20" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label>მოლეკულების რაოდენობა: <b><span id="n-val">50</span></b></label>
+                <input type="range" id="molcount" min="10" max="150" value="50">
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 იდეალური აირის კანონი:</strong> PV = nRT, სადაც P — წნევა, V — მოცულობა, n — მოლეკულების რაოდენობა, R — უნივერსალური აირის მუდმივა, T — ტემპერატურა.<br>
+            • <strong>ტემპერატურის გაზრდა</strong> → მოლეკულები სწრაფად მოძრაობენ, წნევა იზრდება<br>
+            • <strong>მოცულობის შემცირება</strong> → მოლეკულები ხშირად ეჯახებიან კედლებს<br>
+            • 🎯 <strong>ექსპერიმენტი:</strong> გაამაღლე ტემპერატურა 800K-მდე!
+        </div>
+
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() {
+            canvas.width = canvas.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.offsetWidth; H = canvas.offsetHeight;
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        let molecules = [];
+        const R_CONST = 8.314;
+
+        const tempSlider = document.getElementById('temp');
+        const volSlider = document.getElementById('volume');
+        const molSlider = document.getElementById('molcount');
+
+        tempSlider.oninput = updateValues;
+        volSlider.oninput = () => { updateValues(); initMolecules(); };
+        molSlider.oninput = () => { updateValues(); initMolecules(); };
+
+        function getT() { return +tempSlider.value; }
+        function getVolPct() { return +volSlider.value; }
+        function getMolCount() { return +molSlider.value; }
+
+        function getContainerBounds() {
+            const vp = getVolPct() / 100;
+            const containerW = (W - 100) * vp;
+            const containerH = (H - 60) * vp;
+            const cx = W / 2, cy = H / 2;
+            return {
+                left: cx - containerW / 2,
+                right: cx + containerW / 2,
+                top: cy - containerH / 2,
+                bottom: cy + containerH / 2,
+                w: containerW,
+                h: containerH
+            };
+        }
+
+        function initMolecules() {
+            const count = getMolCount();
+            const bounds = getContainerBounds();
+            molecules = [];
+            for (let i = 0; i < count; i++) {
+                const speed = getSpeed();
+                const angle = Math.random() * Math.PI * 2;
+                molecules.push({
+                    x: bounds.left + Math.random() * bounds.w,
+                    y: bounds.top + Math.random() * bounds.h,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    r: 3 + Math.random() * 2,
+                });
+            }
+        }
+
+        function getSpeed() {
+            return Math.sqrt(3 * R_CONST * getT() / 28) * 0.03; // Scaled for visual
+        }
+
+        function updateValues() {
+            const T = getT();
+            const vp = getVolPct();
+            const n = getMolCount();
+            document.getElementById('t-val').textContent = T;
+            document.getElementById('v-val').textContent = vp;
+            document.getElementById('n-val').textContent = n;
+            document.getElementById('hud-t').textContent = T;
+            document.getElementById('hud-n').textContent = n;
+
+            // PV = nRT (scaled)
+            const V = vp * 0.1; // Liters (scaled)
+            const P = (n * R_CONST * T) / (V * 1000); // kPa
+            document.getElementById('hud-p').textContent = P.toFixed(1);
+            document.getElementById('hud-v').textContent = V.toFixed(1);
+            document.getElementById('fb-p').textContent = P.toFixed(1);
+            document.getElementById('fb-v').textContent = V.toFixed(1);
+            document.getElementById('fb-nrt').textContent = (n * R_CONST * T / 1000).toFixed(1);
+
+            // Thermometer
+            const thermoH = ((T - 100) / 700) * 100;
+            document.getElementById('thermo-fill').style.height = thermoH + '%';
+
+            // Update speeds
+            const newSpeed = getSpeed();
+            molecules.forEach(m => {
+                const current = Math.sqrt(m.vx * m.vx + m.vy * m.vy);
+                if (current > 0.01) {
+                    const ratio = newSpeed / current;
+                    m.vx *= ratio;
+                    m.vy *= ratio;
+                }
+            });
+        }
+
+        function updateMolecules() {
+            const bounds = getContainerBounds();
+            molecules.forEach(m => {
+                m.x += m.vx;
+                m.y += m.vy;
+
+                if (m.x - m.r < bounds.left) { m.x = bounds.left + m.r; m.vx *= -1; }
+                if (m.x + m.r > bounds.right) { m.x = bounds.right - m.r; m.vx *= -1; }
+                if (m.y - m.r < bounds.top) { m.y = bounds.top + m.r; m.vy *= -1; }
+                if (m.y + m.r > bounds.bottom) { m.y = bounds.bottom - m.r; m.vy *= -1; }
+            });
+        }
+
+        function getTempColor(T) {
+            const t = (T - 100) / 700;
+            const r = Math.round(50 + t * 205);
+            const g = Math.round(150 - t * 100);
+            const b = Math.round(255 - t * 200);
+            return `rgb(${r},${g},${b})`;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+            // Container
+            const bounds = getContainerBounds();
+            const T = getT();
+            const tempColor = getTempColor(T);
+
+            // Container glow
+            ctx.shadowColor = tempColor;
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = tempColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bounds.left, bounds.top, bounds.w, bounds.h);
+            ctx.shadowBlur = 0;
+
+            // Container fill
+            ctx.fillStyle = `rgba(${T > 500 ? 40 : 10},${T > 500 ? 10 : 20},${T > 500 ? 10 : 40},0.3)`;
+            ctx.fillRect(bounds.left, bounds.top, bounds.w, bounds.h);
+
+            // Piston indicator (right wall)
+            ctx.fillStyle = '#3a4a6a';
+            ctx.fillRect(bounds.right - 4, bounds.top, 8, bounds.h);
+            ctx.fillStyle = '#5a6a8a';
+            for (let y = bounds.top + 10; y < bounds.bottom; y += 12) {
+                ctx.fillRect(bounds.right - 2, y, 4, 6);
+            }
+
+            // Molecules
+            molecules.forEach(m => {
+                const speed = Math.sqrt(m.vx * m.vx + m.vy * m.vy);
+                const intensity = Math.min(speed / 8, 1);
+                const color = `hsl(${200 - intensity * 180}, 80%, ${50 + intensity * 30}%)`;
+
+                // Glow
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.r * 2, 0, Math.PI * 2);
+                ctx.fillStyle = color.replace(')', ',0.15)').replace('hsl', 'hsla');
+                ctx.fill();
+
+                // Body
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+
+            // Labels
+            ctx.fillStyle = '#5a6a8a';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`მოცულობა: ${getVolPct()}%`, W / 2, bounds.bottom + 20);
+            ctx.fillText(`← დგუში →`, bounds.right + 30, H / 2);
+
+            updateMolecules();
+            requestAnimationFrame(draw);
+        }
+
+        initMolecules();
+        updateValues();
+        draw();
+    </script>
+</body>
+</html>

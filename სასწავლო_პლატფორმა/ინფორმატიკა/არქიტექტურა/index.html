@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — კომპიუტერის არქიტექტურა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #3b82f6, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #3b82f6, #f97316); color: white; border-color: #3b82f6; }
+        .cpu-layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        @media (max-width: 768px) { .cpu-layout { grid-template-columns: 1fr; } }
+        .component { background: #0f172a; border-radius: 12px; padding: 15px; border: 2px solid rgba(255,255,255,0.08); text-align: center; transition: 0.3s; }
+        .component:hover { border-color: #3b82f6; }
+        .component.active { border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.15); }
+        .comp-icon { font-size: 2rem; margin-bottom: 5px; }
+        .comp-name { font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; }
+        .comp-val { font-family: 'Courier New'; font-size: 0.8rem; color: #22c55e; min-height: 20px; }
+        .memory-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 15px; }
+        .mem-cell { background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; padding: 5px; text-align: center; font-family: 'Courier New'; font-size: 0.65rem; }
+        .mem-cell .addr { color: #64748b; font-size: 0.55rem; }
+        .mem-cell .val { color: #22c55e; font-weight: bold; }
+        .mem-cell.active { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .program-area { background: #0f172a; border-radius: 8px; padding: 10px; font-family: 'Courier New'; font-size: 0.8rem; max-height: 200px; overflow-y: auto; }
+        .instr { padding: 5px; border-radius: 4px; margin-bottom: 2px; display: flex; gap: 10px; }
+        .instr.current { background: rgba(59,130,246,0.15); border-left: 3px solid #3b82f6; }
+        .instr .addr { color: #64748b; min-width: 30px; }
+        .instr .code { color: #f8fafc; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-step { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .btn-run { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .btn-reset { background: #ef4444; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+        .log-area { background: #0f172a; border-radius: 8px; padding: 10px; font-family: 'Courier New'; font-size: 0.7rem; color: #94a3b8; max-height: 120px; overflow-y: auto; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); margin-top: 10px; }
+        .info-box { background: #0f172a; border-left: 3px solid #3b82f6; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #93c5fd; }
+        .storage-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .storage-icon { font-size: 1.5rem; }
+        .storage-name { font-weight: bold; min-width: 100px; font-size: 0.85rem; }
+        .storage-bar { flex: 1; height: 20px; background: #0f172a; border-radius: 4px; overflow: hidden; }
+        .storage-fill { height: 100%; border-radius: 4px; transition: 0.5s; }
+        .storage-info { font-size: 0.75rem; color: #94a3b8; min-width: 120px; text-align: right; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🖥️ კომპიუტერის არქიტექტურა</h1>
+    <p class="subtitle">CPU-ს ინსტრუქციის ციკლი, რეგისტრები, მეხსიერება — ნაბიჯ-ნაბიჯ</p>
+    <div class="app">
+        <div class="tabs">
+            <button class="tab active" onclick="setView('cpu')">🧠 CPU სიმულატორი</button>
+            <button class="tab" onclick="setView('storage')">💾 მეხსიერების იერარქია</button>
+        </div>
+
+        <!-- CPU Simulator -->
+        <div class="card" id="view-cpu">
+            <div class="cpu-layout">
+                <div class="component" id="comp-cu">
+                    <div class="comp-icon">🎛️</div>
+                    <div class="comp-name">CU (მმართველი)</div>
+                    <div class="comp-val" id="cu-val">FETCH</div>
+                </div>
+                <div class="component" id="comp-alu">
+                    <div class="comp-icon">🧮</div>
+                    <div class="comp-name">ALU (არითმ.)</div>
+                    <div class="comp-val" id="alu-val">—</div>
+                </div>
+                <div class="component" id="comp-reg">
+                    <div class="comp-icon">📋</div>
+                    <div class="comp-name">რეგისტრები</div>
+                    <div class="comp-val" id="reg-val">PC=0 A=0 B=0</div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <div style="font-size:0.8rem; color:#64748b; margin-bottom:5px;">📝 პროგრამა:</div>
+                    <div class="program-area" id="program-area"></div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:#64748b; margin-bottom:5px;">💾 მეხსიერება (RAM):</div>
+                    <div class="memory-grid" id="memory-grid"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-step" onclick="stepCPU()">⏭ ნაბიჯი</button>
+                <button class="btn btn-run" onclick="runCPU()">▶ გაშვება</button>
+                <button class="btn btn-reset" onclick="resetCPU()">↺ რესეტი</button>
+            </div>
+            <div class="log-area" id="cpu-log">📋 CPU ჟურნალი...\n</div>
+        </div>
+
+        <!-- Storage Hierarchy -->
+        <div class="card" id="view-storage" style="display:none;">
+            <div style="font-weight:bold; color:#f97316; margin-bottom:15px;">💾 მეხსიერების იერარქია (სიჩქარე vs ტევადობა)</div>
+            <div id="storage-list"></div>
+            <div class="info-box" style="margin-top:15px;">
+                <b>იერარქიის პრინციპი:</b> რაც უფრო სწრაფია მეხსიერება, მით უფრო ძვირია და ნაკლები ტევადობა აქვს. CPU-ს რეგისტრები 1 ციკლში მუშაობს, HDD — მილიონ ციკლში. ამიტომ ქეში-მეხსიერება ხშირ მონაცემებს ინახავს CPU-სთან ახლოს.
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        // === VIEW ===
+        function setView(v) {
+            document.getElementById('view-cpu').style.display = v==='cpu'?'block':'none';
+            document.getElementById('view-storage').style.display = v==='storage'?'block':'none';
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // === CPU SIMULATOR ===
+        const program = [
+            { op: 'LOAD', args: 'A, 5', desc: 'ჩატვირთე 5 → A' },
+            { op: 'LOAD', args: 'B, 3', desc: 'ჩატვირთე 3 → B' },
+            { op: 'ADD', args: 'A, B', desc: 'A + B → A' },
+            { op: 'STORE', args: 'A, [10]', desc: 'შეინახე A → მეხს.[10]' },
+            { op: 'LOAD', args: 'B, 2', desc: 'ჩატვირთე 2 → B' },
+            { op: 'MUL', args: 'A, B', desc: 'A × B → A' },
+            { op: 'STORE', args: 'A, [11]', desc: 'შეინახე A → მეხს.[11]' },
+            { op: 'HALT', args: '', desc: 'პროგრამის დასრულება' },
+        ];
+
+        let cpu = { pc: 0, regA: 0, regB: 0, phase: 'FETCH', running: false };
+        let memory = new Array(16).fill(0);
+
+        function renderProgram() {
+            document.getElementById('program-area').innerHTML = program.map((inst, i) =>
+                `<div class="instr ${i===cpu.pc?'current':''}">
+                    <span class="addr">${String(i).padStart(2,'0')}</span>
+                    <span class="code" style="color:${i===cpu.pc?'#3b82f6':'#94a3b8'}">${inst.op} ${inst.args}</span>
+                </div>`
+            ).join('');
+        }
+
+        function renderMemory() {
+            document.getElementById('memory-grid').innerHTML = memory.map((v, i) =>
+                `<div class="mem-cell"><div class="addr">[${i}]</div><div class="val">${v}</div></div>`
+            ).join('');
+        }
+
+        function updateCPUDisplay() {
+            document.getElementById('cu-val').textContent = cpu.phase;
+            document.getElementById('reg-val').textContent = `PC=${cpu.pc} A=${cpu.regA} B=${cpu.regB}`;
+            document.getElementById('alu-val').textContent = cpu.phase === 'EXECUTE' ? '⚡ გაშვება' : '—';
+
+            // Highlight active component
+            ['comp-cu','comp-alu','comp-reg'].forEach(id=>document.getElementById(id).classList.remove('active'));
+            if (cpu.phase === 'FETCH') document.getElementById('comp-cu').classList.add('active');
+            else if (cpu.phase === 'DECODE') document.getElementById('comp-cu').classList.add('active');
+            else if (cpu.phase === 'EXECUTE') document.getElementById('comp-alu').classList.add('active');
+
+            renderProgram();
+            renderMemory();
+        }
+
+        function addLog(text) {
+            const log = document.getElementById('cpu-log');
+            log.innerHTML += text + '\n';
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function stepCPU() {
+            if (cpu.pc >= program.length) { addLog('⏹ პროგრამა დასრულებულია'); return; }
+            const inst = program[cpu.pc];
+
+            if (cpu.phase === 'FETCH') {
+                cpu.phase = 'DECODE';
+                addLog(`📥 FETCH: ინსტრუქცია [${cpu.pc}] = ${inst.op} ${inst.args}`);
+            } else if (cpu.phase === 'DECODE') {
+                cpu.phase = 'EXECUTE';
+                addLog(`🔍 DECODE: ${inst.desc}`);
+            } else if (cpu.phase === 'EXECUTE') {
+                executeInstruction(inst);
+                cpu.phase = 'FETCH';
+                cpu.pc++;
+            }
+            updateCPUDisplay();
+        }
+
+        function executeInstruction(inst) {
+            switch (inst.op) {
+                case 'LOAD':
+                    if (inst.args.startsWith('A')) {
+                        cpu.regA = parseInt(inst.args.split(',')[1].trim());
+                        addLog(`⚡ EXECUTE: A = ${cpu.regA}`);
+                    } else {
+                        cpu.regB = parseInt(inst.args.split(',')[1].trim());
+                        addLog(`⚡ EXECUTE: B = ${cpu.regB}`);
+                    }
+                    break;
+                case 'ADD':
+                    cpu.regA = cpu.regA + cpu.regB;
+                    addLog(`⚡ EXECUTE: A = ${cpu.regA - cpu.regB} + ${cpu.regB} = ${cpu.regA}`);
+                    document.getElementById('alu-val').textContent = `${cpu.regA - cpu.regB}+${cpu.regB}=${cpu.regA}`;
+                    break;
+                case 'MUL':
+                    const prev = cpu.regA;
+                    cpu.regA = cpu.regA * cpu.regB;
+                    addLog(`⚡ EXECUTE: A = ${prev} × ${cpu.regB} = ${cpu.regA}`);
+                    document.getElementById('alu-val').textContent = `${prev}×${cpu.regB}=${cpu.regA}`;
+                    break;
+                case 'STORE':
+                    const addrMatch = inst.args.match(/\[(\d+)\]/);
+                    if (addrMatch) {
+                        const addr = +addrMatch[1];
+                        memory[addr] = cpu.regA;
+                        addLog(`⚡ EXECUTE: მეხს.[${addr}] = ${cpu.regA}`);
+                    }
+                    break;
+                case 'HALT':
+                    addLog('⏹ HALT — პროგრამა დასრულდა');
+                    break;
+            }
+        }
+
+        async function runCPU() {
+            if (cpu.running) return;
+            cpu.running = true;
+            while (cpu.pc < program.length) {
+                stepCPU(); await new Promise(r => setTimeout(r, 600));
+                stepCPU(); await new Promise(r => setTimeout(r, 600));
+                stepCPU(); await new Promise(r => setTimeout(r, 600));
+            }
+            cpu.running = false;
+        }
+
+        function resetCPU() {
+            cpu = { pc: 0, regA: 0, regB: 0, phase: 'FETCH', running: false };
+            memory = new Array(16).fill(0);
+            document.getElementById('cpu-log').innerHTML = '📋 CPU ჟურნალი...\n';
+            updateCPUDisplay();
+        }
+
+        // === STORAGE HIERARCHY ===
+        const storageData = [
+            { icon: '📋', name: 'რეგისტრები', speed: '0.3 ns', size: '~1 KB', pct: 100, color: '#ef4444' },
+            { icon: '⚡', name: 'L1 ქეში', speed: '1 ns', size: '64 KB', pct: 85, color: '#f97316' },
+            { icon: '⚡', name: 'L2 ქეში', speed: '4 ns', size: '256 KB', pct: 70, color: '#f59e0b' },
+            { icon: '⚡', name: 'L3 ქეში', speed: '12 ns', size: '8 MB', pct: 55, color: '#eab308' },
+            { icon: '💾', name: 'RAM', speed: '100 ns', size: '16 GB', pct: 40, color: '#22c55e' },
+            { icon: '💿', name: 'SSD', speed: '50 μs', size: '1 TB', pct: 25, color: '#3b82f6' },
+            { icon: '📀', name: 'HDD', speed: '5 ms', size: '4 TB', pct: 10, color: '#8b5cf6' },
+        ];
+
+        function buildStorage() {
+            document.getElementById('storage-list').innerHTML = storageData.map(s => `
+                <div class="storage-row">
+                    <span class="storage-icon">${s.icon}</span>
+                    <span class="storage-name" style="color:${s.color}">${s.name}</span>
+                    <div class="storage-bar"><div class="storage-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+                    <span class="storage-info">⏱ ${s.speed} | 📦 ${s.size}</span>
+                </div>
+            `).join('');
+        }
+
+        resetCPU();
+        buildStorage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — ეკოლოგიური პრობლემები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 320px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .scene { position: relative; width: 100%; height: 350px; background: linear-gradient(to top, #7dd3fc, #38bdf8); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: background 1s; }
+        .smog { position: absolute; inset: 0; background: rgba(100,100,100, 0); z-index: 10; transition: background 1s; pointer-events: none; }
+        
+        /* Scene Elements */
+        .sun { position: absolute; top: 20px; right: 20px; font-size: 3.5rem; filter: drop-shadow(0 0 15px #fde047); transition: 1s; z-index: 5; }
+        .iceberg { position: absolute; bottom: 20%; left: 10%; width: 25%; height: 30%; background: #fff; clip-path: polygon(20% 0, 50% 20%, 80% 0, 100% 100%, 0 100%); transition: 1s; transform-origin: bottom; z-index: 5; }
+        .water { position: absolute; bottom: 0; left: 0; width: 100%; height: 20%; background: rgba(56, 189, 248, 0.8); z-index: 8; transition: height 1s; border-top: 3px solid rgba(255,255,255,0.5); }
+        .city { position: absolute; bottom: 20%; right: 5%; width: 40%; height: 25%; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><rect x="10" y="20" width="15" height="30" fill="%2364748b"/><rect x="25" y="10" width="20" height="40" fill="%23475569"/><rect x="45" y="30" width="15" height="20" fill="%2394a3b8"/><rect x="60" y="15" width="25" height="35" fill="%23475569"/></svg>') no-repeat bottom right; background-size: contain; z-index: 6; }
+        
+        .factory { position: absolute; bottom: 15%; right: 50%; font-size: 3rem; z-index: 7; opacity: 0; transition: 0.5s; }
+        .tree { position: absolute; bottom: 20%; left: 45%; font-size: 2.5rem; z-index: 7; opacity: 0; transition: 0.5s; }
+        .solar { position: absolute; bottom: 20%; right: 40%; font-size: 2.5rem; z-index: 7; opacity: 0; transition: 0.5s; }
+        
+        /* Overlay Texts */
+        .temp-display { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 8px; color: #ef4444; font-family: 'Courier New'; font-weight: bold; font-size: 1.2rem; z-index: 12; border: 1px solid rgba(239,68,68,0.5); }
+        .sea-level { position: absolute; bottom: 5px; left: 20px; color: #000; font-weight: bold; font-size: 0.8rem; z-index: 12; }
+
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        .control-group { background: #0f172a; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .c-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; margin-bottom: 5px; }
+        
+        .r-red::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #ef4444; cursor: pointer; }
+        .r-green::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #22c55e; cursor: pointer; }
+        .r-blue::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+
+        .info-box { background: #0f172a; border-left: 3px solid #ef4444; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #fca5a5; }
+
+        .meter-bar { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
+        .meter-fill { height: 100%; transition: 0.3s; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌡️ გლობალური დათბობა</h1>
+    <p class="subtitle">ეკოლოგიური პრობლემების სიმულატორი: ნახშირორჟანგის ეფექტი</p>
+    
+    <div class="app">
+        <div class="card" style="padding:15px;">
+            <div class="scene" id="scene">
+                <!-- Data overlays -->
+                <div class="temp-display" id="temp-display">+15.0 °C</div>
+                <div class="sea-level" id="sea-level">ზღვის დონე: ნორმალური</div>
+                
+                <div class="smog" id="smog"></div>
+                
+                <div class="sun" id="sun">☀️</div>
+                <div class="iceberg" id="iceberg"></div>
+                <div class="city" id="city"></div>
+                
+                <!-- Spawns -->
+                <div id="factories"></div>
+                <div id="trees"></div>
+                <div id="solars"></div>
+
+                <div class="water" id="water"></div>
+            </div>
+            <div class="info-box" style="margin-top:15px; border-color:#f59e0b;">
+                <b style="color:#fcd34d">სათბურის ეფექტი:</b> ფაბრიკების და მანქანების მიერ გამოყოფილი აირები (CO₂) ატმოსფეროში გროვდება და დედამიწიდან არეკლილ სითბოს კოსმოსში არ უშვებს. შედეგად ტემპერატურა იზრდება, მყინვარები დნება და ზღვის დონე იწევს.
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="control-group">
+                <div class="c-title">
+                    <span style="color:#ef4444;">🏭 ინდუსტრია / CO₂</span>
+                    <span id="fac-val">10%</span>
+                </div>
+                <input type="range" class="r-red" id="fac-slider" min="0" max="100" value="10" oninput="updateSim()">
+                <div style="font-size:0.7rem; color:#64748b;">(ფაბრიკები, გამონაბოლქვი) ზრდის CO₂-ს</div>
+            </div>
+
+            <div class="control-group">
+                <div class="c-title">
+                    <span style="color:#22c55e;">🌳 ტყის საფარი</span>
+                    <span id="tree-val">90%</span>
+                </div>
+                <input type="range" class="r-green" id="tree-slider" min="0" max="100" value="90" oninput="updateSim()">
+                <div style="font-size:0.7rem; color:#64748b;">ხეები შთანთქავენ CO₂-ს ატმოსფეროდან</div>
+            </div>
+
+            <div class="control-group">
+                <div class="c-title">
+                    <span style="color:#3b82f6;">☀️ განახლებადი ენერგია</span>
+                    <span id="sol-val">0%</span>
+                </div>
+                <input type="range" class="r-blue" id="sol-slider" min="0" max="100" value="0" oninput="updateSim()">
+                <div style="font-size:0.7rem; color:#64748b;">ამცირებს ინდუსტრიის მიერ CO₂ გაფრქვევას</div>
+            </div>
+
+            <div class="control-group" style="margin-top:auto;">
+                <div style="font-size:0.8rem; color:#94a3b8; font-weight:bold;">📊 ატმოსფეროში CO₂ კონცენტრაცია:</div>
+                <div class="meter-bar"><div class="meter-fill" id="co2-meter" style="width:10%; background:#ef4444;"></div></div>
+                <div style="font-size:0.8rem; color:#94a3b8; font-weight:bold; margin-top:10px;">📉 მყინვარების მოცულობა:</div>
+                <div class="meter-bar"><div class="meter-fill" id="ice-meter" style="width:100%; background:#38bdf8;"></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        // Init visual entities
+        const facContainer = document.getElementById('factories');
+        const treeContainer = document.getElementById('trees');
+        const solContainer = document.getElementById('solars');
+        
+        for(let i=0; i<8; i++) {
+            let f = document.createElement('div'); f.className='factory'; f.innerHTML='🏭'; f.style.left = (30 + i*6) + '%'; f.style.bottom = '20%'; facContainer.appendChild(f);
+            let t = document.createElement('div'); t.className='tree'; t.innerHTML='🌲'; t.style.left = (35 + i*5) + '%'; t.style.bottom = '20%'; treeContainer.appendChild(t);
+            let s = document.createElement('div'); s.className='solar'; s.innerHTML='☀️'; s.style.left = (40 + i*6) + '%'; s.style.bottom = '20%'; solContainer.appendChild(s);
+        }
+
+        const factories = document.querySelectorAll('.factory');
+        const trees = document.querySelectorAll('.tree');
+        const solars = document.querySelectorAll('.solar');
+
+        function updateSim() {
+            const fac = parseInt(document.getElementById('fac-slider').value);
+            const trim = parseInt(document.getElementById('tree-slider').value);
+            const sol = parseInt(document.getElementById('sol-slider').value);
+
+            document.getElementById('fac-val').textContent = fac + '%';
+            document.getElementById('tree-val').textContent = trim + '%';
+            document.getElementById('sol-val').textContent = sol + '%';
+
+            // Show appropriate number of emojis based on percentage
+            factories.forEach((f, i) => f.style.opacity = (i < Math.ceil(fac/12.5)) ? 1 : 0);
+            trees.forEach((t, i) => t.style.opacity = (i < Math.ceil(trim/12.5)) ? 1 : 0);
+            solars.forEach((s, i) => s.style.opacity = (i < Math.ceil(sol/12.5)) ? 1 : 0);
+
+            // Calculate effects
+            // Base CO2 from factories. Renewables reduce it. Trees passively absorb.
+            let emissions = fac * (1 - (sol * 0.8 / 100)); // solar can reduce up to 80% emissions
+            let absorption = trim * 0.5; // trees can absorb up to 50 "units"
+
+            let netCO2 = emissions - absorption;
+            if(netCO2 < 0) netCO2 = 0; // Pre-industrial baseline basically
+
+            // Max netCO2 could be approx 100
+            let co2Pct = Math.min(100, Math.max(10, netCO2)); // start at 10 minimum
+            
+            // Calculate Temp (baseline 15.0, max +4.0 degrees C warning)
+            let temp = 14.5 + (co2Pct * 0.045);
+            
+            // Ice volume inverse to temps > 15
+            let iceVolume = 100;
+            if(temp > 15.0) {
+                iceVolume = 100 - ((temp - 15.0) * 20); // melts 20% per degree
+            }
+            if(iceVolume < 5) iceVolume = 0; // minimum block
+
+            // Water level (baseline 20%, rises up to 40% as ice melts)
+            let waterLevel = 20 + ((100 - iceVolume) * 0.2);
+
+            // UI Updates
+            document.getElementById('co2-meter').style.width = co2Pct + '%';
+            document.getElementById('ice-meter').style.width = iceVolume + '%';
+            
+            const tDisplay = document.getElementById('temp-display');
+            tDisplay.textContent = '+' + temp.toFixed(1) + ' °C';
+            if(temp >= 17) tDisplay.style.color = '#ef4444';
+            else if(temp >= 16) tDisplay.style.color = '#f59e0b';
+            else tDisplay.style.color = '#22c55e';
+
+            // Sun redness due to greenhouse gasses
+            const scene = document.getElementById('scene');
+            const smog = document.getElementById('smog');
+            const sun = document.getElementById('sun');
+            
+            if(co2Pct > 50) {
+                scene.style.background = 'linear-gradient(to top, #fca5a5, #7dd3fc)';
+                smog.style.background = `rgba(100, 100, 100, ${(co2Pct-50)/100})`;
+                sun.style.filter = `drop-shadow(0 0 15px #ef4444) hue-rotate(-30deg)`;
+            } else {
+                scene.style.background = 'linear-gradient(to top, #7dd3fc, #38bdf8)';
+                smog.style.background = 'rgba(100, 100, 100, 0)';
+                sun.style.filter = `drop-shadow(0 0 15px #fde047)`;
+            }
+
+            // Scale Iceberg
+            document.getElementById('iceberg').style.transform = `scale(${iceVolume/100})`;
+            
+            // Water level
+            document.getElementById('water').style.height = waterLevel + '%';
+            
+            const slText = document.getElementById('sea-level');
+            if(waterLevel > 35) {
+                slText.textContent = 'ზღვის დონე: 🚨 კატასტროფული დატბორვა';
+                slText.style.color = '#fff';
+            } else if(waterLevel > 25) {
+                slText.textContent = 'ზღვის დონე: ⚠️ იზრდება';
+                slText.style.color = '#000';
+            } else {
+                slText.textContent = 'ზღვის დონე: ნორმალური';
+                slText.style.color = '#000';
+            }
+        }
+
+        // Init
+        updateSim();
+    </script>
+</body>
+</html>

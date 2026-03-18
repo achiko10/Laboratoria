@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — მედიაწიგნიერება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Georgian', sans-serif;}
+        body { background: #f1f5f9; color: #0f172a; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; color: #334155; margin-bottom: 5px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 30px; text-align: center; }
+
+        .app-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px;}
+        
+        /* Stats Header */
+        .stats-bar { display: flex; justify-content: space-between; background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; font-weight: bold;}
+        .score { color: #0f172a; }
+        .score span { color: #3b82f6; font-size: 1.2rem; }
+
+        /* Card / Phone view */
+        .phone-frame { background: #fff; border: 12px solid #334155; border-radius: 30px; border-bottom: 25px solid #334155; border-top: 25px solid #334155; height: 500px; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.15);}
+        
+        .pf-header { background: #f8fafc; padding: 15px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569; display: flex; justify-content: space-between; align-items: center;}
+        
+        .post-container { flex: 1; padding: 20px; display: flex; flex-direction: column; overflow-y: auto;}
+        
+        .post-source { display: flex; align-items: center; gap: 10px; margin-bottom: 15px;}
+        .src-img { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;}
+        .src-name { font-weight: bold; font-size: 0.95rem; }
+        .src-time { font-size: 0.8rem; color: #94a3b8; }
+        
+        .post-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; line-height: 1.4; color: #000;}
+        .post-img { width: 100%; height: 180px; background: #cbd5e1; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 3rem; overflow: hidden;}
+        
+        .actions { display: flex; gap: 10px; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .btn-action { flex: 1; padding: 15px 0; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; color: #fff; display: flex; align-items: center; justify-content: center; gap: 5px;}
+        
+        .btn-fake { background: #ef4444; }
+        .btn-fake:hover { background: #dc2626; transform: translateY(-2px);}
+        
+        .btn-real { background: #10b981; }
+        .btn-real:hover { background: #059669; transform: translateY(-2px);}
+
+        /* Analysis Layer */
+        .analysis-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; animation: fadeIn 0.3s forwards;}
+        
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+
+        .a-icon { font-size: 4rem; margin-bottom: 15px;}
+        .a-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+        .a-desc { font-size: 1rem; color: #475569; line-height: 1.6; margin-bottom: 25px;}
+        
+        .btn-next { padding: 12px 25px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; width: 100%;}
+        .btn-next:hover { background: #2563eb; }
+
+        .back-btn { margin-top: 20px; padding: 10px 20px; background: #e2e8f0; color: #475569; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #cbd5e1; transition: 0.2s;}
+        .back-btn:hover { background: #cbd5e1; color: #1e293b; }
+
+        /* End Screen */
+        #end-screen { text-align: center; padding: 40px 20px; display: none; }
+    </style>
+</head>
+<body>
+    <h1>📱 მედიაწიგნიერება</h1>
+    <p class="subtitle">გამოარჩიე სანდო ინფორმაცია ყალბი ამბებისგან (Fake News)</p>
+
+    <div class="app-container">
+        
+        <div class="stats-bar">
+            <span>პოსტი: <span id="q-counter">1/4</span></span>
+            <span class="score">ქულა: <span id="score">0</span></span>
+        </div>
+
+        <div class="phone-frame" id="phone-frame">
+            <div class="pf-header">
+                <div>Feed</div>
+                <div>🔍</div>
+            </div>
+            
+            <div class="post-container">
+                <div class="post-source">
+                    <div class="src-img" id="src-img">?</div>
+                    <div>
+                        <div class="src-name" id="src-name">...</div>
+                        <div class="src-time" id="src-time">...</div>
+                    </div>
+                </div>
+                
+                <h2 class="post-title" id="post-title">...</h2>
+                <div class="post-img" id="post-img">🖼️</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-action btn-fake" onclick="checkAnswer('fake')">🛑 ყალბია</button>
+                <button class="btn-action btn-real" onclick="checkAnswer('real')">✅ სანდოა</button>
+            </div>
+
+            <!-- Overlay for results -->
+            <div class="analysis-overlay" id="analysis">
+                <div class="a-icon" id="a-icon">✅</div>
+                <div class="a-title" id="a-title">სწორია!</div>
+                <div class="a-desc" id="a-desc">აღწერა</div>
+                <button class="btn-next" onclick="nextPost()">შემდეგი პოსტი</button>
+            </div>
+        </div>
+        
+        <div class="phone-frame" id="end-screen" style="display:none; height:auto; padding: 40px 20px;">
+            <div style="font-size:4rem; margin-bottom:20px;">🎓</div>
+            <h2 style="margin-bottom:15px; color:#1e293b;">თამაში დასრულდა!</h2>
+            <p style="color:#64748b; margin-bottom:25px;" id="end-msg"></p>
+            <button class="btn-next" onclick="resetGame()" style="background:#10b981;">თავიდან დაწყება</button>
+        </div>
+
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const posts = [
+            {
+                type: 'fake',
+                source: "Global-Health-News.ru", authorIcon: "👽", time: "18 წთ-ის წინ",
+                title: "შოკისმომგვრელი! მარწყვის ჭამა იწვევს უცხოპლანეტელებთან კავშირს! გააზიარეთ სასწრაფოდ!!!",
+                imgHtml: "🍓🛸",
+                expl: "<b>დახასიათება: Fake News.</b><br>1. კლიკბეიტი და მანიპულაციური ენა ('შოკისმომგვრელი', 'სასწრაფოდ').<br>2. საეჭვო, უცნობი წყაროს მისამართი.<br>3. აბსურდული და დაუდასტურებელი ფაქტი ყოველგვარი მტკიცებულების გარეშე."
+            },
+            {
+                type: 'real',
+                source: "ჯანდაცვის მსოფლიო ორგანიზაცია (WHO) ✔️", authorIcon: "🌐", time: "2 საათის წინ",
+                title: "ახალი კვლევის თანახმად, დღეში 30 წუთიანი ფიზიკური აქტივობა 20%-ით ამცირებს გულ-სისხლძარღვთა დაავადებების რისკს.",
+                imgHtml: "🏃‍♂️❤️",
+                expl: "<b>დახასიათება: სანდო ინფორმაცია.</b><br>1. ვერიფიცირებული, ოფიციალური წყარო (WHO).<br>2. ნეიტრალური, აკადემიური ტონი ('კვლევის თანახმად').<br>3. არ გთხოვთ გაზიარებას, უბრალოდ გაწვდით ფაქტს."
+            },
+            {
+                type: 'fake',
+                source: "User_Anon99", authorIcon: "👤", time: "გუშინ",
+                title: "მთავრობამ საიდუმლო კანონი მიიღო! ხვალიდან ინტერნეტი ფასიანი გახდება ყველა საიტზე. დააკოპირეთ ეს სტატუსი თქვენს კედელზე, რომ უფასო დაგრჩეთ!",
+                imgHtml: "💻💸",
+                expl: "<b>დახასიათება: Fake / Spam / Hoax.</b><br>1. ავრცელებს უცნობი (ანონიმური) მომხმარებელი.<br>2. 'დააკოპირეთ კედელზე' არის ტიპური სპამის მექანიზმი.<br>3. მნიშვნელოვანი კანონის მიღება მსხვილ მედია-საშუალებებში გაშუქდებოდა."
+            },
+            {
+                type: 'fake',
+                source: "Scientific-Discoveries.com", authorIcon: "🧪", time: "2015 წელი",
+                title: "მეცნიერებმა იპოვეს დინოზავრი, რომელიც დღემდე ცოცხლობს!",
+                imgHtml: "🦕🕵️‍♂️",
+                expl: "<b>დახასიათება: მანიპულაცია ძველი ამბით / სიყალბე.</b><br>მნიშვნელოვანია <b>თარიღის შემოწმება</b>. ხშირად ყალბი / სენსაციური ამბები წლების წინანდელია ან სატირული საიტებიდანაა აღებული და ჭეშმარიტებად საღდება."
+            }
+        ];
+
+        let currIdx = 0;
+        let score = 0;
+
+        function renderPost() {
+            const p = posts[currIdx];
+            document.getElementById('q-counter').textContent = `${currIdx + 1}/${posts.length}`;
+            
+            document.getElementById('src-img').textContent = p.authorIcon;
+            document.getElementById('src-name').textContent = p.source;
+            document.getElementById('src-time').textContent = p.time;
+            
+            document.getElementById('post-title').textContent = p.title;
+            document.getElementById('post-img').innerHTML = p.imgHtml;
+            
+            // hide analysis
+            document.getElementById('analysis').style.display = 'none';
+        }
+
+        function checkAnswer(userChoice) {
+            const p = posts[currIdx];
+            const isCorrect = (userChoice === p.type);
+            
+            if(isCorrect) {
+                score++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('a-icon').textContent = "🎯";
+                document.getElementById('a-title').textContent = "სწორია!";
+                document.getElementById('a-title').style.color = "#10b981";
+            } else {
+                document.getElementById('a-icon').textContent = "❌";
+                document.getElementById('a-title').textContent = "შეცდომაა";
+                document.getElementById('a-title').style.color = "#ef4444";
+            }
+            
+            document.getElementById('a-desc').innerHTML = p.expl;
+            document.getElementById('analysis').style.display = 'flex';
+        }
+
+        function nextPost() {
+            currIdx++;
+            if(currIdx < posts.length) {
+                renderPost();
+            } else {
+                // End
+                document.getElementById('phone-frame').style.display = 'none';
+                document.getElementById('end-screen').style.display = 'block';
+                
+                let msg = "";
+                if(score === posts.length) msg = "საუკეთესო შედეგი! შენ შეუძლია ამოიცნო ყველაზე რთული მანიპულაციებიც კი.";
+                else if(score > 1) msg = "კარგი შედეგია, მაგრამ ყურადღებით იყავი ინტერნეტში.";
+                else msg = "შენ ადვილად ექცევი ყალბი ამბების გავლენის ქვეშ. მეტი ყურადღება გმართებს!";
+                
+                document.getElementById('end-msg').textContent = msg;
+            }
+        }
+
+        function resetGame() {
+            currIdx = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('phone-frame').style.display = 'flex';
+            renderPost();
+        }
+
+        // Init
+        renderPost();
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — კიბერუსაფრთხოება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 800px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 22px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .card h3 { font-size: 0.95rem; margin-bottom: 12px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; border-color: #ef4444; }
+        .cipher-area { margin-bottom: 15px; }
+        .cipher-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .cipher-row label { font-size: 0.85rem; color: #94a3b8; min-width: 90px; }
+        .cipher-row input, .cipher-row select { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; outline: none; }
+        .cipher-row input:focus { border-color: #ef4444; }
+        .result-box { background: #0f172a; border-radius: 8px; padding: 15px; font-family: 'Courier New'; font-size: 1rem; color: #22c55e; word-break: break-all; border: 1px solid rgba(255,255,255,0.05); min-height: 45px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-enc { background: linear-gradient(135deg, #ef4444, #f59e0b); }
+        .btn-dec { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .password-meter { margin-top: 15px; }
+        .pw-input { width: 100%; padding: 12px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1.1rem; outline: none; }
+        .pw-input:focus { border-color: #ef4444; }
+        .pw-bar { height: 8px; border-radius: 4px; background: #0f172a; margin-top: 8px; overflow: hidden; }
+        .pw-fill { height: 100%; border-radius: 4px; transition: 0.3s; width: 0; }
+        .pw-details { margin-top: 8px; font-size: 0.8rem; color: #94a3b8; }
+        .pw-check { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+        .phishing-game { text-align: center; }
+        .email-preview { background: #0f172a; border-radius: 12px; padding: 20px; text-align: left; border: 1px solid rgba(255,255,255,0.08); margin: 15px 0; }
+        .email-from { font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+        .email-subject { font-weight: bold; font-size: 1rem; margin-bottom: 10px; }
+        .email-body { font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
+        .email-link { color: #3b82f6; text-decoration: underline; cursor: default; }
+        .verdict-btns { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .verdict-btn { padding: 14px 30px; border: 2px solid; border-radius: 10px; font-family: inherit; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: 0.2s; background: transparent; }
+        .verdict-btn:hover { transform: translateY(-2px); }
+        .v-safe { color: #22c55e; border-color: #22c55e; }
+        .v-phish { color: #ef4444; border-color: #ef4444; }
+        .feedback { padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; display: none; }
+        .feedback.show { display: block; }
+        .feedback.correct { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; }
+        .feedback.wrong { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+        .score { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; }
+        .score b { font-family: 'Courier New'; }
+        .info-box { background: #0f172a; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #fcd34d; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ კიბერუსაფრთხოება</h1>
+    <p class="subtitle">შიფრაცია, პაროლის სიძლიერე, ფიშინგის ამოცნობა — ინტერაქტიული ექსპერიმენტები</p>
+    <div class="app">
+        <div class="tabs">
+            <button class="tab active" onclick="setView('cipher')">🔒 შიფრაცია</button>
+            <button class="tab" onclick="setView('password')">🔑 პაროლის ტესტი</button>
+            <button class="tab" onclick="setView('phishing')">🎣 ფიშინგის თამაში</button>
+        </div>
+
+        <!-- Cipher -->
+        <div class="card" id="view-cipher">
+            <h3 style="color:#ef4444;">🔐 კეისრის შიფრი (Caesar Cipher)</h3>
+            <div class="cipher-area">
+                <div class="cipher-row">
+                    <label>ტექსტი:</label>
+                    <input type="text" id="cipher-input" placeholder="ჩაწერე ტექსტი..." value="HELLO WORLD">
+                </div>
+                <div class="cipher-row">
+                    <label>წანაცვლება:</label>
+                    <input type="number" id="cipher-shift" value="3" min="1" max="25" style="max-width:80px;">
+                    <input type="range" id="cipher-slider" min="1" max="25" value="3" style="flex:1;" oninput="document.getElementById('cipher-shift').value=this.value; encrypt();">
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <button class="btn btn-enc" onclick="encrypt()">🔒 დაშიფვრა</button>
+                    <button class="btn btn-dec" onclick="decrypt()">🔓 გაშიფვრა</button>
+                </div>
+                <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:5px;">შედეგი:</div>
+                <div class="result-box" id="cipher-result">KHOOR ZRUOG</div>
+            </div>
+            <div class="info-box">
+                <b>კეისრის შიფრი:</b> ყოველ ასოს ანბანში n პოზიციით წანაცვლებს. იულიუს კეისარი ამ მეთოდს იყენებდა საიდუმლო შეტყობინებებისთვის. მაგ: A→D (წანაცვლება 3).
+            </div>
+        </div>
+
+        <!-- Password -->
+        <div class="card" id="view-password" style="display:none;">
+            <h3 style="color:#f59e0b;">🔑 პაროლის სიძლიერის შემოწმება</h3>
+            <input type="text" class="pw-input" id="pw-input" placeholder="ჩაწერე პაროლი..." oninput="checkPassword()">
+            <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
+            <div style="text-align:center; font-weight:bold; margin-top:5px; font-size:0.9rem;" id="pw-level">—</div>
+            <div class="pw-details" id="pw-details"></div>
+            <div class="info-box" style="margin-top:12px;">
+                <b>ძლიერი პაროლის რჩევები:</b><br>
+                • მინიმუმ 12 სიმბოლო<br>
+                • დიდი + პატარა ასოები<br>
+                • ციფრები + სპეციალური სიმბოლოები (!@#$%)<br>
+                • არ გამოიყენო პირადი ინფორმაცია<br>
+                • ყოველ საიტზე სხვადასხვა პაროლი
+            </div>
+        </div>
+
+        <!-- Phishing -->
+        <div class="card" id="view-phishing" style="display:none;">
+            <h3 style="color:#3b82f6;">🎣 ფიშინგის ამოცნობის თამაში</h3>
+            <div class="score"><span>🎯 სწორი: <b id="ph-correct" style="color:#22c55e;">0</b></span> &nbsp; <span>❌ შეცდ.: <b id="ph-wrong" style="color:#ef4444;">0</b></span></div>
+            <div class="phishing-game">
+                <div style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">ეს ელფოსტა რეალურია თუ ფიშინგი?</div>
+                <div class="email-preview" id="email-preview"></div>
+                <div class="verdict-btns">
+                    <button class="verdict-btn v-safe" onclick="checkPhishing(false)">✅ რეალურია</button>
+                    <button class="verdict-btn v-phish" onclick="checkPhishing(true)">🎣 ფიშინგია!</button>
+                </div>
+                <div class="feedback" id="ph-feedback"></div>
+                <button class="btn" style="margin-top:10px; background:#334155;" onclick="nextPhishing()">→ შემდეგი</button>
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        // === VIEW SWITCHING ===
+        function setView(v) {
+            ['cipher','password','phishing'].forEach(id => {
+                document.getElementById('view-'+id).style.display = id===v ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // === CAESAR CIPHER ===
+        function caesarShift(text, shift, encrypt) {
+            const s = encrypt ? shift : (26 - shift);
+            return text.split('').map(ch => {
+                const code = ch.charCodeAt(0);
+                if (code >= 65 && code <= 90) return String.fromCharCode(((code - 65 + s) % 26) + 65);
+                if (code >= 97 && code <= 122) return String.fromCharCode(((code - 97 + s) % 26) + 97);
+                return ch;
+            }).join('');
+        }
+        function encrypt() {
+            const text = document.getElementById('cipher-input').value;
+            const shift = +document.getElementById('cipher-shift').value;
+            document.getElementById('cipher-slider').value = shift;
+            document.getElementById('cipher-result').textContent = caesarShift(text, shift, true);
+        }
+        function decrypt() {
+            const text = document.getElementById('cipher-input').value;
+            const shift = +document.getElementById('cipher-shift').value;
+            document.getElementById('cipher-result').textContent = caesarShift(text, shift, false);
+        }
+        document.getElementById('cipher-input').addEventListener('input', encrypt);
+        document.getElementById('cipher-shift').addEventListener('input', encrypt);
+
+        // === PASSWORD CHECKER ===
+        function checkPassword() {
+            const pw = document.getElementById('pw-input').value;
+            const fill = document.getElementById('pw-fill');
+            const level = document.getElementById('pw-level');
+            const details = document.getElementById('pw-details');
+            if (!pw) { fill.style.width = '0%'; level.textContent = '—'; level.style.color = '#94a3b8'; details.innerHTML = ''; return; }
+
+            let score = 0;
+            const checks = [
+                { test: pw.length >= 8, label: '8+ სიმბოლო', points: 1 },
+                { test: pw.length >= 12, label: '12+ სიმბოლო', points: 1 },
+                { test: pw.length >= 16, label: '16+ სიმბოლო', points: 1 },
+                { test: /[a-z]/.test(pw), label: 'პატარა ასოები (a-z)', points: 1 },
+                { test: /[A-Z]/.test(pw), label: 'დიდი ასოები (A-Z)', points: 1 },
+                { test: /[0-9]/.test(pw), label: 'ციფრები (0-9)', points: 1 },
+                { test: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pw), label: 'სპეციალური (!@#$%)', points: 2 },
+                { test: !/(.)\1{2,}/.test(pw), label: 'არ იმეორებს სიმბოლოებს', points: 1 },
+                { test: !/^(password|123456|qwerty)/i.test(pw), label: 'არ არის ტიპიური პაროლი', points: 1 },
+            ];
+
+            checks.forEach(c => { if (c.test) score += c.points; });
+
+            const pct = Math.min(score / 10, 1) * 100;
+            const levels = [
+                { min: 0, label: '🔴 ძალიან სუსტი', color: '#ef4444' },
+                { min: 20, label: '🟠 სუსტი', color: '#f97316' },
+                { min: 40, label: '🟡 საშუალო', color: '#f59e0b' },
+                { min: 60, label: '🟢 კარგი', color: '#22c55e' },
+                { min: 80, label: '💪 ძლიერი', color: '#10b981' },
+            ];
+            const lvl = [...levels].reverse().find(l => pct >= l.min);
+            fill.style.width = pct + '%';
+            fill.style.background = lvl.color;
+            level.textContent = lvl.label;
+            level.style.color = lvl.color;
+
+            details.innerHTML = checks.map(c =>
+                `<div class="pw-check">${c.test ? '✅' : '❌'} ${c.label}</div>`
+            ).join('');
+        }
+
+        // === PHISHING GAME ===
+        const emails = [
+            { isPhishing: true, from: 'security@g00gle-support.com', subject: 'თქვენი ანგარიში დაიბლოკა!', body: 'გამარჯობა,<br><br>თქვენი Google ანგარიშ დაიბლოკა უცნობი შესვლის გამო. <b>დაუყოვნებლივ</b> დააკლიკეთ ქვემოთ მოცემულ ბმულს:<br><br><span class="email-link">http://g00gle-verify.tk/login</span><br><br>24 საათის განმავლობაში თუ არ გაააქტიურებთ, ანგარიში სამუდამოდ წაიშლება.', clue: '⚠️ ყალბი მისამართი (g00gle — ნულებით), .tk დომენი, შეშინების ტაქტიკა, გადაუდებლობის შეგრძნება' },
+            { isPhishing: false, from: 'noreply@github.com', subject: 'Your repository was forked', body: 'Hey there,<br><br>user123 just forked your repository "my-project". You can see the fork at <span class="email-link">https://github.com/user123/my-project</span>.<br><br>— GitHub Team', clue: '✅ რეალური GitHub შეტყობინება: ოფიციალური დომენი, ტიპიური ტექსტი' },
+            { isPhishing: true, from: 'admin@bank-of-georgia.com.ng', subject: 'მოიგეთ 50,000₾!', body: 'ძვირფასო მომხმარებელო,<br><br>🎉 თქვენ მოიგეთ <b>50,000 ლარი!</b> თანხის მისაღებად გამოაგზავნეთ თქვენი:<br>- სრული სახელი<br>- პირადი ნომერი<br>- ბარათის ნომერი<br><br><span class="email-link">http://bank-georgia-prize.ng/claim</span>', clue: '⚠️ .ng დომენი (ნიგერია), პირადი ინფორმაციის მოთხოვნა, დაუჯერებელი პრიზი' },
+            { isPhishing: false, from: 'notifications@linkedin.com', subject: 'New connection request', body: 'Hi,<br><br>Nino Kapanadze wants to connect with you on LinkedIn.<br><br>View profile: <span class="email-link">https://www.linkedin.com/in/nino-kapanadze</span><br><br>— LinkedIn', clue: '✅ ოფიციალური LinkedIn შეტყობინება: ვალიდური დომენი, ტიპიური ფორმატი' },
+            { isPhishing: true, from: 'support@paypa1.com', subject: 'Unusual activity on your account', body: 'Dear Customer,<br><br>We noticed unusual activity on your PayPal account. Please verify your identity immediately by clicking below:<br><br><span class="email-link">http://paypa1-secure.co/verify</span><br><br>Failure to verify within 24 hours will result in permanent suspension.', clue: '⚠️ paypa1 (1-ით l-ის ნაცვლად), .co ნაცვლად .com-ისა, შეშინების ტაქტიკა' },
+            { isPhishing: true, from: 'it-department@company.xyz', subject: 'პაროლის განახლება სავალდებულოა', body: 'თანამშრომელო,<br><br>კომპანიის პოლიტიკის თანახმად თქვენი პაროლი უნდა განაახლოთ. შეიყვანეთ ძველი და ახალი პაროლი:<br><br><span class="email-link">http://company-reset.xyz/password</span>', clue: '⚠️ .xyz დომენი, პაროლის მოთხოვნა ბმულით IT-ს ნაცვლად — რეალური კომპანია ასე არ მოითხოვს' },
+        ];
+        let currentEmail = 0, phCorrect = 0, phWrong = 0, phAnswered = false;
+
+        function showEmail(idx) {
+            phAnswered = false;
+            const e = emails[idx];
+            document.getElementById('email-preview').innerHTML = `
+                <div class="email-from">📧 From: <b style="color:#f8fafc">${e.from}</b></div>
+                <div class="email-subject">📋 Subject: ${e.subject}</div>
+                <div class="email-body">${e.body}</div>`;
+            document.getElementById('ph-feedback').className = 'feedback';
+        }
+
+        function checkPhishing(userSaysPhishing) {
+            if (phAnswered) return;
+            phAnswered = true;
+            const e = emails[currentEmail];
+            const fb = document.getElementById('ph-feedback');
+            if (userSaysPhishing === e.isPhishing) {
+                phCorrect++;
+                fb.className = 'feedback show correct';
+                fb.innerHTML = `🎉 სწორი! ${e.clue}`;
+            } else {
+                phWrong++;
+                fb.className = 'feedback show wrong';
+                fb.innerHTML = `❌ არასწორი! ${e.clue}`;
+            }
+            document.getElementById('ph-correct').textContent = phCorrect;
+            document.getElementById('ph-wrong').textContent = phWrong;
+        }
+
+        function nextPhishing() {
+            currentEmail = (currentEmail + 1) % emails.length;
+            showEmail(currentEmail);
+        }
+        showEmail(0);
+    </script>
+</body>
+</html>

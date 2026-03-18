@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — ენდოკრინული სისტემა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 550px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; max-height: 550px; overflow-y: auto; }
+        .gland-btn { padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        .gland-btn:hover { background: #334155; }
+        .gland-btn.active { background: linear-gradient(135deg, #8b5cf6, #06b6d4); border-color: #8b5cf6; }
+        .g-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .info-box { background: #0f172a; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); }
+        .info-box h4 { color: #f8fafc; margin-bottom: 5px; }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #8b5cf6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🧬 ენდოკრინული სისტემა</h1>
+    <p class="subtitle">ჰორმონების მომწარმოებელი ჯირკვლები და მათი ფუნქციები</p>
+    <div class="container">
+        <div class="sim-area"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div style="font-weight:bold; color:#8b5cf6; margin-bottom:5px;">ჯირკვლები</div>
+            <div id="gland-list"></div>
+            <div class="info-box" id="info-box"><h4>აირჩიე ჯირკვალი</h4>დააკლიკე სხეულზე ან აირჩიე სიიდან.</div>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 ენდოკრინული სისტემა:</strong> ჯირკვლების ქსელი, რომლებიც ჰორმონებს გამოყოფენ სისხლში. ჰორმონები ქიმიური მესენჯერებია — ისინი სხეულის სხვადასხვა ნაწილში აღწევენ და სპეციფიკურ ორგანოებზე მოქმედებენ.
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sim = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const glands = [
+            { id:'hypothalamus', name:'ჰიპოთალამუსი', color:'#a78bfa', x:0.50, y:0.07, r:0.03, emoji:'🧠',
+              hormone:'ADH, ოქსიტოცინი',
+              info:'ტვინის ნაწილი, რომელიც ენდოკრინულ და ნერვულ სისტემას აკავშირებს. არეგულირებს: ტემპერატურას, მოწყურებას, ძილს, ემოციას. ჰიპოფიზს გადასცემს ბრძანებებს.' },
+            { id:'pituitary', name:'ჰიპოფიზი', color:'#ec4899', x:0.50, y:0.10, r:0.025, emoji:'👑',
+              hormone:'GH, TSH, ACTH, FSH, LH',
+              info:'„მთავარი ჯირკვალი" — აკონტროლებს სხვა ჯირკვლებს. გამოყოფს ზრდის ჰორმონს (GH), მეტაბოლიზმის მარეგულირებელ (TSH), სტრესის (ACTH) და რეპროდუქციის (FSH/LH) ჰორმონებს.' },
+            { id:'thyroid', name:'ფარისებრი ჯირკვალი', color:'#06b6d4', x:0.50, y:0.17, r:0.035, emoji:'🦋',
+              hormone:'T3, T4 (თიროქსინი)',
+              info:'კისრის წინა ნაწილში. აწარმოებს T3/T4 — მეტაბოლიზმის სიჩქარეს, ენერგიის გამომუშავებას და ტემპერატურას აკონტროლებს. იოდის დეფიციტთ → ჩიყვი.' },
+            { id:'parathyroid', name:'პარათირეოიდული', color:'#14b8a6', x:0.54, y:0.17, r:0.015, emoji:'💎',
+              hormone:'PTH (პარათჰორმონი)',
+              info:'4 წვრილი ჯირკვალი ფარისებრის უკან. PTH აკონტროლებს კალციუმის დონეს სისხლში. ზედმეტი → ძვლებიდან Ca²⁺ გამოტანა; ნაკლები → კრუნჩხვა.' },
+            { id:'adrenal', name:'თირკმელზედა', color:'#f59e0b', x:0.50, y:0.38, r:0.03, emoji:'⚡',
+              hormone:'კორტიზოლი, ადრენალინი',
+              info:'თირკმლების თავზე. ქერქი — კორტიზოლი (სტრესი, იმუნიტეტი); ტვინი — ადრენალინი (fight-or-flight: გული ჩქარობს, ენერგია იზრდება).' },
+            { id:'pancreas', name:'პანკრეასი', color:'#22c55e', x:0.48, y:0.43, r:0.035, emoji:'💚',
+              hormone:'ინსულინი, გლუკაგონი',
+              info:'ლანგერჰანსის კუნძულები: β-უჯრედები → ინსულინი (ამცირებს შაქარს); α-უჯრედები → გლუკაგონი (ზრდის შაქარს). დიაბეტი — ინსულინის ნაკლებობა.' },
+            { id:'gonads', name:'სასქესო ჯირკვლები', color:'#f43f5e', x:0.50, y:0.58, r:0.03, emoji:'🔴',
+              hormone:'ტესტოსტერონი / ესტროგენი',
+              info:'სათესლეები (♂) → ტესტოსტერონი: კუნთების ზრდა, ბგერის სიდაბლე. საკვერცხეები (♀) → ესტროგენი/პროგესტერონი: მენსტრუალური ციკლი, ორსულობა.' },
+        ];
+
+        let selected = null;
+
+        const listEl = document.getElementById('gland-list');
+        glands.forEach(g => {
+            const btn = document.createElement('button');
+            btn.className = 'gland-btn'; btn.id = 'btn-' + g.id;
+            btn.innerHTML = `<span class="g-dot" style="background:${g.color}"></span>${g.emoji} ${g.name}`;
+            btn.onclick = () => selectGland(g.id);
+            listEl.appendChild(btn);
+        });
+
+        function selectGland(id) {
+            selected = id;
+            document.querySelectorAll('.gland-btn').forEach(b=>b.classList.remove('active'));
+            document.getElementById('btn-'+id)?.classList.add('active');
+            const g = glands.find(x=>x.id===id);
+            if(g) document.getElementById('info-box').innerHTML = `<h4>${g.emoji} ${g.name}</h4><b style="color:${g.color}">ჰორმონები: ${g.hormone}</b><br><br>${g.info}`;
+        }
+
+        canvas.addEventListener('click', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) / rect.width;
+            const my = (e.clientY - rect.top) / rect.height;
+            for(const g of glands) {
+                const dx = mx - g.x, dy = my - g.y;
+                if(Math.sqrt(dx*dx+dy*dy) < g.r*2) { selectGland(g.id); return; }
+            }
+        });
+
+        let hormoneParticles = [];
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            const t = Date.now()*0.001;
+
+            // Body outline
+            ctx.fillStyle = '#1a2744';
+            ctx.beginPath(); ctx.ellipse(W*0.5, H*0.05, W*0.055, H*0.04, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillRect(W*0.46, H*0.09, W*0.08, H*0.03);
+            ctx.beginPath(); ctx.moveTo(W*0.35,H*0.12); ctx.lineTo(W*0.65,H*0.12); ctx.lineTo(W*0.6,H*0.55); ctx.lineTo(W*0.4,H*0.55); ctx.closePath(); ctx.fill();
+            ctx.fillRect(W*0.41,H*0.55,W*0.08,H*0.35);
+            ctx.fillRect(W*0.51,H*0.55,W*0.08,H*0.35);
+
+            // Blood vessels (simplified)
+            ctx.strokeStyle = 'rgba(239,68,68,0.15)'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.1); ctx.lineTo(W*0.5,H*0.7); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.2); ctx.lineTo(W*0.35,H*0.4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.2); ctx.lineTo(W*0.65,H*0.4); ctx.stroke();
+
+            // Glands
+            glands.forEach(g => {
+                const gx = g.x*W, gy = g.y*H, gr = g.r*W;
+                const isSel = selected === g.id;
+                const pulse = isSel ? 1 + Math.sin(t*3)*0.15 : 1;
+                
+                if(isSel) { ctx.shadowColor = g.color; ctx.shadowBlur = 25; }
+                ctx.beginPath(); ctx.arc(gx, gy, gr*pulse, 0, Math.PI*2);
+                ctx.fillStyle = g.color + (isSel ? 'dd' : '88');
+                ctx.fill(); ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#fff'; ctx.font = `${isSel?'bold ':''}${Math.max(10, W*0.018)}px 'Noto Sans Georgian'`; ctx.textAlign = 'center';
+                ctx.fillText(g.name, gx, gy + gr + 14);
+
+                // Emit hormone particles
+                if(isSel && Math.random() < 0.15) {
+                    hormoneParticles.push({ x: gx, y: gy, vx: (Math.random()-0.5)*2, vy: 1+Math.random()*2, life: 60, color: g.color });
+                }
+            });
+
+            // Draw particles
+            hormoneParticles = hormoneParticles.filter(p => {
+                p.x += p.vx; p.y += p.vy; p.life--;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                ctx.fillStyle = p.color + Math.floor(p.life/60*255).toString(16).padStart(2,'0');
+                ctx.fill();
+                return p.life > 0;
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

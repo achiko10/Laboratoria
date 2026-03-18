@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — დემოკრატია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #eff6ff; color: #1e3a8a; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #1d4ed8; font-weight: bold;}
+        .subtitle { text-align: center; color: #3b82f6; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 950px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #bfdbfe; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1); }
+
+        .desc-box { background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 6px; font-size: 0.9rem; color: #0c4a6e; margin-bottom: 25px; line-height: 1.6;}
+
+        /* Branches Grid */
+        .branches-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;}
+        @media (max-width: 768px) { .branches-container { grid-template-columns: 1fr; } }
+        
+        .branch-bucket { background: #fff; border: 2px dashed #93c5fd; border-radius: 10px; padding: 15px; min-height: 250px; display: flex; flex-direction: column; align-items: center; transition: 0.2s;}
+        .branch-bucket.drag-over { background: #e0f2fe; border-color: #3b82f6; }
+        
+        .b-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; width: 100%; text-align: center; padding-bottom: 8px; border-bottom: 2px solid;}
+        .b-legis { color: #b45309; border-color: #fcd34d; }
+        .b-exec { color: #15803d; border-color: #86efac; }
+        .b-judic { color: #6d28d9; border-color: #c4b5fd; }
+        
+        .b-icon { font-size: 2rem; margin-bottom: 5px; }
+
+        .items-list { width: 100%; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+        /* Draggable Powers */
+        .powers-area { background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .pa-title { font-weight: bold; color: #475569; margin-bottom: 15px; text-align: center; }
+        
+        .powers-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 100px; }
+
+        .drag-item { padding: 10px 15px; background: #fff; border: 1px solid #94a3b8; border-radius: 8px; cursor: grab; font-weight: bold; color: #334155; font-size: 0.85rem; transition: transform 0.1s, box-shadow 0.1s; user-select: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; max-width: 250px;}
+        .drag-item:active { cursor: grabbing; transform: scale(1.05); box-shadow: 0 5px 12px rgba(0,0,0,0.15); }
+        .drag-item.in-bucket { background: #f1f5f9; border-color: #cbd5e1; box-shadow: none; animation: popIn 0.3s forwards;}
+        
+        @keyframes popIn { 0% {transform: scale(0.9);} 100% {transform: scale(1);}}
+
+        .msg-box { text-align: center; font-weight: bold; font-size: 1.1rem; color: #16a34a; min-height: 25px; margin-top: 15px;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e0f2fe; color: #1d4ed8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bae6fd; text-align: center;}
+        .back-btn:hover { background: #bae6fd; color: #1e3a8a; }
+        
+        .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 10px;}
+        .progress-fill { height: 100%; background: #3b82f6; width: 0%; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <h1>🏛️ დემოკრატია — ხელისუფლების დანაწილება</h1>
+    <p class="subtitle">ჩარლზ ლუი დე მონტესკიეს პრინციპი: "შეურევლობა და ურთიერთკონტროლი"</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="desc-box">
+                <b>მითითება:</b> დემოკრატიულ სახელმწიფოში ძალაუფლება არ არის თავმოყრილი ერთი ადამიანის ან ჯგუფის ხელში. იგი იყოფა სამ დამოუკიდებელ შტოდ. გადაანაწილეთ ქვემოთ მოცემული უფლებამოსილებები სწორ შტოებზე.
+            </div>
+
+            <div class="branches-container">
+                <div class="branch-bucket" id="b-legislative">
+                    <div class="b-icon">📜</div>
+                    <div class="b-header b-legis">საკანონმდებლო<br>(პარლამენტი)</div>
+                    <div class="items-list" id="list-legislative"></div>
+                </div>
+                
+                <div class="branch-bucket" id="b-executive">
+                    <div class="b-icon">🏢</div>
+                    <div class="b-header b-exec">აღმასრულებელი<br>(მთავრობა)</div>
+                    <div class="items-list" id="list-executive"></div>
+                </div>
+                
+                <div class="branch-bucket" id="b-judicial">
+                    <div class="b-icon">⚖️</div>
+                    <div class="b-header b-judic">სასამართლო<br>(სასამართლოები)</div>
+                    <div class="items-list" id="list-judicial"></div>
+                </div>
+            </div>
+
+            <div class="powers-area">
+                <div class="pa-title">ფუნქციები და უფლებამოსილებები (გადაიტანეთ ზემოთ):</div>
+                <div class="powers-grid" id="powers-grid">
+                    <!-- Javascript populates -->
+                </div>
+            </div>
+
+            <div class="progress-bar"><div class="progress-fill" id="p-fill"></div></div>
+            <div class="msg-box" id="msg-box"></div>
+
+            <div style="text-align:center; margin-top: 15px;">
+                <button onclick="resetGame()" style="padding:8px 15px; background:#ef4444; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">↻ თავიდან დაწყება</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const rawPowers = [
+            { id: 'p1', text: 'იღებს კანონებს', target: 'b-legislative' },
+            { id: 'p2', text: 'ამტკიცებს სახელმწიფო ბიუჯეტს', target: 'b-legislative' },
+            { id: 'p3', text: 'აკონტროლებს მთავრობის საქმიანობას', target: 'b-legislative' },
+            
+            { id: 'p4', text: 'აღასრულებს კანონებს', target: 'b-executive' },
+            { id: 'p5', text: 'მართავს ქვეყნის შიდა და გარე პოლიტიკას', target: 'b-executive' },
+            { id: 'p6', text: 'განკარგავს სახელმწიფო ბიუჯეტს', target: 'b-executive' },
+            
+            { id: 'p7', text: 'წყვეტს დავებს პირებსა და სახელმწიფოს შორის', target: 'b-judicial' },
+            { id: 'p8', text: 'ადგენს პირის ბრალეულობას (სისხლის სამართალი)', target: 'b-judicial' },
+            { id: 'p9', text: 'ამოწმებს კანონის შესაბამისობას კონსტიტუციასთან', target: 'b-judicial' }
+        ];
+
+        let draggedEl = null;
+        let placedCount = 0;
+
+        function initApp() {
+            const grid = document.getElementById('powers-grid');
+            grid.innerHTML = '';
+            placedCount = 0;
+            updateProgress();
+            document.getElementById('msg-box').textContent = '';
+            
+            // Clear buckets
+            ['list-legislative', 'list-executive', 'list-judicial'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+
+            // Shuffle powers
+            const shuffled = [...rawPowers].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(p => {
+                let div = document.createElement('div');
+                div.className = 'drag-item';
+                div.draggable = true;
+                div.textContent = p.text;
+                div.id = p.id;
+                div.dataset.target = p.target;
+
+                div.addEventListener('dragstart', function(e) {
+                    draggedEl = this;
+                    setTimeout(() => this.style.display = 'none', 0);
+                });
+
+                div.addEventListener('dragend', function() {
+                    this.style.display = 'block';
+                    draggedEl = null;
+                });
+
+                grid.appendChild(div);
+            });
+
+            setupTargets();
+        }
+
+        function setupTargets() {
+            const buckets = document.querySelectorAll('.branch-bucket');
+            
+            // Clean listeners
+            buckets.forEach(b => b.replaceWith(b.cloneNode(true)));
+
+            document.querySelectorAll('.branch-bucket').forEach(b => {
+                b.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    b.classList.add('drag-over');
+                });
+
+                b.addEventListener('dragleave', e => {
+                    b.classList.remove('drag-over');
+                });
+
+                b.addEventListener('drop', e => {
+                    e.preventDefault();
+                    b.classList.remove('drag-over');
+                    
+                    if (draggedEl) {
+                        const targetBucket = draggedEl.dataset.target;
+                        
+                        if (b.id === targetBucket) {
+                            // Correct
+                            draggedEl.classList.add('in-bucket');
+                            draggedEl.draggable = false;
+                            
+                            // Color match
+                            if(b.id === 'b-legislative') draggedEl.style.borderLeft = '4px solid #fcd34d';
+                            if(b.id === 'b-executive') draggedEl.style.borderLeft = '4px solid #86efac';
+                            if(b.id === 'b-judicial') draggedEl.style.borderLeft = '4px solid #c4b5fd';
+
+                            document.getElementById('list-' + b.id.split('-')[1]).appendChild(draggedEl);
+                            
+                            placedCount++;
+                            updateProgress();
+                            
+                            if(placedCount === rawPowers.length) {
+                                document.getElementById('msg-box').textContent = "🎉 შესანიშნავია! ხელისუფლების დანაწილების პრინციპი დაცულია.";
+                            }
+
+                        } else {
+                            // Incorrect visual feedback
+                            const oldTr = draggedEl.style.transition;
+                            draggedEl.style.transition = 'none';
+                            draggedEl.style.backgroundColor = '#fee2e2'; // red
+                            draggedEl.style.borderColor = '#ef4444';
+                            
+                            setTimeout(() => {
+                                 draggedEl.style.transition = oldTr;
+                                 draggedEl.style.backgroundColor = '#fff';
+                                 draggedEl.style.borderColor = '#94a3b8';
+                            }, 500);
+                        }
+                    }
+                });
+            });
+        }
+
+        function updateProgress() {
+            const pct = (placedCount / rawPowers.length) * 100;
+            document.getElementById('p-fill').style.width = pct + '%';
+        }
+
+        function resetGame() {
+            initApp();
+        }
+
+        // Run
+        initApp();
+
+    </script>
+</body>
+</html>

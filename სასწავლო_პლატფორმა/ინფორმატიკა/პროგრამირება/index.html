@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — პროგრამირება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .card { background: #1e293b; border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .editor-header h3 { font-size: 0.9rem; }
+        .presets { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+        .preset { padding: 6px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.7rem; transition: 0.2s; }
+        .preset:hover { background: #334155; color: #f8fafc; }
+        .preset.active { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; border-color: transparent; }
+        textarea { width: 100%; height: 300px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; font-family: 'Courier New', monospace; font-size: 0.85rem; padding: 12px; resize: vertical; outline: none; tab-size: 2; line-height: 1.5; }
+        textarea:focus { border-color: #f59e0b; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-run { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
+        .btn-clear { background: #ef4444; }
+        .output-area { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; min-height: 200px; font-family: 'Courier New'; font-size: 0.85rem; color: #22c55e; white-space: pre-wrap; line-height: 1.6; overflow-y: auto; max-height: 350px; }
+        .output-area .error { color: #ef4444; }
+        .output-area .info { color: #3b82f6; }
+        .vars-area { background: #0f172a; border-radius: 8px; padding: 10px; margin-top: 10px; max-height: 100px; overflow-y: auto; font-size: 0.75rem; color: #94a3b8; font-family: 'Courier New'; }
+        .explanation { background: #0f172a; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 10px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; margin-top: 10px; }
+        .explanation b { color: #fbbf24; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>⌨️ JavaScript კოდის სიმულატორი</h1>
+    <p class="subtitle">ჩაწერე კოდი, გაუშვი — ისწავლე ცვლადები, ციკლები, პირობები, ფუნქციები</p>
+    <div class="app">
+        <div class="card">
+            <div class="editor-header">
+                <h3 style="color:#f59e0b;">✏️ კოდის რედაქტორი</h3>
+            </div>
+            <div class="presets">
+                <button class="preset active" onclick="loadPreset('hello')">Hello World</button>
+                <button class="preset" onclick="loadPreset('variables')">ცვლადები</button>
+                <button class="preset" onclick="loadPreset('condition')">პირობა</button>
+                <button class="preset" onclick="loadPreset('loop')">ციკლი</button>
+                <button class="preset" onclick="loadPreset('function')">ფუნქცია</button>
+                <button class="preset" onclick="loadPreset('array')">მასივი</button>
+                <button class="preset" onclick="loadPreset('fibonacci')">ფიბონაჩი</button>
+                <button class="preset" onclick="loadPreset('factorial')">ფაქტორიალი</button>
+            </div>
+            <textarea id="editor" spellcheck="false">// 👋 მოგესალმებით!
+// ჩაწერეთ JavaScript კოდი აქ
+
+let name = "სამყარო";
+console.log("გამარჯობა, " + name + "!");
+console.log("2 + 2 = " + (2 + 2));</textarea>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button class="btn btn-run" onclick="runCode()">▶ გაშვება</button>
+                <button class="btn btn-clear" onclick="clearOutput()">🗑️ გასუფთავება</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3 style="color:#22c55e; margin-bottom:10px;">📟 კონსოლი (გამოსავალი)</h3>
+            <div class="output-area" id="output">კოდის გაშვების შედეგი აქ გამოჩნდება...\n</div>
+            <div class="vars-area" id="vars-area">ცვლადები: —</div>
+            <div class="explanation" id="explanation"></div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const presets = {
+            hello: {
+                code: `// 👋 Hello World — პირველი პროგრამა!\nlet message = "გამარჯობა, სამყარო!";\nconsole.log(message);\nconsole.log("1 + 1 = " + (1 + 1));`,
+                explain: '<b>console.log()</b> — კონსოლში ტექსტს ბეჭდავს. <b>let</b> — ცვლადის შექმნა. <b>+</b> — სტრიქონების გაერთიანება (კონკატენაცია).'
+            },
+            variables: {
+                code: `// 📦 ცვლადები და ტიპები\nlet age = 15;          // რიცხვი\nlet name = "ნინო";     // სტრიქონი\nlet isStudent = true;  // ბულეანი\n\nconsole.log("სახელი: " + name);\nconsole.log("ასაკი: " + age);\nconsole.log("მოსწავლე: " + isStudent);\nconsole.log("ტიპი: " + typeof age);`,
+                explain: '<b>let</b> — ცვლადის გამოცხადება. ტიპები: <b>number</b> (რიცხვი), <b>string</b> (ტექსტი), <b>boolean</b> (true/false). <b>typeof</b> — ტიპის შემოწმება.'
+            },
+            condition: {
+                code: `// 🔀 პირობითი ოპერატორი if/else\nlet score = 85;\n\nif (score >= 90) {\n  console.log("შეფასება: A (ბრწყინვალე!)");\n} else if (score >= 80) {\n  console.log("შეფასება: B (კარგი)");\n} else if (score >= 70) {\n  console.log("შეფასება: C (საშუალო)");\n} else {\n  console.log("შეფასება: D (გაიმეორე)");\n}\n\nconsole.log("ქულა: " + score + "/100");`,
+                explain: '<b>if</b> — პირობის შემოწმება. <b>else if</b> — დამატებითი პირობა. <b>else</b> — თუ არცერთი არ სრულდება. <b>>=</b> — მეტია ან ტოლია.'
+            },
+            loop: {
+                code: `// 🔁 ციკლი for\nconsole.log("=== გამრავლების ცხრილი (7) ===");\n\nfor (let i = 1; i <= 10; i++) {\n  console.log("7 × " + i + " = " + (7 * i));\n}\n\nconsole.log("\\n=== while ციკლი ===");\nlet count = 5;\nwhile (count > 0) {\n  console.log("დათვლა: " + count);\n  count--;\n}\nconsole.log("🚀 გაშვება!");`,
+                explain: '<b>for</b> — განსაზღვრული რაოდენობის ციკლი. <b>i++</b> — i-ს ზრდა 1-ით. <b>while</b> — ციკლი პირობით. <b>count--</b> — შემცირება 1-ით.'
+            },
+            function: {
+                code: `// 🔧 ფუნქციები\nfunction greet(name) {\n  return "გამარჯობა, " + name + "!";\n}\n\nfunction add(a, b) {\n  return a + b;\n}\n\nfunction isEven(n) {\n  return n % 2 === 0;\n}\n\nconsole.log(greet("ნინო"));\nconsole.log(greet("გიორგი"));\nconsole.log("3 + 5 = " + add(3, 5));\nconsole.log("10 ლუწია? " + isEven(10));\nconsole.log("7 ლუწია? " + isEven(7));`,
+                explain: '<b>function</b> — ფუნქციის შექმნა. <b>return</b> — მნიშვნელობის დაბრუნება. <b>%</b> — ნაშთი (მოდული). პარამეტრები ფრჩხილებში.'
+            },
+            array: {
+                code: `// 📋 მასივები\nlet fruits = ["ვაშლი", "მსხალი", "ყურძენი", "ბანანი"];\n\nconsole.log("ხილი: " + fruits.join(", "));\nconsole.log("რაოდენობა: " + fruits.length);\nconsole.log("პირველი: " + fruits[0]);\nconsole.log("ბოლო: " + fruits[fruits.length - 1]);\n\nfruits.push("კივი");\nconsole.log("\\nდამატების შემდეგ:");\n\nfor (let i = 0; i < fruits.length; i++) {\n  console.log((i + 1) + ". " + fruits[i]);\n}`,
+                explain: '<b>[]</b> — მასივის შექმნა. <b>.length</b> — ელემენტთა რაოდენობა. <b>[0]</b> — პირველი (ინდექსი 0-დან). <b>.push()</b> — ბოლოში დამატება. <b>.join()</b> — გაერთიანება.'
+            },
+            fibonacci: {
+                code: `// 🌀 ფიბონაჩის მიმდევრობა\nfunction fibonacci(n) {\n  let a = 0, b = 1;\n  let result = [a, b];\n  \n  for (let i = 2; i < n; i++) {\n    let next = a + b;\n    result.push(next);\n    a = b;\n    b = next;\n  }\n  return result;\n}\n\nlet fib = fibonacci(15);\nconsole.log("ფიბონაჩი (15 წევრი):");\nconsole.log(fib.join(", "));\nconsole.log("\\nმე-10 წევრი: " + fib[9]);\nconsole.log("მე-15 წევრი: " + fib[14]);`,
+                explain: '<b>ფიბონაჩი:</b> F(n) = F(n-1) + F(n-2). წინა ორი რიცხვის ჯამი = შემდეგი. 0, 1, 1, 2, 3, 5, 8, 13... ბუნებაში ხშირად გვხვდება!'
+            },
+            factorial: {
+                code: `// ❗ ფაქტორიალი (რეკურსია)\nfunction factorial(n) {\n  if (n <= 1) return 1;  // ბაზისი\n  return n * factorial(n - 1);  // რეკურსია\n}\n\nfor (let i = 0; i <= 10; i++) {\n  console.log(i + "! = " + factorial(i));\n}\n\nconsole.log("\\n20! = " + factorial(20));`,
+                explain: '<b>რეკურსია:</b> ფუნქცია თავის თავს იძახებს. <b>n!</b> = n × (n-1)!. <b>ბაზისი:</b> 0! = 1! = 1. მაგ: 5! = 5×4×3×2×1 = 120.'
+            }
+        };
+
+        function loadPreset(name) {
+            document.getElementById('editor').value = presets[name].code;
+            document.getElementById('explanation').innerHTML = presets[name].explain;
+            document.querySelectorAll('.preset').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function runCode() {
+            const code = document.getElementById('editor').value;
+            const output = document.getElementById('output');
+            const varsArea = document.getElementById('vars-area');
+            output.innerHTML = '';
+            let logs = [];
+
+            // Override console.log
+            const origLog = console.log;
+            console.log = function(...args) {
+                const text = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+                logs.push(text);
+            };
+
+            try {
+                const result = new Function(code)();
+                if (result !== undefined) logs.push('<span class="info">→ ' + String(result) + '</span>');
+                output.innerHTML = logs.join('\n') || '<span class="info">კოდი წარმატებით შესრულდა (გამოსავალი ცარიელია)</span>';
+            } catch (err) {
+                output.innerHTML = logs.join('\n') + '\n<span class="error">❌ შეცდომა: ' + err.message + '</span>';
+            }
+
+            console.log = origLog;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        // Tab key support in editor
+        document.getElementById('editor').addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 2;
+            }
+        });
+
+        document.getElementById('explanation').innerHTML = presets.hello.explain;
+    </script>
+</body>
+</html>

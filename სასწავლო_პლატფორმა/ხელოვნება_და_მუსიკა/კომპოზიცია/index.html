@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — კომპოზიცია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #e2e8f0; color: #1e293b; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #0f172a; text-align: center;}
+        .subtitle { color: #475569; font-size: 0.95rem; margin-bottom: 25px; text-align: center;}
+
+        .toolbar { background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: center; border: 1px solid #cbd5e1;}
+        
+        .tool-btn { padding: 8px 15px; background: #f1f5f9; border: 1px solid #94a3b8; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .tool-btn:hover { background: #e2e8f0; }
+        .tool-btn.active { background: #3b82f6; color: #fff; border-color: #2563eb; }
+
+        .palette { display: flex; gap: 10px; align-items: center; border-left: 2px solid #cbd5e1; padding-left: 20px;}
+        .draggable-item { font-size: 2.5rem; cursor: grab; user-select: none; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
+        .draggable-item:active { cursor: grabbing; transform: scale(1.1); }
+
+        /* Canvas */
+        .canvas-container { position: relative; width: 100%; max-width: 800px; height: 500px; background: #fff; border: 4px solid #1e293b; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);}
+        
+        .landscape-bg { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;}
+        .sky { width:100%; height:60%; background: linear-gradient(to bottom, #7dd3fc, #e0f2fe); }
+        .ground { width:100%; height:40%; background: linear-gradient(to bottom, #84cc16, #4ade80); border-top: 2px solid #65a30d;}
+
+        /* Grid */
+        .grid-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; display: none; }
+        
+        .rule-of-thirds .line-h { position: absolute; width: 100%; height: 2px; background: rgba(0,0,0,0.3); border-top: 1px dashed rgba(255,255,255,0.8); }
+        .rule-of-thirds .line-h.t1 { top: 33.33%; }
+        .rule-of-thirds .line-h.t2 { top: 66.66%; }
+        
+        .rule-of-thirds .line-v { position: absolute; height: 100%; width: 2px; background: rgba(0,0,0,0.3); border-left: 1px dashed rgba(255,255,255,0.8); }
+        .rule-of-thirds .line-v.t1 { left: 33.33%; }
+        .rule-of-thirds .line-v.t2 { left: 66.66%; }
+
+        /* Power intersections */
+        .point { position: absolute; width:16px; height:16px; border-radius:50%; background: #ef4444; transform: translate(-50%, -50%); border: 3px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); display: none;}
+        .p1 { top: 33.33%; left: 33.33%; }
+        .p2 { top: 33.33%; left: 66.66%; }
+        .p3 { top: 66.66%; left: 33.33%; }
+        .p4 { top: 66.66%; left: 66.66%; }
+
+        /* Placed Elements */
+        .placed { position: absolute; font-size: 4rem; cursor: grab; user-select: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transform: translate(-50%, -50%);}
+        .placed:active { cursor: grabbing; }
+
+        .info-panel { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; max-width: 800px; text-align: center; margin-top: 20px; line-height: 1.5;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #fff; color: #475569; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #cbd5e1; transition: 0.2s;}
+        .back-btn:hover { background: #cbd5e1; color: #0f172a;}
+    </style>
+</head>
+<body>
+    <h1>🖼️ კომპოზიცია</h1>
+    <p class="subtitle">გადაათრიე ობიექტები ტილოზე და ისწავლე "მესამედების წესი" (Rule of Thirds)</p>
+    
+    <div class="toolbar">
+        <button class="tool-btn" id="btn-grid" onclick="toggleGrid()">▦ მესამედების ბადე: გამორთული</button>
+        <button class="tool-btn" onclick="clearCanvas()">🗑️ ტილოს გასუფთავება</button>
+        
+        <div class="palette">
+            <div style="font-size:0.8rem; font-weight:bold; color:#64748b; margin-right:5px;">ობიექტები:</div>
+            <!-- Click to add logic -->
+            <div class="draggable-item" onclick="spawnElement('🌲')">🌲</div>
+            <div class="draggable-item" onclick="spawnElement('🏡')">🏡</div>
+            <div class="draggable-item" onclick="spawnElement('🐕')">🐕</div>
+            <div class="draggable-item" onclick="spawnElement('🚶')">🚶</div>
+            <div class="draggable-item" onclick="spawnElement('☀️')">☀️</div>
+        </div>
+    </div>
+
+    <div class="canvas-container" id="canvas">
+        <div class="landscape-bg">
+            <div class="sky"></div>
+            <div class="ground"></div>
+        </div>
+        
+        <div class="grid-layer rule-of-thirds" id="grid">
+            <div class="line-h t1"></div>
+            <div class="line-h t2"></div>
+            <div class="line-v t1"></div>
+            <div class="line-v t2"></div>
+            <div class="point p1"></div>
+            <div class="point p2"></div>
+            <div class="point p3"></div>
+            <div class="point p4"></div>
+        </div>
+        
+        <!-- Spawned elements go here -->
+    </div>
+
+    <div class="info-panel" id="info">
+        <b>მესამედების წესი (Rule of Thirds)</b> არის კომპოზიციის ძირითადი პრინციპი ფოტოგრაფიასა და ფერწერაში.<br>
+        თუ ტილოს დავყოფთ 9 ტოლ ნაწილად (2 ჰორიზონტალური და 2 ვერტიკალური ხაზით), ყველაზე მნიშვნელოვანი ობიექტები უნდა განვათავსოთ ამ <b>ხაზების გადაკვეთის წერტილებში</b>. დასაწყებად: ჩართე ბადე და დაამატე ობიექტი ტილოზე (დააჭირე იკონკას, შემდეგ გადაათრიე ტილოზე).
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const grid = document.getElementById('grid');
+        const btnGrid = document.getElementById('btn-grid');
+        const points = document.querySelectorAll('.point');
+        let gridActive = false;
+
+        let activeEl = null;
+
+        function toggleGrid() {
+            gridActive = !gridActive;
+            if(gridActive) {
+                grid.style.display = 'block';
+                points.forEach(p => p.style.display = 'block');
+                btnGrid.classList.add('active');
+                btnGrid.textContent = "▦ მესამედების ბადე: ჩართული";
+                document.getElementById('info').innerHTML = "შესანიშნავია! ახლა სცადე საგანი განათავსო ერთ-ერთ <b>წითელ წერტილზე</b>. ეს წერტილები ადამიანის თვალს ბუნებრივად იზიდავს და კომპოზიციას უფრო დინამიურს ხდის.";
+            } else {
+                grid.style.display = 'none';
+                points.forEach(p => p.style.display = 'none');
+                btnGrid.classList.remove('active');
+                btnGrid.textContent = "▦ მესამედების ბადე: გამორთული";
+            }
+        }
+
+        function spawnElement(emoji) {
+            const el = document.createElement('div');
+            el.className = 'placed';
+            el.textContent = emoji;
+            // Spawn in center
+            el.style.left = '50%';
+            el.style.top = '50%';
+            
+            makeDraggable(el);
+            canvas.appendChild(el);
+        }
+
+        function clearCanvas() {
+            const els = document.querySelectorAll('.placed');
+            els.forEach(e => e.remove());
+        }
+
+        // Drag and Drop Logic
+        function makeDraggable(el) {
+            let startX, startY;
+
+            el.addEventListener('mousedown', dragStart);
+            el.addEventListener('touchstart', dragStart, {passive: false});
+
+            function dragStart(e) {
+                e.preventDefault();
+                const touch = e.type === 'touchstart' ? e.touches[0] : e;
+                const rect = el.getBoundingClientRect();
+                
+                // Keep element rendered below cursor safely
+                activeEl = el;
+
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchmove', dragMove, {passive: false});
+                document.addEventListener('touchend', dragEnd);
+            }
+
+            function dragMove(e) {
+                if(!activeEl) return;
+                e.preventDefault();
+                const touch = e.type === 'touchmove' ? e.touches[0] : e;
+                
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                let cx = touch.clientX - canvasRect.left;
+                let cy = touch.clientY - canvasRect.top;
+
+                // constrain
+                cx = Math.max(0, Math.min(cx, canvasRect.width));
+                cy = Math.max(0, Math.min(cy, canvasRect.height));
+
+                activeEl.style.left = (cx / canvasRect.width * 100) + '%';
+                activeEl.style.top = (cy / canvasRect.height * 100) + '%';
+                
+                checkIntersections(cx, cy, canvasRect.width, canvasRect.height);
+            }
+
+            function dragEnd() {
+                activeEl = null;
+                document.removeEventListener('mousemove', dragMove);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchmove', dragMove);
+                document.removeEventListener('touchend', dragEnd);
+            }
+        }
+
+        function checkIntersections(x, y, w, h) {
+            if(!gridActive) return;
+            
+            const pX = x / w;
+            const pY = y / h;
+
+            // Target points: 0.33, 0.66
+            const targetsX = [0.333, 0.666];
+            const targetsY = [0.333, 0.666];
+            
+            const threshold = 0.05; // 5% tolerance
+
+            let isAligned = false;
+
+            for(let tx of targetsX) {
+                for(let ty of targetsY) {
+                    if (Math.abs(pX - tx) < threshold && Math.abs(pY - ty) < threshold) {
+                        isAligned = true;
+                    }
+                }
+            }
+
+            if(isAligned) {
+                document.getElementById('info').innerHTML = "🌟 <b>შესანიშნავია!</b> ობიექტი მესამედების წესის კვეთაში ზის. ეს იდეალური პოზიციაა ფურცელზე სივრცის და ბალანსის შესანარჩუნებლად.";
+                document.getElementById('info').style.background = '#dcfce7';
+                document.getElementById('info').style.borderColor = '#4ade80';
+            } else {
+                document.getElementById('info').innerHTML = "სცადე საგანი განათავსო ერთ-ერთ <b>წითელ წერტილზე</b> (სიძლიერის წერტილებზე). ცენტრში მოთავსებული ობიექტი ხშირად მოსაწყენ კომპოზიციას ქმნის.";
+                document.getElementById('info').style.background = '#eff6ff';
+                document.getElementById('info').style.borderColor = '#bfdbfe';
+            }
+        }
+
+    </script>
+</body>
+</html>

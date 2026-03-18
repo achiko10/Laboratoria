@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — მუსიკალური ინსტრუმენტები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #27272a; color: #f4f4f5; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #facc15; text-align: center;}
+        .subtitle { color: #a1a1aa; font-size: 0.95rem; margin-bottom: 30px; text-align: center;}
+
+        .app-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 900px;}
+        @media (max-width: 800px) { .app-grid { grid-template-columns: 1fr; } }
+        
+        .panel { background: #3f3f46; padding: 20px; border-radius: 12px; border: 1px solid #52525b; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+        .panel h2 { font-size: 1.2rem; color: #e4e4e7; border-bottom: 2px solid #52525b; padding-bottom: 10px; margin-bottom: 20px;}
+
+        /* Orchestra Map */
+        .stage { position: relative; width: 100%; height: 350px; background: #52525b; border-radius: 200px 200px 0 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 20px; border: 4px solid #71717a;}
+        
+        .conductor { width: 30px; height: 30px; background: #ef4444; border-radius: 50%; border: 3px solid #fff; z-index: 10; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));}
+
+        /* Sections */
+        .section { position: absolute; border: 2px dashed rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: 0.2s; user-select: none; text-align: center; line-height: 1.2;}
+        .section:hover { background: rgba(255,255,255,0.1); border-color: #fff; transform: scale(1.05);}
+        .section.active { border-style: solid; box-shadow: 0 0 15px currentColor;}
+
+        /* Positioning based on standard orchestra */
+        .sec-strings { width: 260px; height: 120px; bottom: 40px; border-radius: 130px 130px 40px 40px; color: #60a5fa;} /* Front semicircle */
+        .sec-wood { width: 160px; height: 70px; bottom: 170px; color: #4ade80;} /* Mid center */
+        .sec-brass { width: 180px; height: 70px; bottom: 250px; color: #facc15;} /* Back center/right */
+        .sec-perc { width: 120px; height: 60px; bottom: 260px; left: 30px; color: #f87171;} /* Back left */
+
+        /* Info Card */
+        .info-img { font-size: 4rem; text-align: center; margin-bottom: 15px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));}
+        .info-title { font-size: 1.5rem; font-weight: bold; color: #fff; text-align: center; margin-bottom: 10px;}
+        .info-desc { font-size: 0.95rem; color: #d4d4d8; line-height: 1.6; margin-bottom: 20px;}
+        
+        .instruments-list { display: flex; flex-wrap: wrap; gap: 8px;}
+        .inst-tag { background: #27272a; padding: 5px 10px; border-radius: 15px; font-size: 0.85rem; color: #a1a1aa; border: 1px solid #52525b;}
+
+        .btn-play { width: 100%; padding: 12px; background: transparent; border: 2px solid currentColor; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 20px;}
+        .btn-play:hover { background: rgba(255,255,255,0.1); }
+
+        .back-btn { display: inline-block; margin-top: 30px; padding: 10px 20px; background: #3f3f46; color: #d4d4d8; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #52525b; transition: 0.2s;}
+        .back-btn:hover { background: #52525b; color: #fff;}
+    </style>
+</head>
+<body>
+    <h1>🎻 მუსიკალური ინსტრუმენტები</h1>
+    <p class="subtitle">შეისწავლე სიმფონიური ორკესტრის განლაგება და ინსტრუმენტების ოჯახები</p>
+    
+    <div class="app-grid">
+        
+        <div class="panel">
+            <h2>სიმფონიური ორკესტრის სცენა</h2>
+            <div class="stage" id="stage">
+                
+                <div class="section sec-perc" onclick="showInfo('perc')" id="sec-perc">დასარტყამები</div>
+                <div class="section sec-brass" onclick="showInfo('brass')" id="sec-brass">ლითონის<br>სასულეები</div>
+                <div class="section sec-wood" onclick="showInfo('wood')" id="sec-wood">ხის<br>სასულეები</div>
+                <div class="section sec-strings" onclick="showInfo('strings')" id="sec-strings">სიმებიანი<br>ინსტრუმენტები</div>
+                
+                <div class="conductor" title="დირიჟორი (Conductor)"></div>
+                <div style="color:#a1a1aa; font-size:0.8rem; margin-top:5px; font-weight:bold;">დირიჟორი</div>
+            </div>
+            <div style="font-size:0.85rem; color:#a1a1aa; margin-top:15px; text-align:center;">დააკლიკე ზემოთ მოცემულ ჯგუფებს დეტალების სანახავად.</div>
+        </div>
+
+        <div class="panel" id="info-panel" style="display:none;">
+            <div class="info-img" id="i-img">🎻</div>
+            <div class="info-title" id="i-title" style="color:#60a5fa;">სიმებიანი</div>
+            <div class="info-desc" id="i-desc">
+                ხმა წარმოიქმნება სიმის რხევით (ხემით ან თითით). ორკესტრში ისინი ყველაზე მრავალრიცხოვან ჯგუფს წარმოადგენენ და დასხდებიან სცენის წინ.
+            </div>
+            <div class="instruments-list" id="i-list">
+                <div class="inst-tag">ვიოლინო</div>
+                <div class="inst-tag">ალტი</div>
+                <div class="inst-tag">ჩელო</div>
+                <div class="inst-tag">კონტრაბასი</div>
+            </div>
+            
+            <button class="btn-play" id="btn-play" onclick="playSound()" style="color:#60a5fa;">🔊 ჟღერადობის ტესტი</button>
+        </div>
+
+        <div class="panel" id="welcome-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #a1a1aa;">
+            <div style="font-size: 3rem; margin-bottom: 15px;">🎼</div>
+            <p>აირჩიე ნებისმიერი ოჯახი სცენაზე, რათა გაიგო მეტი მათი როლისა და ჟღერადობის შესახებ.</p>
+        </div>
+
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const families = {
+            strings: {
+                id: 'strings',
+                icon: '🎻',
+                title: 'სიმებიანი ინსტრუმენტები',
+                color: '#60a5fa',
+                desc: 'ხმა წარმოიქმნება სიმის რხევით (ხემით გაკვრით ან თითით პინცეტით). ორკესტრში ისინი ყველაზე მრავალრიცხოვან ჯგუფს წარმოადგენენ და დასხდებიან სცენის წინ, დირიჟორთან ყველაზე ახლოს.',
+                inst: ['ვიოლინო', 'ალტი', 'ჩელო', 'კონტრაბასი', 'არფა'],
+                tone: 'pluck'
+            },
+            wood: {
+                id: 'wood',
+                icon: '🎵',
+                title: 'ხის სასულეები',
+                color: '#4ade80',
+                desc: 'ისტორიულად მზადდებოდა ხისგან. ხმა წარმოიქმნება ჰაერის ჭავლის გატარებით მუნდშტუკში ან სპეციალურ ლერწმში. აქვთ თბილი, მელოდიური ჟღერადობა.',
+                inst: ['ფლეიტა', 'ჰობოი', 'კლარნეტი', 'ფაგოტი'],
+                tone: 'sine' // Flute-like
+            },
+            brass: {
+                id: 'brass',
+                icon: '🎺',
+                title: 'ლითონის სასულეები',
+                color: '#facc15',
+                desc: 'დამზადებულია თითბერისგან ან სხვა ლითონისგან. ხმა წარმოიქმნება მუსიკოსის ტუჩების ვიბრაციით მუნდშტუკში. მათ აქვთ ძალიან ძლიერი დინამიკური სპექტრი და ბრწყინვალე ჟღერადობა.',
+                inst: ['ვალტორნა', 'საყვირი', 'ტრომბონი', 'ტუბა'],
+                tone: 'sawtooth' // Bright, brass-like
+            },
+            perc: {
+                id: 'perc',
+                icon: '🥁',
+                title: 'დასარტყამი ინსტრუმენტები',
+                color: '#f87171',
+                desc: 'ხმა წარმოიქმნება ინსტრუმენტზე დარტყმით, შერხევით ან გახახუნებით. ორკესტრში ისინი უზრუნველყოფენ რიტმს, დინამიკურ აქცენტებს და სპეციალურ ეფექტებს.',
+                inst: ['ლიტავრები', 'მცირე დაფდაფი', 'თეფშები', 'ქსილოფონი'],
+                tone: 'noise'
+            }
+        };
+
+        let currentFamily = null;
+
+        function showInfo(id) {
+            // Remove active class
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Add active class
+            document.getElementById(`sec-${id}`).classList.add('active');
+
+            const data = families[id];
+            currentFamily = data;
+
+            document.getElementById('welcome-panel').style.display = 'none';
+            const v = document.getElementById('info-panel');
+            v.style.display = 'block';
+
+            document.getElementById('i-img').textContent = data.icon;
+            document.getElementById('i-title').textContent = data.title;
+            document.getElementById('i-title').style.color = data.color;
+            document.getElementById('i-desc').textContent = data.desc;
+            
+            // Render tags
+            const list = document.getElementById('i-list');
+            list.innerHTML = '';
+            data.inst.forEach(i => {
+                const tag = document.createElement('div');
+                tag.className = 'inst-tag';
+                tag.textContent = i;
+                list.appendChild(tag);
+            });
+
+            const btn = document.getElementById('btn-play');
+            btn.style.color = data.color;
+        }
+
+        // Extremely simple procedural audio to represent instrument families
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound() {
+            if(!currentFamily) return;
+            if (!audioCtx) audioCtx = new AudioContext();
+            
+            const type = currentFamily.tone;
+
+            if (type === 'noise') {
+                // Percussion - simple white noise burst
+                const bufferSize = audioCtx.sampleRate * 0.5; // 0.5 seconds
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                
+                // Envelope
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                
+                // Filter to make it sound like a drum (thud)
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 200;
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+
+            } else if (type === 'pluck') {
+                // Strings (Pizzicato)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = 440; // A4
+                
+                gain.gain.setValueAtTime(1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+
+            } else {
+                // Woodwinds (sine) / Brass (sawtooth)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                // Add a little filter for brass to make it smoother
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                
+                if(type === 'sawtooth') {
+                    // Brass
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = 220; // A3 (lower)
+                    filter.frequency.value = 800;
+                    
+                    // Brass swell
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.8, audioCtx.currentTime + 0.2);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.0);
+                } else {
+                    // Woodwinds (Flute)
+                    osc.type = 'sine';
+                    osc.frequency.value = 880; // A5 (high)
+                    filter.frequency.value = 2000;
+
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.0);
+                }
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.0);
+            }
+        }
+    </script>
+</body>
+</html>

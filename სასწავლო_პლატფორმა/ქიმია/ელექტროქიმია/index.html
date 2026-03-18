@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — ელექტროქიმია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #eab308, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 450px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5); padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.05); font-family: monospace; }
+        
+        .voltmeter { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: #334155; border: 3px solid #64748b; padding: 15px 25px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 2rem; color: #eab308; font-weight: bold; background-image: radial-gradient(#1e293b, #0f172a); box-shadow: inset 0 0 15px #000; z-index: 10; }
+        .voltmeter::before { content: 'VOLTS (V)'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); color: #94a3b8; font-size: 0.7rem; font-family: 'Noto Sans Georgian', sans-serif; }
+
+        .tank { position: absolute; bottom: 40px; width: 140px; height: 180px; border: 4px solid rgba(255,255,255,0.2); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+        .tank.left { left: 120px; }
+        .tank.right { right: 120px; }
+        
+        .liquid { position: absolute; bottom: 0; width: 100%; height: 75%; }
+        .liquid.zn { background: rgba(148, 163, 184, 0.3); }
+        .liquid.cu { background: rgba(59, 130, 246, 0.4); }
+
+        .electrode { position: absolute; bottom: 50px; width: 30px; height: 160px; z-index: 5; transition: 0.3s; }
+        .el-zn { left: 175px; background: linear-gradient(90deg, #64748b, #94a3b8); }
+        .el-cu { right: 175px; background: linear-gradient(90deg, #b45309, #d97706); }
+        
+        .el-label { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-weight: bold; font-family: Arial; font-size: 1.1rem; }
+
+        .wire { position: absolute; border: 3px solid #334155; border-bottom: none; border-radius: 10px 10px 0 0; z-index: 1; }
+        
+        .salt-bridge { position: absolute; bottom: 150px; left: 240px; width: 420px; height: 80px; border: 15px solid rgba(255,255,255,0.15); border-bottom: none; border-radius: 20px 20px 0 0; z-index: 2; }
+        
+        @keyframes flowElec { 0% { left: 190px; top: 120px; } 25% { left: 190px; top: 65px; } 75% { left: 710px; top: 65px; } 100% { left: 710px; top: 120px; } }
+        .e-particle { position: absolute; width: 8px; height: 8px; background: #eab308; border-radius: 50%; box-shadow: 0 0 10px #eab308; animation: flowElec 2s linear infinite; display: none; }
+        
+        .controls { display: flex; gap: 15px; padding: 20px; background: #111827; border-radius: 12px; margin-top: 15px; justify-content: center; border: 1px solid rgba(255,255,255,0.05); }
+        button { background: linear-gradient(135deg, #eab308, #f59e0b); color: #000; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; font-size: 0.95rem; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(234, 179, 8, 0.3); }
+        button.reset { background: #334155; color: white; }
+
+        .info-panel { background: #1e293b; border-radius: 12px; padding: 16px 20px; margin-top: 15px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #eab308; }
+        .info-panel strong { color: #e2e8f0; }
+        
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🔋 ელექტროქიმია</h1>
+    <p class="subtitle">გალვანური ელემენტი (თუთია - სპილენძი) · მიიღე ელექტროენერგია ქიმიური რეაქციით</p>
+
+    <div class="container">
+        <div class="sim-area" id="sim-area">
+            <div class="hud" id="reaction-text">რეაქცია გაჩერებულია</div>
+            
+            <div class="voltmeter" id="voltmeter">0.00</div>
+            
+            <div class="wire" style="left: 190px; right: 190px; top: 65px; height: 145px;"></div>
+            <div class="salt-bridge">
+                <div style="position:absolute; bottom:-25px; left:10px; color:#cbd5e1; font-size:0.75rem;">SO₄²⁻ ↙</div>
+                <div style="position:absolute; bottom:-25px; right:10px; color:#cbd5e1; font-size:0.75rem;">↘ K⁺</div>
+            </div>
+
+            <div class="tank left"><div class="liquid zn"></div></div>
+            <div class="electrode el-zn" id="anode"><div class="el-label" style="color:#94a3b8;">Zn (ანოდი)</div></div>
+            
+            <div class="tank right"><div class="liquid cu" id="blue-liq"></div></div>
+            <div class="electrode el-cu" id="cathode"><div class="el-label" style="color:#d97706;">Cu (კათოდი)</div></div>
+
+            <div id="elec-group">
+                <div class="e-particle" style="animation-delay: 0s;"></div>
+                <div class="e-particle" style="animation-delay: 0.5s;"></div>
+                <div class="e-particle" style="animation-delay: 1s;"></div>
+                <div class="e-particle" style="animation-delay: 1.5s;"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="startCell()">ჩართვა (ჩამრთველი ონკანის ჩაკეტვა)</button>
+            <button class="reset" onclick="resetCell()">აწყობა თავიდან</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 გალვანური ელემენტი (Voltaic Cell):</strong> ელექტროდებს შორის ძაბვა იქმნება ჟანგვა-აღდგენითი (Redox) რეაქციით.<br>
+            • <strong>ანოდი (Zn):</strong> იჟანგება (კარგავს ელექტრონებს), იშლება ხსნარში. <code>Zn → Zn²⁺ + 2e⁻</code><br>
+            • <strong>კათოდი (Cu):</strong> აღდგება (იღებს ელექტრონებს), ხსნარიდან Cu²⁺ ილექება ელექტროდზე. <code>Cu²⁺ + 2e⁻ → Cu</code><br>
+            • <strong>ელექტრონები</strong> მიედინება მავთულში ანოდიდან კათოდისკენ, რაც წარმოქმნის ძაბვას (1.1 V).
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const voltmeter = document.getElementById('voltmeter');
+        const anode = document.getElementById('anode');
+        const cathode = document.getElementById('cathode');
+        const blueLiq = document.getElementById('blue-liq');
+        const reactionText = document.getElementById('reaction-text');
+        const electrons = document.querySelectorAll('.e-particle');
+        
+        let interval;
+        let vValue = 0;
+        let running = false;
+        
+        let znWidth = 30;
+        let cuWidth = 30;
+        let cuAlpha = 0.4;
+
+        function startCell() {
+            if(running) return;
+            running = true;
+            electrons.forEach(e => e.style.display = 'block');
+            reactionText.innerHTML = 'Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s)';
+
+            let jump = setInterval(() => {
+                vValue += 0.1;
+                if(vValue >= 1.10) {
+                    vValue = 1.10;
+                    clearInterval(jump);
+                }
+                voltmeter.textContent = vValue.toFixed(2);
+            }, 50);
+
+            interval = setInterval(() => {
+                if(znWidth > 10) {
+                    znWidth -= 0.1;
+                    anode.style.width = znWidth + 'px';
+                    anode.style.left = (175 + (30-znWidth)/2) + 'px'; 
+                }
+                
+                if(cuWidth < 50) {
+                    cuWidth += 0.1;
+                    cathode.style.width = cuWidth + 'px';
+                    cathode.style.right = (175 + (30-cuWidth)/2) + 'px';
+                }
+
+                if(cuAlpha > 0.1) {
+                    cuAlpha -= 0.0015;
+                    blueLiq.style.background = `rgba(59, 130, 246, ${cuAlpha})`;
+                } else {
+                    clearInterval(interval);
+                    voltmeter.textContent = "0.00";
+                    electrons.forEach(e => e.style.display = 'none');
+                    reactionText.innerHTML = 'ელემენტი დაიცალა (წონასწორობა)';
+                    running = false;
+                }
+            }, 100);
+        }
+
+        function resetCell() {
+            clearInterval(interval);
+            running = false;
+            vValue = 0;
+            voltmeter.textContent = "0.00";
+            
+            znWidth = 30;
+            cuWidth = 30;
+            cuAlpha = 0.4;
+            
+            anode.style.width = '30px'; anode.style.left = '175px';
+            cathode.style.width = '30px'; cathode.style.right = '175px';
+            blueLiq.style.background = `rgba(59, 130, 246, 0.4)`;
+            
+            electrons.forEach(e => e.style.display = 'none');
+            reactionText.innerHTML = 'რეაქცია გაჩერებულია';
+        }
+    </script>
+</body>
+</html>

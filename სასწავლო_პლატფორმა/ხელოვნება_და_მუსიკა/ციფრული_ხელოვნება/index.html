@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — ციფრული ხელოვნება (Pixel Art)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&family=Press+Start+2P&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #18181b; color: #f4f4f5; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-family: 'Press Start 2P', cursive; font-size: 1.2rem; margin-bottom: 10px; color: #a855f7; text-align: center; line-height: 1.5; text-shadow: 2px 2px 0 #4c1d95;}
+        .subtitle { color: #a1a1aa; font-size: 0.95rem; margin-bottom: 25px; text-align: center;}
+
+        .app-container { display: flex; gap: 30px; background: #27272a; padding: 25px; border-radius: 12px; border: 2px solid #52525b; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-wrap: wrap; justify-content: center;}
+        
+        /* Canvas */
+        .grid-wrapper { display: flex; flex-direction: column; align-items: center;}
+        .canvas-grid { display: grid; grid-template-columns: repeat(16, 1fr); background: #52525b; gap: 1px; border: 4px solid #3f3f46; border-radius: 4px;}
+        .pixel { width: 25px; height: 25px; background: #fff; cursor: crosshair;}
+        .pixel:hover { opacity: 0.8; }
+        
+        @media (max-width: 600px) { .pixel { width: 18px; height: 18px;} }
+
+        /* Tools */
+        .tools-panel { display: flex; flex-direction: column; gap: 20px;}
+        
+        .tool-group { background: #3f3f46; padding: 15px; border-radius: 8px; border: 1px solid #52525b;}
+        .tg-title { font-size: 0.85rem; font-weight: bold; color: #d4d4d8; margin-bottom: 10px; text-transform: uppercase;}
+
+        /* Palette */
+        .palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
+        .color-swatch { width: 35px; height: 35px; border-radius: 5px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;}
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.8); transform: scale(1.1);}
+
+        .color-picker-wrap { margin-top: 15px; display: flex; align-items: center; gap: 10px;}
+        input[type="color"] { width: 40px; height: 40px; border: none; border-radius: 4px; background: none; cursor: pointer;}
+        
+        /* Actions */
+        .btn { padding: 10px 15px; background: #52525b; color: #f4f4f5; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Noto Sans Georgian', sans-serif; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;}
+        .btn:hover { background: #71717a; }
+        .btn-clear { background: #991b1b; } .btn-clear:hover { background: #b91c1c; }
+        .btn-save { background: #16a34a; } .btn-save:hover { background: #15803d; }
+        .btn-eraser { background: #475569; border: 2px solid transparent;} 
+        .btn-eraser.active { border-color: #fff; background: #64748b;}
+
+        .info { background: #1e1b4b; padding: 15px; border-left: 4px solid #8b5cf6; border-radius: 4px;font-size: 0.85rem; line-height: 1.5; color: #c4b5fd; margin-top: 20px; max-width: 600px;}
+
+        .back-btn { display: inline-block; margin-top: 30px; padding: 10px 20px; background: #27272a; color: #d4d4d8; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #52525b; transition: 0.2s;}
+        .back-btn:hover { background: #3f3f46; color: #fff;}
+    </style>
+</head>
+<body>
+    <h1>ციფრული ხელოვნება</h1>
+    <p class="subtitle">Pixel Art - შექმენი გამოსახულება 16x16 პიქსელების ბადეზე</p>
+    
+    <div class="app-container">
+        
+        <div class="grid-wrapper">
+            <div class="canvas-grid" id="grid">
+                <!-- Pixels injected by JS -->
+            </div>
+        </div>
+
+        <div class="tools-panel">
+            
+            <div class="tool-group">
+                <div class="tg-title">ფერების პალიტრა</div>
+                <div class="palette" id="palette">
+                    <!-- Base colors -->
+                    <div class="color-swatch active" style="background:#000000;" onclick="setColor(this, '#000000')"></div>
+                    <div class="color-swatch" style="background:#ffffff;" onclick="setColor(this, '#ffffff')"></div>
+                    <div class="color-swatch" style="background:#ef4444;" onclick="setColor(this, '#ef4444')"></div>
+                    <div class="color-swatch" style="background:#f97316;" onclick="setColor(this, '#f97316')"></div>
+                    
+                    <div class="color-swatch" style="background:#eab308;" onclick="setColor(this, '#eab308')"></div>
+                    <div class="color-swatch" style="background:#22c55e;" onclick="setColor(this, '#22c55e')"></div>
+                    <div class="color-swatch" style="background:#3b82f6;" onclick="setColor(this, '#3b82f6')"></div>
+                    <div class="color-swatch" style="background:#a855f7;" onclick="setColor(this, '#a855f7')"></div>
+                </div>
+                
+                <div class="color-picker-wrap">
+                    <input type="color" id="custom-color" value="#ec4899" onchange="setCustomColor(this.value)">
+                    <span style="font-size:0.8rem; color:#a1a1aa;">საკუთარი ფერი</span>
+                </div>
+            </div>
+
+            <div class="tool-group" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="tg-title">ხელსაწყოები</div>
+                <button class="btn btn-eraser" id="btn-eraser" onclick="toggleEraser()">🧼 საშლელი</button>
+                <button class="btn btn-clear" onclick="clearCanvas()">🗑️ გასუფთავება</button>
+                <button class="btn btn-save" onclick="saveArt()">💾 შენახვა (PNG)</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="info">
+        <b>რა არის ციფრული გამოსახულება?</b><br>
+        ეკრანებზე გამოსახულება შედგება პატარა კვადრატებისგან — <b>პიქსელებისგან (Pixels)</b>. თითოეულ პიქსელს აქვს თავისი კონკრეტული ფერი (RGB კოდი). რაც უფრო მეტი პიქსელია (მაღალი რეზოლუცია), მით უფრო მკვეთრია სურათი. ძველ ვიდეოთამაშებში პიქსელების რაოდენობა შეზღუდული იყო, რამაც დასაბამი მისცა "Pixel Art" სტილს.
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <!-- Hidden canvas for rendering image to save -->
+    <canvas id="export-canvas" width="320" height="320" style="display:none;"></canvas>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const exportCanvas = document.getElementById('export-canvas');
+        const ctx = exportCanvas.getContext('2d');
+        
+        const GRID_SIZE = 16;
+        let currentColor = '#000000';
+        let isDrawing = false;
+        let isEraser = false;
+
+        // Initialize Grid
+        for(let i=0; i<GRID_SIZE * GRID_SIZE; i++) {
+            const px = document.createElement('div');
+            px.className = 'pixel';
+            px.dataset.index = i;
+            
+            // Mouse drawing logic
+            px.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                paintPixel(px);
+            });
+            px.addEventListener('mouseenter', () => {
+                if(isDrawing) paintPixel(px);
+            });
+            
+            // Touch drawing logic (simplified)
+            px.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                paintPixel(px);
+            });
+            
+            grid.appendChild(px);
+        }
+
+        document.addEventListener('mouseup', () => { isDrawing = false; });
+
+        function paintPixel(px) {
+            px.style.backgroundColor = isEraser ? '#ffffff' : currentColor;
+        }
+
+        function setColor(el, hex) {
+            isEraser = false;
+            document.getElementById('btn-eraser').classList.remove('active');
+            
+            // Disable custom color border if active
+            document.getElementById('custom-color').style.border = 'none';
+
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            if(el) el.classList.add('active');
+            currentColor = hex;
+        }
+
+        function setCustomColor(hex) {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            isEraser = false;
+            document.getElementById('btn-eraser').classList.remove('active');
+            currentColor = hex;
+        }
+
+        function toggleEraser() {
+            isEraser = !isEraser;
+            const btn = document.getElementById('btn-eraser');
+            if(isEraser) {
+                btn.classList.add('active');
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            } else {
+                btn.classList.remove('active');
+                setColor(null, currentColor); // revert to last color
+            }
+        }
+
+        function clearCanvas() {
+            if(confirm("ნამდვილად გსურთ ტილოს გასუფთავება?")) {
+                document.querySelectorAll('.pixel').forEach(px => {
+                    px.style.backgroundColor = '#ffffff';
+                });
+            }
+        }
+
+        function saveArt() {
+            const pixels = document.querySelectorAll('.pixel');
+            const pxSize = exportCanvas.width / GRID_SIZE; // 320 / 16 = 20px per block
+            
+            pixels.forEach((px, index) => {
+                const x = (index % GRID_SIZE) * pxSize;
+                const y = Math.floor(index / GRID_SIZE) * pxSize;
+                
+                const col = px.style.backgroundColor || '#ffffff';
+                ctx.fillStyle = col;
+                ctx.fillRect(x, y, pxSize, pxSize);
+            });
+
+            // Convert canvas to URL and trigger download
+            const dataUrl = exportCanvas.toDataURL("image/png");
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = "my_pixel_art.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>

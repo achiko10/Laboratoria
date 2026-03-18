@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — პოეტიკა და რითმა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Georgian:wght@300;400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif Georgian', serif; background: #eef2ff; color: #1e1b4b; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #4f46e5; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .subtitle { text-align: center; color: #6366f1; font-size: 0.85rem; margin-bottom: 20px; font-family: sans-serif; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #c7d2fe; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1); }
+
+        /* Poem Area */
+        .poem-container { margin-bottom: 20px; position: relative; }
+        .poem-title { font-size: 1.2rem; font-weight: bold; color: #3730a3; margin-bottom: 5px; }
+        .poem-author { font-size: 0.9rem; color: #4f46e5; margin-bottom: 15px; font-style: italic; }
+        
+        .stanza { margin-bottom: 20px; }
+        .line { display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .line:hover { background: #e0e7ff; border-color: #c7d2fe; }
+        .text { font-size: 1.1rem; line-height: 1.5; flex: 1; }
+        
+        /* Rhyme Markers */
+        .rhyme-badge { display: none; width: 30px; height: 30px; border-radius: 50%; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem;}
+        .line.active .rhyme-badge { display: flex; animation: popIn 0.3s forwards; }
+        
+        @keyframes popIn { 0% { transform: scale(0); opacity:0;} 100% { transform: scale(1); opacity:1;} }
+
+        /* Color schemes for rhymes */
+        .rA { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
+        .rB { background: #dcfce7; color: #15803d; border: 2px solid #86efac; }
+        .rC { background: #fef08a; color: #a16207; border: 2px solid #fde047; }
+        .rX { background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; }
+
+        .line.active.rA-line { background: #fef2f2; border-color: #fecaca; }
+        .line.active.rB-line { background: #f0fdf4; border-color: #bbf7d0; }
+        .line.active.rC-line { background: #fefce8; border-color: #fef08a; }
+
+        /* Syllable Tooltip */
+        .syl-count { font-size: 0.75rem; color: #6b7280; font-family: sans-serif; background: #f3f4f6; padding: 2px 6px; border-radius: 12px; margin-left: 10px; display: none; }
+        .show-syl .syl-count { display: inline-block; animation: popIn 0.3s forwards;}
+
+        /* Controls */
+        .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;}
+        .btn { padding: 10px 15px; background: #4f46e5; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: sans-serif; font-weight: bold; font-size: 0.85rem; transition: 0.2s; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3); }
+        .btn:hover { background: #4338ca; transform: translateY(-2px); }
+        .btn-outline { background: transparent; color: #4f46e5; border: 2px solid #4f46e5; }
+        .btn-outline:hover { background: #e0e7ff; }
+
+        /* Panel */
+        .panel { display: flex; flex-direction: column; gap: 15px; font-family: sans-serif; }
+        .info-box { background: #fff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .ib-title { font-weight: bold; color: #3730a3; border-bottom: 2px solid #e0e7ff; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem;}
+        
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #4b5563; }
+        .stat-val { font-weight: bold; color: #4f46e5; }
+
+        .desc-box { background: #fefce8; border-left: 4px solid #eab308; padding: 15px; border-radius: 6px; font-size: 0.85rem; color: #854d0e; line-height: 1.6; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #e0e7ff; color: #3730a3; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; font-family: sans-serif; }
+        .back-btn:hover { background: #c7d2fe; color: #312e81; }
+    </style>
+</head>
+<body>
+    <h1 style="font-family: sans-serif;">📝 პოეტიკა — რითმა და მეტრიკა</h1>
+    <p class="subtitle">დააკლიკეთ სტრიქონებს რითმის ამოსაცნობად ან გამოიყენეთ ღილაკები მარცვლების დასათვლელად</p>
+    
+    <div class="app">
+        <div class="card">
+            <div class="poem-container" id="poem-container">
+                <div class="poem-title">ვეფხისტყაოსანი (ნაწყვეტი)</div>
+                <div class="poem-author">შოთა რუსთაველი</div>
+                
+                <div class="stanza">
+                    <div class="line" onclick="toggleLine(this)" data-r="A" data-s="16">
+                        <div class="text">რომელმან შექმნა სამყარო ძალითა მით ძლიერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div>
+                        <div class="rhyme-badge rA">A</div>
+                    </div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A" data-s="16">
+                        <div class="text">ზეგარდმო არსნი სულითა ყვნა ზეცით მონაბერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div>
+                        <div class="rhyme-badge rA">A</div>
+                    </div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A" data-s="16">
+                        <div class="text">ჩვენ, კაცთა, მოგვცა ქვეყანა, გვაქვს უთვალავი ფერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div>
+                        <div class="rhyme-badge rA">A</div>
+                    </div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A" data-s="16">
+                        <div class="text">მისგან არს ყოვლი ხელმწიფე სახითა მის მიერითა. <span class="syl-count">16 მარცვალი (4x4)</span></div>
+                        <div class="rhyme-badge rA">A</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-outline" onclick="changePoem('rustaveli')">შოთა რუსთაველი</button>
+                <button class="btn btn-outline" onclick="changePoem('galaktion')">გალაკტიონ ტაბიძე</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="info-box">
+                <div class="ib-title">📊 პოეტიკური ანალიზი</div>
+                <div class="stat-row">
+                    <span>რითმის სქემა:</span>
+                    <span class="stat-val" id="stat-rhyme">AAAA</span>
+                </div>
+                <div class="stat-row">
+                    <span>რითმის ტიპი:</span>
+                    <span class="stat-val" id="stat-type">მონორითმა</span>
+                </div>
+                <div class="stat-row">
+                    <span>მეტრი / საზომი:</span>
+                    <span class="stat-val" id="stat-meter">16 მარცვლიანი შაირი</span>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button class="btn" style="width:100%;" onclick="autoAnalyze()">🔍 ავტომატური ანალიზი</button>
+                    <button class="btn btn-outline" style="width:100%;" onclick="toggleSyllables()" id="syl-btn">📏 მარცვლების გამოჩენა</button>
+                </div>
+            </div>
+
+            <div class="desc-box" id="desc-box">
+                <b>შაირი:</b> ძველი ქართული ლექსთწყობის ძირითადი საზომი. შედგება 16 მარცვლისგან. ვეფხისტყაოსანი მთლიანად შაირითაა დაწერილი. რითმის სქემა <b>AAAA</b> (მონორითმა) ნიშნავს, რომ სტროფის ოთხივე სტრიქონი ერთნაირად მთავრდება.
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const poems = {
+            rustaveli: {
+                title: "ვეფხისტყაოსანი (ნაწყვეტი)", author: "შოთა რუსთაველი",
+                scheme: "AAAA", rType: "მონორითმა (ზედმიწევნით ზუსტი რითმა)", meter: "16 მარცვლიანი (მაღალი შაირი: 4/4/4/4)",
+                desc: "<b>შაირი:</b> ძველი ქართული ლექსთწყობის ძირითადი საზომი. შედგება 16 მარცვლისგან. ვეფხისტყაოსანი მთლიანად შაირითაა დაწერილი. რითმის სქემა <b>AAAA</b> (მონორითმა) ნიშნავს, რომ სტროფის ოთხივე სტრიქონი ერთნაირად მთავრდება.",
+                html: `
+                <div class="stanza">
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">რომელმან შექმნა სამყარო ძალითა მით ძლიერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div><div class="rhyme-badge rA">A</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">ზეგარდმო არსნი სულითა ყვნა ზეცით მონაბერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div><div class="rhyme-badge rA">A</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">ჩვენ, კაცთა, მოგვცა ქვეყანა, გვაქვს უთვალავი ფერითა, <span class="syl-count">16 მარცვალი (4x4)</span></div><div class="rhyme-badge rA">A</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">მისგან არს ყოვლი ხელმწიფე სახითა მის მიერითა. <span class="syl-count">16 მარცვალი (4x4)</span></div><div class="rhyme-badge rA">A</div></div>
+                </div>`
+            },
+            galaktion: {
+                title: "სილაჟვარდე ანუ ვარდი სილაში", author: "გალაკტიონ ტაბიძე",
+                scheme: "ABAB", rType: "ჯვარედინი რითმა", meter: "14 მარცვლიანი",
+                desc: "<b>ჯვარედინი რითმა:</b> სქემა <b>ABAB</b>. პირველი რითმდება მესამესთან, მეორე - მეოთხესთან. გალაკტიონის პოეზია გამოირჩევა განსაკუთრებული მუსიკალურობით, ალიტერაციითა და ასონანსით (ბგერათა გამეორებით).",
+                html: `
+                <div class="stanza">
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">სილაჟვარდე, ანუ ვარდი სილაში, <span class="syl-count">11 მარცვალი</span></div><div class="rhyme-badge rA">A</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="B"><div class="text">მკვდარი არის, რომ იცოდე, აბა, რად! <span class="syl-count">11 მარცვალი</span></div><div class="rhyme-badge rB">B</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="A"><div class="text">სხვა სინათლე სხვა დასჭექებს ხვირაში, <span class="syl-count">11 მარცვალი</span></div><div class="rhyme-badge rA">A</div></div>
+                    <div class="line" onclick="toggleLine(this)" data-r="B"><div class="text">სხვა იელვებს, სხვა დაიწყებს ხაბარბად. <span class="syl-count">11 მარცვალი</span></div><div class="rhyme-badge rB">B</div></div>
+                </div>` // Simplified syllables for demonstration
+            }
+        };
+
+        let showingSyl = false;
+
+        function toggleLine(el) {
+            let r = el.getAttribute('data-r');
+            if(el.classList.contains('active')) {
+                el.classList.remove('active', 'rA-line', 'rB-line', 'rC-line');
+            } else {
+                el.classList.add('active', `r${r}-line`);
+            }
+        }
+
+        function autoAnalyze() {
+            document.querySelectorAll('.line').forEach(el => {
+                let r = el.getAttribute('data-r');
+                if(!el.classList.contains('active')) {
+                    el.classList.add('active', `r${r}-line`);
+                }
+            });
+        }
+
+        function toggleSyllables() {
+            const cont = document.getElementById('poem-container');
+            showingSyl = !showingSyl;
+            if(showingSyl) {
+                cont.classList.add('show-syl');
+                document.getElementById('syl-btn').textContent = "📏 მარცვლების დამალვა";
+            } else {
+                cont.classList.remove('show-syl');
+                document.getElementById('syl-btn').textContent = "📏 მარცვლების გამოჩენა";
+            }
+        }
+
+        function changePoem(id) {
+            const data = poems[id];
+            const cont = document.getElementById('poem-container');
+            
+            let html = `
+                <div class="poem-title">${data.title}</div>
+                <div class="poem-author">${data.author}</div>
+                ${data.html}
+            `;
+            cont.innerHTML = html;
+            
+            if(showingSyl) cont.classList.add('show-syl'); // preserve state
+
+            // Update stats
+            document.getElementById('stat-rhyme').textContent = data.scheme;
+            document.getElementById('stat-type').textContent = data.rType;
+            document.getElementById('stat-meter').textContent = data.meter;
+            document.getElementById('desc-box').innerHTML = data.desc;
+            
+            // Highlight buttons
+            document.querySelectorAll('.controls .btn-outline').forEach(b => {
+                b.style.background = 'transparent'; b.style.color = '#4f46e5';
+            });
+            event.target.style.background = '#e0e7ff';
+        }
+    </script>
+</body>
+</html>

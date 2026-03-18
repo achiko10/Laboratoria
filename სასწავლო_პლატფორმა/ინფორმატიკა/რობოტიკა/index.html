@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — რობოტიკა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #f97316, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 260px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 450px; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .cmd-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .cmd-btn { padding: 10px 5px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; font-size: 1.2rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .cmd-btn:hover { background: #334155; border-color: #f97316; }
+        .cmd-btn:active { background: rgba(249,115,22,0.2); }
+        .program-area { background: #0f172a; border-radius: 8px; padding: 10px; min-height: 100px; border: 1px solid rgba(255,255,255,0.05); }
+        .program-item { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: #334155; border-radius: 5px; margin: 2px; font-size: 0.8rem; }
+        .program-item .del { cursor: pointer; color: #ef4444; margin-left: 3px; font-weight: bold; }
+        .btn { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; width: 100%; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-run { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .btn-clear { background: #ef4444; }
+        .sensors { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); }
+        .sensor-row { display: flex; justify-content: space-between; padding: 3px 0; }
+        .sensor-val { font-family: 'Courier New'; font-weight: bold; color: #f8fafc; }
+        .info-box { background: #0f172a; border-left: 3px solid #f97316; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.5; }
+        .info-box b { color: #fdba74; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🤖 რობოტის პროგრამირება</h1>
+    <p class="subtitle">დააპროგრამირე რობოტი ბრძანებების თანმიმდევრობით — აიღოს ნივთები, ავიდეს გავლილ გზაზე</p>
+    <div class="app">
+        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div style="font-weight:bold; color:#f97316; font-size:0.9rem;">🎮 ბრძანებები</div>
+            <div class="cmd-btns">
+                <div class="cmd-btn" onclick="addCmd('up')">⬆️</div>
+                <div class="cmd-btn" onclick="addCmd('pickup')">🤏</div>
+                <div class="cmd-btn" onclick="addCmd('right')">➡️</div>
+                <div class="cmd-btn" onclick="addCmd('left')">⬅️</div>
+                <div class="cmd-btn" onclick="addCmd('down')">⬇️</div>
+                <div class="cmd-btn" onclick="addCmd('drop')">📦</div>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8;">პროგრამა:</div>
+            <div class="program-area" id="program-area">
+                <span style="color:#64748b; font-size:0.75rem;">დაამატე ბრძანებები ↑</span>
+            </div>
+            <button class="btn btn-run" onclick="runProgram()">▶ გაშვება</button>
+            <button class="btn btn-clear" onclick="clearProgram()">🗑️ გასუფთავება</button>
+            <div style="font-weight:bold; color:#22c55e; font-size:0.85rem; margin-top:5px;">📊 სენსორები</div>
+            <div class="sensors" id="sensors">
+                <div class="sensor-row"><span>პოზიცია:</span><span class="sensor-val" id="s-pos">(0, 0)</span></div>
+                <div class="sensor-row"><span>ინვენტარი:</span><span class="sensor-val" id="s-inv">ცარიელი</span></div>
+                <div class="sensor-row"><span>ნაბიჯები:</span><span class="sensor-val" id="s-steps">0</span></div>
+                <div class="sensor-row"><span>ქულა:</span><span class="sensor-val" id="s-score" style="color:#f59e0b;">0</span></div>
+            </div>
+            <div class="info-box">
+                <b>ბრძანებები:</b> ⬆⬇⬅➡ მოძრაობა, 🤏 ნივთის აღება, 📦 ნივთის ჩადება. შეაგროვე ყველა ⭐ და მიიტანე 🏠 სახლში!
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = canvas.parentElement;
+        let W, H, CELL;
+        const GRID = 8;
+
+        function resize() {
+            canvas.width = wrap.offsetWidth * devicePixelRatio;
+            canvas.height = 450 * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = wrap.offsetWidth; H = 450;
+            CELL = Math.min(W, H) / GRID;
+            drawWorld();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        let robot = { x: 0, y: 0, inventory: [], steps: 0, score: 0 };
+        let commands = [];
+        let running = false;
+
+        // World objects
+        let stars = [{ x: 3, y: 2 }, { x: 5, y: 4 }, { x: 1, y: 6 }, { x: 6, y: 1 }];
+        let home = { x: 7, y: 7 };
+        let walls = [{ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 4, y: 5 }, { x: 4, y: 6 }, { x: 5, y: 6 }];
+
+        function drawWorld() {
+            ctx.clearRect(0, 0, W, H);
+            const ox = (W - CELL * GRID) / 2;
+            const oy = (H - CELL * GRID) / 2;
+
+            // Grid
+            for (let y = 0; y < GRID; y++) {
+                for (let x = 0; x < GRID; x++) {
+                    ctx.fillStyle = (x + y) % 2 === 0 ? '#1e293b' : '#0f172a';
+                    ctx.fillRect(ox + x * CELL, oy + y * CELL, CELL, CELL);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.strokeRect(ox + x * CELL, oy + y * CELL, CELL, CELL);
+                }
+            }
+
+            // Walls
+            walls.forEach(w => {
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(ox + w.x * CELL + 2, oy + w.y * CELL + 2, CELL - 4, CELL - 4);
+                ctx.font = `${CELL * 0.5}px serif`; ctx.textAlign = 'center';
+                ctx.fillText('🧱', ox + w.x * CELL + CELL / 2, oy + w.y * CELL + CELL * 0.65);
+            });
+
+            // Stars
+            stars.forEach(s => {
+                ctx.font = `${CELL * 0.5}px serif`; ctx.textAlign = 'center';
+                ctx.fillText('⭐', ox + s.x * CELL + CELL / 2, oy + s.y * CELL + CELL * 0.65);
+            });
+
+            // Home
+            ctx.font = `${CELL * 0.5}px serif`; ctx.textAlign = 'center';
+            ctx.fillText('🏠', ox + home.x * CELL + CELL / 2, oy + home.y * CELL + CELL * 0.65);
+
+            // Robot
+            ctx.font = `${CELL * 0.55}px serif`;
+            ctx.fillText('🤖', ox + robot.x * CELL + CELL / 2, oy + robot.y * CELL + CELL * 0.65);
+
+            // Trail
+            updateSensors();
+        }
+
+        function updateSensors() {
+            document.getElementById('s-pos').textContent = `(${robot.x}, ${robot.y})`;
+            document.getElementById('s-inv').textContent = robot.inventory.length > 0 ? '⭐×' + robot.inventory.length : 'ცარიელი';
+            document.getElementById('s-steps').textContent = robot.steps;
+            document.getElementById('s-score').textContent = robot.score;
+        }
+
+        const cmdIcons = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️', pickup: '🤏', drop: '📦' };
+
+        function addCmd(cmd) {
+            if (running) return;
+            commands.push(cmd);
+            renderProgram();
+        }
+
+        function removeCmd(i) {
+            if (running) return;
+            commands.splice(i, 1);
+            renderProgram();
+        }
+
+        function clearProgram() {
+            if (running) return;
+            commands = [];
+            robot = { x: 0, y: 0, inventory: [], steps: 0, score: 0 };
+            stars = [{ x: 3, y: 2 }, { x: 5, y: 4 }, { x: 1, y: 6 }, { x: 6, y: 1 }];
+            renderProgram();
+            drawWorld();
+        }
+
+        function renderProgram() {
+            const area = document.getElementById('program-area');
+            if (commands.length === 0) {
+                area.innerHTML = '<span style="color:#64748b; font-size:0.75rem;">დაამატე ბრძანებები ↑</span>';
+                return;
+            }
+            area.innerHTML = commands.map((c, i) =>
+                `<span class="program-item" id="cmd-${i}">${cmdIcons[c]} <span class="del" onclick="removeCmd(${i})">×</span></span>`
+            ).join('');
+        }
+
+        function isWall(x, y) { return walls.some(w => w.x === x && w.y === y); }
+
+        async function runProgram() {
+            if (running || commands.length === 0) return;
+            running = true;
+            robot = { x: 0, y: 0, inventory: [], steps: 0, score: 0 };
+            stars = [{ x: 3, y: 2 }, { x: 5, y: 4 }, { x: 1, y: 6 }, { x: 6, y: 1 }];
+            drawWorld();
+
+            for (let i = 0; i < commands.length; i++) {
+                const cmd = commands[i];
+                // Highlight current command
+                const el = document.getElementById('cmd-' + i);
+                if (el) el.style.background = '#f97316';
+
+                let nx = robot.x, ny = robot.y;
+                if (cmd === 'up') ny--;
+                else if (cmd === 'down') ny++;
+                else if (cmd === 'left') nx--;
+                else if (cmd === 'right') nx++;
+                else if (cmd === 'pickup') {
+                    const starIdx = stars.findIndex(s => s.x === robot.x && s.y === robot.y);
+                    if (starIdx >= 0) {
+                        robot.inventory.push('⭐');
+                        stars.splice(starIdx, 1);
+                    }
+                } else if (cmd === 'drop') {
+                    if (robot.x === home.x && robot.y === home.y && robot.inventory.length > 0) {
+                        robot.score += robot.inventory.length * 10;
+                        robot.inventory = [];
+                    }
+                }
+
+                if (cmd !== 'pickup' && cmd !== 'drop') {
+                    if (nx >= 0 && nx < GRID && ny >= 0 && ny < GRID && !isWall(nx, ny)) {
+                        robot.x = nx; robot.y = ny; robot.steps++;
+                    }
+                }
+
+                drawWorld();
+                await new Promise(r => setTimeout(r, 400));
+                if (el) el.style.background = '#22c55e';
+            }
+            running = false;
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', e => {
+            if (running) return;
+            if (e.key === 'ArrowUp') addCmd('up');
+            else if (e.key === 'ArrowDown') addCmd('down');
+            else if (e.key === 'ArrowLeft') addCmd('left');
+            else if (e.key === 'ArrowRight') addCmd('right');
+            else if (e.key === ' ') addCmd('pickup');
+            else if (e.key === 'Enter') { e.preventDefault(); runProgram(); }
+        });
+
+        drawWorld();
+    </script>
+</body>
+</html>

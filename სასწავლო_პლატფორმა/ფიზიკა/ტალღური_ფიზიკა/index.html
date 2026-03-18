@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ტალღური ფიზიკა — ტალღების ინტერფერენცია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0a0e17; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #00bcd4, #9c27b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+        .sim-area { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 400px; cursor: crosshair; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px; background: #0d1220; border-top: 1px solid rgba(255,255,255,0.06); }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; color: #7a84a0; display: flex; justify-content: space-between; }
+        .control-group label b { color: #e0e6f0; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e2740; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #00bcd4, #9c27b0); cursor: pointer; }
+        .btn-row { display: flex; gap: 10px; grid-column: 1 / -1; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.8rem; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #00bcd4, #9c27b0); color: #fff; }
+        .btn-secondary { background: #1e2740; color: #7a84a0; }
+        .info-panel { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8; border-left: 3px solid #00bcd4; }
+        .info-panel strong { color: #e0e6f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 ტალღური ფიზიკა — ინტერფერენცია</h1>
+        <p class="subtitle">დააკლიკე ტალღის წყაროს დასამატებლად · შეცვალე სიხშირე და ამპლიტუდა</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>ტალღის სიგრძე (λ): <b><span id="wl-val">30</span> px</b></label>
+                <input type="range" id="wavelength" min="10" max="80" value="30">
+            </div>
+            <div class="control-group">
+                <label>ამპლიტუდა (A): <b><span id="amp-val">50</span></b></label>
+                <input type="range" id="amplitude" min="10" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label>სიჩქარე: <b><span id="speed-val">3</span></b></label>
+                <input type="range" id="speed" min="1" max="8" value="3">
+            </div>
+            <div class="control-group">
+                <label>ფერის რეჟიმი:</label>
+                <select id="colormode" style="background:#1e2740;color:#e0e6f0;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;font-family:inherit;">
+                    <option value="wave">ტალღის ფერი</option>
+                    <option value="heat">თერმო</option>
+                    <option value="mono">მონოქრომული</option>
+                </select>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="addSource()">+ წყარო (ან დააკლიკე)</button>
+                <button class="btn btn-secondary" onclick="sources=[];time=0;">↺ გასუფთავება</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 ტალღების ინტერფერენცია:</strong> როცა ორი ტალღა გადაიკვეთება, ხდება სუპერპოზიცია:<br>
+            • <strong>კონსტრუქციული</strong> — ტალღები ერთმანეთს აძლიერებენ (ფაზაში)<br>
+            • <strong>დესტრუქციული</strong> — ტალღები ერთმანეთს ასუსტებენ (ანტიფაზაში)<br>
+            • 🎯 <strong>ექსპერიმენტი:</strong> დაამატე 2 წყარო ახლოს ერთმანეთთან!
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.offsetWidth; H = canvas.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        let sources = [{ x: W * 0.35, y: H / 2 }, { x: W * 0.65, y: H / 2 }];
+        let time = 0;
+        let imageData;
+
+        const wlSlider = document.getElementById('wavelength');
+        const ampSlider = document.getElementById('amplitude');
+        const spdSlider = document.getElementById('speed');
+        wlSlider.oninput = () => document.getElementById('wl-val').textContent = wlSlider.value;
+        ampSlider.oninput = () => document.getElementById('amp-val').textContent = ampSlider.value;
+        spdSlider.oninput = () => document.getElementById('speed-val').textContent = spdSlider.value;
+
+        canvas.addEventListener('click', e => {
+            const rect = canvas.getBoundingClientRect();
+            sources.push({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        });
+
+        function addSource() {
+            sources.push({ x: Math.random() * W * 0.6 + W * 0.2, y: Math.random() * H * 0.6 + H * 0.2 });
+        }
+
+        function getColor(value, mode) {
+            const v = Math.max(-1, Math.min(1, value));
+            if (mode === 'heat') {
+                const r = Math.round(v > 0 ? v * 255 : 0);
+                const b = Math.round(v < 0 ? -v * 255 : 0);
+                const g = Math.round((1 - Math.abs(v)) * 60);
+                return [r, g, b, 255];
+            } else if (mode === 'mono') {
+                const c = Math.round((v + 1) / 2 * 180);
+                return [c, c, c, 255];
+            } else {
+                // Wave colors
+                const r = Math.round(v > 0 ? v * 100 : 30);
+                const g = Math.round((v + 1) / 2 * 200 + 30);
+                const b = Math.round(v < 0 ? -v * 255 : 100);
+                return [r, g, b, 255];
+            }
+        }
+
+        function drawWave() {
+            const wl = +wlSlider.value;
+            const amp = +ampSlider.value / 100;
+            const spd = +spdSlider.value;
+            const colorMode = document.getElementById('colormode').value;
+            const step = 3; // pixel step for performance
+
+            const cw = canvas.width, ch = canvas.height;
+            const idata = ctx.createImageData(cw, ch);
+            const data = idata.data;
+            const dpr = devicePixelRatio;
+
+            for (let py = 0; py < ch; py += step) {
+                for (let px = 0; px < cw; px += step) {
+                    const x = px / dpr, y = py / dpr;
+                    let val = 0;
+                    sources.forEach(s => {
+                        const dx = x - s.x, dy = y - s.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        val += amp * Math.sin((dist / wl) * Math.PI * 2 - time * spd) / (1 + dist * 0.005);
+                    });
+                    val = val / Math.max(sources.length * 0.5, 1);
+
+                    const [r, g, b, a] = getColor(val, colorMode);
+                    for (let dy = 0; dy < step && py + dy < ch; dy++) {
+                        for (let dx = 0; dx < step && px + dx < cw; dx++) {
+                            const idx = ((py + dy) * cw + px + dx) * 4;
+                            data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = a;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(idata, 0, 0);
+
+            // Draw source markers
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            sources.forEach((s, i) => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 10, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = '9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`S${i + 1}`, s.x, s.y - 14);
+            });
+
+            time += 0.05;
+            requestAnimationFrame(drawWave);
+        }
+        drawWave();
+    </script>
+</body>
+</html>

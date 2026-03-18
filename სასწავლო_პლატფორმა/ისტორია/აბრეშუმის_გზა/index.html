@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — დიდი აბრეშუმის გზა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #291a13; color: #fdf6e3; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #f59e0b; font-weight: bold; }
+        .subtitle { text-align: center; color: #d6d3d1; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        .card { background: #3f2719; border-radius: 12px; padding: 20px; border: 1px solid #78350f; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* Map Area */
+        .map-wrap { position: relative; width: 100%; height: 350px; background: #e7e5e4; border-radius: 8px; overflow: hidden; border: 2px solid #b45309; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350"><path fill="%23d6d3d1" d="M0,0 L800,0 L800,350 L0,350 Z"/><path fill="%23e7e5e4" d="M50,150 Q150,100 300,120 T500,150 T700,100 L800,100 L800,350 L0,350 Z" opacity="0.5"/><path fill="%23fed7aa" d="M100,200 Q200,180 350,220 T600,200 T750,250 Z" opacity="0.4"/></svg>'); background-size: cover;}
+        
+        .route-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .r-line { stroke: #ea580c; stroke-width: 4; stroke-dasharray: 10 10; fill: none; animation: dash 20s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -400; } }
+
+        /* Cities */
+        .city-node { position: absolute; transform: translate(-50%, -50%); cursor: pointer; text-align: center; z-index: 10; }
+        .city-dot { width: 16px; height: 16px; background: #fef08a; border: 3px solid #b45309; border-radius: 50%; margin: 0 auto; transition: 0.3s; box-shadow: 0 0 8px rgba(0,0,0,0.5);}
+        .city-name { margin-top: 5px; font-weight: bold; font-size: 0.8rem; color: #431407; background: rgba(255,255,255,0.8); padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: max-content;}
+        
+        .city-node:hover .city-dot { transform: scale(1.3); background: #f59e0b; }
+        .city-node.active .city-dot { transform: scale(1.5); background: #ea580c; border-color: #fff; }
+
+        /* Caravan */
+        .caravan { position: absolute; font-size: 1.5rem; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); animation: moveCaravan 20s linear infinite; pointer-events: none; z-index: 5;}
+        @keyframes moveCaravan {
+            0% { left: 80%; top: 40%; }
+            25% { left: 60%; top: 45%; }
+            50% { left: 40%; top: 38%; }
+            75% { left: 20%; top: 45%; }
+            100% { left: 80%; top: 40%; } /* Simplified loop for abstract visual */
+        }
+
+        /* Info Panel */
+        .info-panel { display: flex; flex-direction: column; gap: 10px; background: #573117; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #92400e; box-shadow: inset 0 0 20px rgba(0,0,0,0.6); min-height: 180px; }
+        .ip-header { display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #b45309; padding-bottom: 10px; }
+        .ip-title { font-size: 1.4rem; font-weight: bold; color: #fde047; }
+        .ip-region { font-size: 0.85rem; color: #d6d3d1; }
+        .ip-body { font-size: 0.95rem; line-height: 1.6; color: #fdf6e3; margin-top: 10px;}
+        
+        .goods-cont { display: flex; gap: 15px; margin-top: auto; flex-wrap: wrap; }
+        .good-tag { display: flex; align-items: center; gap: 5px; background: #78350f; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: #ffedd5; border: 1px solid #92400e;}
+
+        .summary-box { background: #3f2719; border-left: 4px solid #ea580c; border-radius: 8px; padding: 15px; font-size: 0.85rem; color: #d6d3d1; line-height: 1.6; border-top: 1px solid #78350f; border-bottom: 1px solid #78350f; border-right: 1px solid #78350f;}
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #3f2719; color: #d6d3d1; text-decoration: none; border-radius: 8px; font-size: 0.85rem; border: 1px solid #78350f; }
+        .back-btn:hover { background: #573117; color: #fdf6e3; }
+    </style>
+</head>
+<body>
+    <h1>🐪 დიდი აბრეშუმის გზა</h1>
+    <p class="subtitle">ინტერაქტიული სავაჭრო მარშრუტი აღმოსავლეთსა და დასავლეთს შორის</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="map-wrap">
+                <svg class="route-path" viewBox="0 0 800 350">
+                    <path class="r-line" d="M 640 140 Q 560 160 480 157 Q 400 133 320 133 Q 240 157 160 157" />
+                </svg>
+                
+                <div class="caravan">🐪🐪🐪</div>
+
+                <div class="city-node" style="left:80%; top:40%;" id="cn-xian" onclick="selectCity('xian')">
+                    <div class="city-dot"></div>
+                    <div class="city-name">ჩანანი (სიანი), ჩინეთი</div>
+                </div>
+
+                <div class="city-node" style="left:60%; top:45%;" id="cn-samarkand" onclick="selectCity('samarkand')">
+                    <div class="city-dot"></div>
+                    <div class="city-name">სამარყანდი, ცენტრ. აზია</div>
+                </div>
+
+                <div class="city-node" style="left:40%; top:38%;" id="cn-tbilisi" onclick="selectCity('tbilisi')">
+                    <div class="city-dot"></div>
+                    <div class="city-name">თბილისი, საქართველო</div>
+                </div>
+
+                <div class="city-node" style="left:20%; top:45%;" id="cn-venice" onclick="selectCity('venice')">
+                    <div class="city-dot"></div>
+                    <div class="city-name">ვენეცია (ევროპა)</div>
+                </div>
+            </div>
+
+            <div class="info-panel" id="info-panel">
+                <div class="ip-header">
+                    <div style="font-size: 2rem;" id="ip-emoji">🗺️</div>
+                    <div>
+                        <div class="ip-title" id="ip-title">აირჩიე სავაჭრო წერტილი</div>
+                        <div class="ip-region" id="ip-region">დააკლიკე რუკაზე არსებულ ქალაქებს</div>
+                    </div>
+                </div>
+                <div class="ip-body" id="ip-body">
+                    დიდი აბრეშუმის გზა იყო სავაჭრო ქსელი, რომელიც აკავშირებდა ჩინეთსა და შორეულ აღმოსავლეთს შუა აღმოსავლეთთან და ევროპასთან უძველესი დროიდან. 
+                </div>
+                <div class="goods-cont" id="goods">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+
+            <div class="summary-box" style="margin-top:20px;">
+                <b>მნიშვნელობა:</b> აბრეშუმის გზა მხოლოდ საქონლით ვაჭრობას არ ემსახურებოდა. მისი საშუალებით ვრცელდებოდა <b>იდეები, რელიგიები (ბუდიზმი, ზოროასტრიზმი, ქრისტიანობა, ისლამი), ტექნოლოგიები (ქაღალდი, დენთი, კომპასი) და... დაავადებები (შავი ჭირი)</b>. ეს იყო ისტორიაში პირველი გლობალური ეკონომიკური და კულტურული ქსელი.
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const cityData = {
+            xian: {
+                title: "ჩანანი (დღევანდელი სიანი)", emoji: "🏮", region: "აღმოსავლეთ აზია (ჩინეთი)",
+                desc: "აბრეშუმის გზის აღმოსავლური საწყისი წერტილი. ხანის დინასტიის დედაქალაქი, მსოფლიოს ერთ-ერთი უდიდესი ქალაქი. სწორედ აქედან იწყებოდა ძვირფასი აბრეშუმის ტრანსპორტირება დასავლეთისკენ მეორე საუკუნიდან (ძვ.წ.).",
+                goods: [ {i:"👘", n:"აბრეშუმი"}, {i:"🫖", n:"ფაიფური (Porcelain)"}, {i:"🧨", n:"დენთი"}, {i:"📜", n:"ქაღალდი"} ]
+            },
+            samarkand: {
+                title: "სამარყანდი", emoji: "🕌", region: "ცენტრალური აზია (უზბეკეთი)",
+                desc: "აბრეშუმის გზის გული. უმნიშვნელოვანესი ოაზისი და სავაჭრო ჰაბი მარაბდის უდაბნოს შუაგულში. ცნობილია ულამაზესი ისლამური არქიტექტურით, მეჩეთებითა და დიდი ბაზრობებით.",
+                goods: [ {i:"🐎", n:"ცხენები (ფერღანა)"}, {i:"💎", n:"ლაზურიტი და ნეფრიტი"}, {i:"🏜️", n:"სანელებლები"}, {i:"🏺", n:"მინა"} ]
+            },
+            tbilisi: {
+                title: "თბილისი / ფაზისი", emoji: "🏰", region: "კავკასია (საქართველო)",
+                desc: "საქართველო და კავკასია (კერძოდ შავი ზღვისკენ მიმავალი გზა) წარმოადგენდა აბრეშუმის გზის მნიშვნელოვან ტრანზიტულ განშტოებას. აქ ინდოეთიდან და ჩინეთიდან მომავალი საქონელი შავი ზღვით ევროპაში ხვდებოდა.",
+                goods: [ {i:"🍷", n:"ღვინო"}, {i:"⚔️", n:"იარაღი და რკინა"}, {i:"🧶", n:"შალი და ხალიჩები"}, {i:"⚖️", n:"სატრანზიტო გადასახადები"} ]
+            },
+            venice: {
+                title: "ვენეცია / კონსტანტინოპოლი", emoji: "🚤", region: "ევროპა (ხმელთაშუა ზღვა)",
+                desc: "აბრეშუმის გზის ევროპული ბოლო. იტალიელი ვაჭრები (როგორც მარკო პოლო) სწორედ აქედან იწყებდნენ გრძელ გზას აღმოსავლეთისკენ, რათა ევროპელ დიდებულებში ძვირად გაეყიდათ აღმოსავლური საქონელი.",
+                goods: [ {i:"🪙", n:"ოქრო და ვერცხლი"}, {i:"🧊", n:"მინა (მურანო)"}, {i:"🍷", n:"ღვინო"}, {i:"⛪", n:"დასავლური ფილოსოფია"} ]
+            }
+        };
+
+        function selectCity(id) {
+            document.querySelectorAll('.city-node').forEach(c => c.classList.remove('active'));
+            document.getElementById('cn-' + id).classList.add('active');
+
+            const data = cityData[id];
+            
+            document.getElementById('ip-emoji').textContent = data.emoji;
+            document.getElementById('ip-title').textContent = data.title;
+            document.getElementById('ip-region').textContent = data.region;
+            document.getElementById('ip-body').textContent = data.desc;
+
+            const goodsCont = document.getElementById('goods');
+            goodsCont.innerHTML = '<div style="width:100%; color:#d6d3d1; font-size:0.8rem; margin-bottom:-5px;">ექსპორტი / ტრანზიტი:</div>';
+            data.goods.forEach(g => {
+                goodsCont.innerHTML += `<div class="good-tag"><span>${g.i}</span> ${g.n}</div>`;
+            });
+        }
+    </script>
+</body>
+</html>

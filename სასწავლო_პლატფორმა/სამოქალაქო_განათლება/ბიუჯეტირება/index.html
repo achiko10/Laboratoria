@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — ბიუჯეტირება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #2563eb; font-weight: bold;}
+        .subtitle { text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        .card-header { font-weight: bold; font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+
+        /* Balance Display */
+        .balance-board { grid-column: 1 / -1; background: #f0f9ff; border: 2px solid #bae6fd; border-radius: 12px; padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center;}
+        
+        .bb-title { font-size: 1rem; color: #0369a1; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;}
+        .bb-val { font-size: 3rem; font-weight: bold; font-family: monospace; transition: color 0.3s;}
+        
+        .bb-pos { color: #10b981; }
+        .bb-neg { color: #ef4444; }
+
+        /* Categorized inputs */
+        .cat-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; transition: background 0.2s;}
+        .cat-row:hover { background: #f8fafc; }
+        .cat-row:last-child { border-bottom: none; }
+        
+        .cat-icon { font-size: 1.2rem; margin-right: 10px; width: 25px; display: inline-block; text-align: center;}
+        .cat-name { font-weight: bold; color: #334155; flex: 1;}
+        
+        .cat-input-wrapper { display: flex; align-items: center; gap: 5px; background: #f1f5f9; border-radius: 6px; padding: 2px 10px; border: 1px solid #cbd5e1;}
+        .cat-input { width: 80px; padding: 5px; text-align: right; border: none; background: transparent; font-weight: bold; font-family: monospace; font-size: 1rem; color: #0f172a; outline: none;}
+        .cat-currency { font-weight: bold; color: #64748b;}
+
+        /* Income vs Expense styling */
+        .inc-header { color: #10b981; border-color: #d1fae5; }
+        .exp-header { color: #ef4444; border-color: #fee2e2; }
+
+        /* Goal & Status box */
+        .status-box { grid-column: 1 / -1; padding: 15px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; text-align: center; background: #ffedd5; border: 1px dashed #fdba74; color: #9a3412;}
+
+        /* Visual Bar */
+        .visual-bar-container { width: 100%; max-width: 500px; height: 12px; background: #e2e8f0; border-radius: 6px; margin-top: 20px; display: flex; overflow: hidden; position: relative;}
+        .vb-income { height: 100%; background: #10b981; transition: width 0.3s; }
+        .vb-expense { height: 100%; background: #ef4444; transition: width 0.3s; position: absolute; right: 0;}
+        .vb-marker { position: absolute; top:0; height:100%; width: 2px; background: #000; left: 50%;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e0f2fe; color: #0284c7; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bae6fd; text-align: center;}
+        .back-btn:hover { background: #bae6fd; color: #0369a1; }
+    </style>
+</head>
+<body>
+    <h1>💵 პერსონალური ბიუჯეტირება</h1>
+    <p class="subtitle">დაგეგმე შენი ყოველთვიური შემოსავლები და ხარჯები. შეეცადე, რომ თვის ბოლოს დანაზოგი დაგრჩეს (პროფიციტი)</p>
+    
+    <div class="app">
+        
+        <div class="balance-board">
+            <div class="bb-title">თავისუფალი ნაშთი (დანაზოგი / დეფიციტი)</div>
+            <div class="bb-val bb-pos" id="net-balance">0 ₾</div>
+            
+            <div class="visual-bar-container">
+                <div class="vb-income" id="vb-inc" style="width: 50%;"></div>
+                <div class="vb-expense" id="vb-exp" style="width: 50%;"></div>
+                <div class="vb-marker"></div>
+            </div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 5px; width: 100%; max-width: 500px; display: flex; justify-content: space-between;">
+                <span>შემოსავალი</span><span>ხარჯი</span>
+            </div>
+        </div>
+
+        <!-- Income -->
+        <div class="card">
+            <div class="card-header inc-header">
+                <span>➕ შემოსავლები</span>
+                <span id="total-inc" style="font-family:monospace;">0 ₾</span>
+            </div>
+            
+            <div class="cat-row">
+                <span class="cat-icon">💼</span> <span class="cat-name">ხელფასი</span>
+                <div class="cat-input-wrapper"><input type="number" class="inc-input" value="1200" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">🎁</span> <span class="cat-name">ბონუსი / საჩუქარი</span>
+                <div class="cat-input-wrapper"><input type="number" class="inc-input" value="150" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">📈</span> <span class="cat-name">პასიური შემოსავალი</span>
+                <div class="cat-input-wrapper"><input type="number" class="inc-input" value="0" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+        </div>
+
+        <!-- Expenses -->
+        <div class="card">
+            <div class="card-header exp-header">
+                <span>➖ ხარჯები</span>
+                <span id="total-exp" style="font-family:monospace;">0 ₾</span>
+            </div>
+            
+            <div class="cat-row">
+                <span class="cat-icon">🏠</span> <span class="cat-name">ბინა / კომუნალურები</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="450" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">🛒</span> <span class="cat-name">საკვები</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="400" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">🚌</span> <span class="cat-name">ტრანსპორტი</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="80" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">👕</span> <span class="cat-name">ტანსაცმელი</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="100" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">🍿</span> <span class="cat-name">გართობა / კინო</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="120" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+            <div class="cat-row">
+                <span class="cat-icon">💊</span> <span class="cat-name">გაუთვალისწინებელი</span>
+                <div class="cat-input-wrapper"><input type="number" class="exp-input" value="50" min="0" oninput="calcBudget()"><span class="cat-currency">₾</span></div>
+            </div>
+        </div>
+
+        <div class="status-box" id="status-box">
+            <!-- Dynamic Message -->
+        </div>
+
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        function calcBudget() {
+            let totalInc = 0;
+            document.querySelectorAll('.inc-input').forEach(el => totalInc += Number(el.value));
+            document.getElementById('total-inc').textContent = Math.round(totalInc) + ' ₾';
+
+            let totalExp = 0;
+            document.querySelectorAll('.exp-input').forEach(el => totalExp += Number(el.value));
+            document.getElementById('total-exp').textContent = Math.round(totalExp) + ' ₾';
+
+            const net = totalInc - totalExp;
+            const netEl = document.getElementById('net-balance');
+            const status = document.getElementById('status-box');
+
+            netEl.textContent = (net >= 0 ? '+' : '') + Math.round(net) + ' ₾';
+
+            // Visual bar scaling (relative to largest value or total sum to show proportion)
+            let maxTotal = totalInc + totalExp;
+            if (maxTotal === 0) maxTotal = 1; // prevent div by 0
+
+            let incPct = (totalInc / maxTotal) * 100;
+            let expPct = (totalExp / maxTotal) * 100;
+
+            document.getElementById('vb-inc').style.width = incPct + '%';
+            document.getElementById('vb-exp').style.width = expPct + '%';
+
+            // Logic and Feedback
+            if (net > 0) {
+                netEl.className = 'bb-val bb-pos';
+                let saveRate = (net / totalInc) * 100;
+                
+                status.style.background = '#ecfdf5';
+                status.style.borderColor = '#10b981';
+                status.style.color = '#065f46';
+
+                if(saveRate > 20) {
+                    status.innerHTML = `🎉 <b>ბრწყინვალე ფინანსური მართვა!</b> თვის ბოლოს გრჩებათ შემოსავლის ${Math.round(saveRate)}%, რაც საშუალებას გაძლევთ შექმნათ კარგი დანაზოგი.`;
+                } else {
+                    status.innerHTML = `✅ <b>ბიუჯეტი პროფიციტულია:</b> თქვენი შემოსავლები აღემატება ხარჯებს. თუმცა ეცადეთ დანაზოგი გაზარდოთ კრიზისული სიტუაციებისთვის (იდეალურია 20%).`;
+                }
+
+            } else if (net === 0) {
+                netEl.className = 'bb-val';
+                netEl.style.color = '#475569';
+                status.style.background = '#f1f5f9';
+                status.style.borderColor = '#94a3b8';
+                status.style.color = '#334155';
+                status.innerHTML = `⚖️ <b>ნულოვანი ბალანსი:</b> ხარჯები ზუსტად უთანაბრდება შემოსავლებს. სახიფათოა, რადგან დანაზოგი არ გრჩებათ გაუთვალისწინებელი შემთხვევებისთვის.`;
+            } else {
+                netEl.className = 'bb-val bb-neg';
+                status.style.background = '#fef2f2';
+                status.style.borderColor = '#ef4444';
+                status.style.color = '#991b1b';
+                status.innerHTML = `🚨 <b>ბიუჯეტის დეფიციტი!</b> თქვენ ხარჯავთ იმაზე მეტს, ვიდრე გამოიმუშავებთ. მოგიწევთ ვალის აღება. აუცილებლად შეამცირეთ არა-არსებითი ხარჯები (მაგ: გართობა, ტანსაცმელი).`;
+            }
+        }
+
+        // Init
+        calcBudget();
+    </script>
+</body>
+</html>

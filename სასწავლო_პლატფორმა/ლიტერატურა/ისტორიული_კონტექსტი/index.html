@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — ისტორიული კონტექსტი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Georgian:wght@300;400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif Georgian', serif; background: #faf8f5; color: #292524; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #78350f; font-weight: bold; }
+        .subtitle { text-align: center; color: #a16207; font-size: 0.85rem; margin-bottom: 30px; font-family: sans-serif; }
+        .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e7e5e4; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        /* Timeline Slider Area */
+        .timeline-wrapper { position: relative; margin-bottom: 40px; padding: 0 20px;}
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 8px; background: #e7e5e4; border-radius: 5px; outline: none; margin-top: 15px; position: z-index: 2;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #ca8a04; cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); background: #b45309;}
+
+        .ticks { display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold; color: #78350f; font-family: sans-serif; font-size: 0.85rem;}
+        
+        /* Content Display */
+        .context-display { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; transition: 0.3s opacity; }
+        @media (max-width: 650px) { .context-display { grid-template-columns: 1fr; } }
+        
+        .box { padding: 20px; border-radius: 10px; border: 1px solid;}
+        
+        .hist-box { background: #fffbeb; border-color: #fde68a; }
+        .box-title.h-title { color: #d97706; border-bottom: 2px solid #fde68a;}
+        
+        .lit-box { background: #f0fdf4; border-color: #bbf7d0; }
+        .box-title.l-title { color: #16a34a; border-bottom: 2px solid #bbf7d0;}
+        
+        .box-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; padding-bottom: 5px; display: flex; align-items: center; gap: 8px;}
+        
+        .box-content { font-size: 0.95rem; line-height: 1.7; color: #44403c; }
+        
+        .work-highlight { display: block; margin-top: 15px; padding: 12px; background: #fff; border-left: 4px solid #16a34a; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-style: italic; font-weight: bold; color: #14532d;}
+
+        #active-year-display { text-align: center; font-size: 2.5rem; font-weight: bold; color: #ca8a04; margin-bottom: 10px; font-family: sans-serif;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #f5f5f4; color: #57534e; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #d6d3d1; font-family: sans-serif;}
+        .back-btn:hover { background: #e7e5e4; color: #292524; }
+    </style>
+</head>
+<body>
+    <h1 style="font-family: 'Noto Serif Georgian', serif;">🕰️ ისტორიული კონტექსტი</h1>
+    <p class="subtitle">გამოიყენეთ სლაიდერი ეპოქის შესაცვლელად და ნახეთ, როგორ მოქმედებს ისტორია ლიტერატურაზე</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div id="active-year-display">V საუკუნე</div>
+
+            <div class="timeline-wrapper">
+                <input type="range" id="timeline" min="0" max="4" value="0" step="1" oninput="updateEra()">
+                <div class="ticks">
+                    <span>V ს.</span>
+                    <span>XII ს.</span>
+                    <span>XVII-XVIII ს.</span>
+                    <span>XIX ს.</span>
+                    <span>XX ს.</span>
+                </div>
+            </div>
+
+            <div class="context-display" id="context-display">
+                <!-- Data populated dynamically -->
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const eras = [
+            {
+                yearText: "V საუკუნე",
+                histText: "საქართველოში (იბერიაში) ვრცელდება და ძლიერდება ქრისტიანობა. მიმდინარეობს ბრძოლა სპარსელების (მაზდეანობის) წინააღმდეგ სარწმუნოებისა და დამოუკიდებლობის შესანარჩუნებლად. იქმნება პირველი ეკლესია-მონასტრები.",
+                litText: "ჩნდება პირველი წერილობითი ძეგლები. ლიტერატურა ატარებს მკვეთრად რელიგიურ ხასიათს და ემსახურება ქრისტიანული მორალის განმტკიცებას (ჰაგიოგრაფია).",
+                work: "„შუშანიკის წამება“ (იაკობ ცურტაველი) – უძველესი შემორჩენილი ქართული ნაწარმოები, სადაც აღწერილია დედოფლის თავდადება რწმენისთვის."
+            },
+            {
+                yearText: "XII საუკუნე",
+                histText: "საქართველოს ისტორიული „ოქროს ხანა“. დავით აღმაშენებლისა და თამარ მეფის ეპოქა. ქვეყანა გაერთიანებულია, პოლიტიკურად და ეკონომიკურად უძლიერესი სახელმწიფოა რეგიონში. ვითარდება კულტურა, ფილოსოფია და ხელოვნება.",
+                litText: "რელიგიურ ლიტერატურასთან ერთად ვითარდება საერო პოეზია და ეპოსი. მწერლები აღარ არიან შეზღუდულნი მხოლოდ ეკლესიური თემატიკით. ყურადღების ცენტრში ექცევა ადამიანი, მიწიერი სიყვარული, გმირობა და რაინდობა (რენესანსული იდეები).",
+                work: "„ვეფხისტყაოსანი“ (შოთა რუსთაველი) – უდიდესი საერო პოემა სიყვარულზე, მეგობრობასა და თავისუფლებაზე."
+            },
+            {
+                yearText: "XVII - XVIII ს.",
+                histText: "ქვეყანა დაყოფილია სამეფო-სამთავროებად და მუდმივად განიცდის სპარსელებისა და ოსმალების დამანგრეველ თავდასხმებს. ეკონომიკური დაცემა, კულტურულ-საგანმანათლებლო კერების განადგურება.",
+                litText: "ლიტერატურაში ასახულია ქვეყნის ტრაგიკული მდგომარეობა, ეროვნული სევდა და მტრის მიმართ პროტესტი. ლიტერატურას აქვს პატრიოტული და აღმზრდელობითი დანიშნულება, ხშირად აღიწერება დამარცხების მიზეზები და გამოსავლის ძიება.",
+                work: "„დავითიანი“ (დავით გურამიშვილი) – სადაც ასახულია აღმოსავლეთ საქართველოს ტრაგედია („ქართლის ჭირი“)."
+            },
+            {
+                yearText: "XIX საუკუნე",
+                histText: "საქართველო კარგავს დამოუკიდებლობას და ხდება რუსეთის იმპერიის ნაწილი. ერთი მხრივ, წყდება ფიზიკური განადგურების საფრთხე ტრადიციული მტრებისგან, მეორე მხრივ — იწყება რუსიფიკაცია და ეროვნული იდენტობის დაკარგვის საშიშროება.",
+                litText: "იბადება რომანტიზმი, მოგვიანებით კი რეალიზმი. ლიტერატურა ხდება ეროვნულ-განმათავისუფლებელი მოძრაობის (თერგდალეულები) მთავარი იარაღი. მთავარი თემებია: დაკარგული დიდებული წარსულის შენატრება და ეროვნული ძილქუშისგან გამოღვიძება.",
+                work: "„კაცია-ადამიანი?!“ (ილია ჭავჭავაძე) – მწვავე სატირა დეგრადირებულ საზოგადოებაზე."
+            },
+            {
+                yearText: "XX საუკუნე",
+                histText: "პირველი რესპუბლიკის ხანმოკლე დამოუკიდებლობა და შემდეგ საბჭოთა კავშირის მიერ ანექსია. ტოტალიტარული რეჟიმი, რეპრესიები, მეორე მსოფლიო ომი და ცენზურა.",
+                litText: "საუკუნის დასაწყისში ხდება ავანგარდული ძიებები (ცისფერყანწელები), მოდერნიზმი. შემდგომში საბჭოთა ცენზურა მოითხოვს „სოციალისტურ რეალიზმს“, თუმცა ბევრი მწერალი ახერხებს სიმბოლოებითა და ქვეტექსტებით ტოტალიტარიზმის კრიტიკას.",
+                work: "„მთვარის მოტაცება“ (კონსტანტინე გამსახურდია), გალაკტიონ ტაბიძის პოეზია."
+            }
+        ];
+
+        function updateEra() {
+            const index = document.getElementById('timeline').value;
+            const data = eras[index];
+            const display = document.getElementById('context-display');
+
+            // Quick fade out/in effect
+            display.style.opacity = 0;
+            
+            setTimeout(() => {
+                document.getElementById('active-year-display').textContent = data.yearText;
+                
+                display.innerHTML = `
+                    <div class="box hist-box">
+                        <div class="box-title h-title">🛡️ ისტორიული ვითარება</div>
+                        <div class="box-content">${data.histText}</div>
+                    </div>
+                    <div class="box lit-box">
+                        <div class="box-title l-title">📜 ლიტერატურის პასუხი</div>
+                        <div class="box-content">
+                            ${data.litText}
+                            <div class="work-highlight">
+                                <b>მაგალითი:</b> ${data.work}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                display.style.opacity = 1;
+            }, 150);
+        }
+
+        // Init
+        updateEra();
+    </script>
+</body>
+</html>

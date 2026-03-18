@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — ალგებრა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 700px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; border-color: #f59e0b; }
+        .eq-display { background: #0f172a; border-radius: 12px; padding: 25px; text-align: center; font-size: 1.8rem; font-family: 'Courier New', monospace; position: relative; border: 2px solid rgba(255,255,255,0.05); margin-bottom: 20px; min-height: 85px; display: flex; align-items: center; justify-content: center; }
+        .eq-display .hint { position: absolute; bottom: 5px; right: 10px; font-size: 0.7rem; color: #64748b; font-family: 'Noto Sans Georgian'; }
+        .input-row { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .input-row label { font-size: 0.9rem; color: #94a3b8; white-space: nowrap; }
+        input[type="number"], input[type="text"] { flex: 1; padding: 12px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New', monospace; font-size: 1.2rem; outline: none; text-align: center; }
+        input:focus { border-color: #f59e0b; }
+        .btn { padding: 14px 20px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 1rem; color: white; width: 100%; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-check { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+        .btn-next { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+        .btn-hint { background: #334155; margin-top: 10px; font-size: 0.85rem; }
+        .feedback { padding: 15px; border-radius: 10px; font-size: 0.9rem; text-align: center; display: none; margin-top: 15px; }
+        .feedback.correct { display: block; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; }
+        .feedback.wrong { display: block; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+        .score-bar { display: flex; justify-content: space-between; background: #0f172a; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); }
+        .score-val { font-weight: bold; color: #f59e0b; }
+        .steps { background: #0f172a; border-radius: 8px; padding: 15px; font-size: 0.8rem; color: #94a3b8; line-height: 1.8; display: none; margin-top: 10px; border-left: 3px solid #6366f1; }
+        .steps.show { display: block; }
+        .steps b { color: #a5b4fc; }
+        .graph-area { height: 200px; background: #0f172a; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-top: 15px; }
+        .graph-area canvas { width: 100%; height: 100%; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🧮 ალგებრა — განტოლებების ამოხსნა</h1>
+    <p class="subtitle">ამოხსენი განტოლება, შეამოწმე პასუხი და ნახე ნაბიჯ-ნაბიჯ ამონახსნი</p>
+    <div class="app">
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" id="tab-linear" onclick="setLevel('linear')">წრფივი (ax+b=c)</button>
+                <button class="tab" id="tab-quadratic" onclick="setLevel('quadratic')">კვადრატული (ax²+bx+c=0)</button>
+            </div>
+            <div class="score-bar">
+                <span>🎯 სწორი: <span class="score-val" id="score-correct">0</span></span>
+                <span>❌ შეცდომა: <span class="score-val" id="score-wrong" style="color:#ef4444;">0</span></span>
+                <span>🔥 სერია: <span class="score-val" id="score-streak" style="color:#22c55e;">0</span></span>
+            </div>
+            <div class="eq-display" id="eq-display">2x + 5 = 13<div class="hint">იპოვე x-ის მნიშვნელობა</div></div>
+            <div class="input-row">
+                <label>x =</label>
+                <input type="text" id="answer-x" placeholder="?" autofocus>
+                <span id="answer-x2-wrap" style="display:none;">
+                    <label style="margin-left:10px;">x₂ =</label>
+                    <input type="text" id="answer-x2" placeholder="?" style="width:80px;">
+                </span>
+            </div>
+            <button class="btn btn-check" onclick="checkAnswer()">✓ შემოწმება</button>
+            <button class="btn btn-hint" onclick="showHint()">💡 მინიშნება / ამონახსნის ნახვა</button>
+            <div class="feedback" id="feedback"></div>
+            <div class="steps" id="steps"></div>
+            <button class="btn btn-next" onclick="nextProblem()" style="margin-top:15px;">→ შემდეგი განტოლება</button>
+        </div>
+        <div class="card">
+            <div style="font-weight:bold; color:#6366f1; margin-bottom:10px;">📈 გრაფიკი (y = ფუნქცია)</div>
+            <div class="graph-area"><canvas id="graph"></canvas></div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        let level = 'linear';
+        let currentEq = {};
+        let correct = 0, wrong = 0, streak = 0;
+        const gCanvas = document.getElementById('graph');
+        const gCtx = gCanvas.getContext('2d');
+
+        function setLevel(l) {
+            level = l;
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.getElementById('tab-'+l).classList.add('active');
+            document.getElementById('answer-x2-wrap').style.display = l==='quadratic' ? 'inline-flex' : 'none';
+            nextProblem();
+        }
+
+        function randInt(min,max) { return Math.floor(Math.random()*(max-min+1))+min; }
+
+        function generateLinear() {
+            const a = randInt(1,12) * (Math.random()>0.3 ? 1 : -1);
+            const solution = randInt(-15,15);
+            const b = randInt(-20,20);
+            const c = a * solution + b;
+            return { a, b, c, solution, display: `${a===1?'':a===-1?'-':a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}` };
+        }
+
+        function generateQuadratic() {
+            // ax² + bx + c = 0, ensure integer roots
+            const x1 = randInt(-8,8);
+            const x2 = randInt(-8,8);
+            const a = 1;
+            const b = -(x1+x2);
+            const c = x1*x2;
+            const display = `x² ${b>=0?'+ '+b:'- '+Math.abs(b)}x ${c>=0?'+ '+c:'- '+Math.abs(c)} = 0`;
+            return { a, b, c, x1, x2, display };
+        }
+
+        function nextProblem() {
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('steps').className = 'steps';
+            document.getElementById('answer-x').value = '';
+            document.getElementById('answer-x2').value = '';
+
+            if(level === 'linear') {
+                currentEq = generateLinear();
+                document.getElementById('eq-display').innerHTML = currentEq.display + '<div class="hint">იპოვე x-ის მნიშვნელობა</div>';
+            } else {
+                currentEq = generateQuadratic();
+                document.getElementById('eq-display').innerHTML = currentEq.display + '<div class="hint">იპოვე x₁ და x₂</div>';
+            }
+            drawGraph();
+        }
+
+        function checkAnswer() {
+            const fb = document.getElementById('feedback');
+            const userX = parseFloat(document.getElementById('answer-x').value);
+
+            if(level === 'linear') {
+                if(userX === currentEq.solution) {
+                    fb.className = 'feedback correct';
+                    fb.innerHTML = `🎉 სწორია! x = ${currentEq.solution}`;
+                    correct++; streak++;
+                } else {
+                    fb.className = 'feedback wrong';
+                    fb.innerHTML = `❌ არასწორი. სწორი პასუხი: x = ${currentEq.solution}`;
+                    wrong++; streak = 0;
+                }
+            } else {
+                const userX2 = parseFloat(document.getElementById('answer-x2').value);
+                const sols = [currentEq.x1, currentEq.x2].sort((a,b)=>a-b);
+                const userSols = [userX, userX2].sort((a,b)=>a-b);
+                if((userSols[0]===sols[0] && userSols[1]===sols[1])) {
+                    fb.className = 'feedback correct';
+                    fb.innerHTML = `🎉 სწორია! x₁ = ${sols[0]}, x₂ = ${sols[1]}`;
+                    correct++; streak++;
+                } else {
+                    fb.className = 'feedback wrong';
+                    fb.innerHTML = `❌ არასწორი. სწორი პასუხი: x₁ = ${sols[0]}, x₂ = ${sols[1]}`;
+                    wrong++; streak = 0;
+                }
+            }
+            document.getElementById('score-correct').textContent = correct;
+            document.getElementById('score-wrong').textContent = wrong;
+            document.getElementById('score-streak').textContent = streak;
+        }
+
+        function showHint() {
+            const st = document.getElementById('steps');
+            st.className = 'steps show';
+            if(level === 'linear') {
+                const {a,b,c,solution} = currentEq;
+                st.innerHTML = `
+                    <b>ნაბიჯი 1:</b> ${a}x ${b>=0?'+'+b:b} = ${c}<br>
+                    <b>ნაბიჯი 2:</b> ${a}x = ${c} ${b>=0?'- '+b:'+ '+Math.abs(b)} = ${c-b}<br>
+                    <b>ნაბიჯი 3:</b> x = ${c-b} / ${a} = <b style="color:#22c55e">${solution}</b><br>
+                    <b>შემოწმება:</b> ${a}·(${solution}) ${b>=0?'+'+b:b} = ${a*solution+b} ✓
+                `;
+            } else {
+                const {a,b,c,x1,x2} = currentEq;
+                const D = b*b - 4*a*c;
+                st.innerHTML = `
+                    <b>ნაბიჯი 1:</b> x² ${b>=0?'+ '+b:'- '+Math.abs(b)}x ${c>=0?'+ '+c:'- '+Math.abs(c)} = 0<br>
+                    <b>ნაბიჯი 2:</b> D = b² - 4ac = ${b}² - 4·${a}·${c} = ${D}<br>
+                    <b>ნაბიჯი 3:</b> √D = ${Math.sqrt(D)}<br>
+                    <b>ნაბიჯი 4:</b> x₁ = (-b + √D) / 2a = (${-b} + ${Math.sqrt(D)}) / 2 = <b style="color:#22c55e">${x1}</b><br>
+                    <b>ნაბიჯი 5:</b> x₂ = (-b - √D) / 2a = (${-b} - ${Math.sqrt(D)}) / 2 = <b style="color:#22c55e">${x2}</b>
+                `;
+            }
+        }
+
+        function drawGraph() {
+            const parent = gCanvas.parentElement;
+            gCanvas.width = parent.offsetWidth * devicePixelRatio;
+            gCanvas.height = parent.offsetHeight * devicePixelRatio;
+            gCtx.scale(devicePixelRatio, devicePixelRatio);
+            const gW = parent.offsetWidth, gH = parent.offsetHeight;
+            gCtx.clearRect(0,0,gW,gH);
+
+            const cx = gW/2, cy = gH/2;
+            // Axes
+            gCtx.strokeStyle = 'rgba(255,255,255,0.15)'; gCtx.lineWidth = 1;
+            gCtx.beginPath(); gCtx.moveTo(0,cy); gCtx.lineTo(gW,cy); gCtx.stroke();
+            gCtx.beginPath(); gCtx.moveTo(cx,0); gCtx.lineTo(cx,gH); gCtx.stroke();
+            // Grid
+            const scale = 15;
+            for(let i=-20;i<=20;i++) {
+                gCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+                gCtx.beginPath(); gCtx.moveTo(cx+i*scale,0); gCtx.lineTo(cx+i*scale,gH); gCtx.stroke();
+                gCtx.beginPath(); gCtx.moveTo(0,cy+i*scale); gCtx.lineTo(gW,cy+i*scale); gCtx.stroke();
+            }
+            // Tick labels
+            gCtx.fillStyle = '#64748b'; gCtx.font = '9px Arial'; gCtx.textAlign = 'center';
+            for(let i=-10;i<=10;i+=5) { if(i!==0) gCtx.fillText(i, cx+i*scale, cy+12); }
+
+            // Draw function
+            gCtx.beginPath(); gCtx.strokeStyle = '#f59e0b'; gCtx.lineWidth = 2;
+            for(let px=0; px<gW; px++) {
+                const x = (px - cx) / scale;
+                let y;
+                if(level === 'linear') {
+                    y = currentEq.a * x + currentEq.b; // y = ax + b
+                } else {
+                    y = currentEq.a * x*x + currentEq.b * x + currentEq.c; // y = ax²+bx+c
+                }
+                const py = cy - y * scale;
+                if(px === 0) gCtx.moveTo(px, py); else gCtx.lineTo(px, py);
+            }
+            gCtx.stroke();
+
+            // Mark roots
+            if(level === 'linear') {
+                const rootPx = cx + currentEq.solution * scale;
+                gCtx.beginPath(); gCtx.arc(rootPx, cy, 5, 0, Math.PI*2);
+                gCtx.fillStyle = '#22c55e'; gCtx.fill();
+                gCtx.fillText(`x=${currentEq.solution}`, rootPx, cy + 20);
+            } else {
+                [currentEq.x1, currentEq.x2].forEach(r => {
+                    const rootPx = cx + r * scale;
+                    gCtx.beginPath(); gCtx.arc(rootPx, cy, 5, 0, Math.PI*2);
+                    gCtx.fillStyle = '#22c55e'; gCtx.fill();
+                    gCtx.fillStyle = '#22c55e'; gCtx.fillText(`x=${r}`, rootPx, cy + 20);
+                });
+            }
+        }
+
+        // Enter key to check
+        document.getElementById('answer-x').addEventListener('keydown', e=>{ if(e.key==='Enter') checkAnswer(); });
+        document.getElementById('answer-x2').addEventListener('keydown', e=>{ if(e.key==='Enter') checkAnswer(); });
+
+        nextProblem();
+    </script>
+</body>
+</html>

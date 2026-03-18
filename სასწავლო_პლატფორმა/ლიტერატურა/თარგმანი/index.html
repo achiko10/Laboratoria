@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — თარგმანი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Georgian:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap'); /* For English */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif Georgian', serif; background: #f8fafc; color: #0f172a; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #4338ca; font-weight: bold; }
+        .subtitle { text-align: center; color: #6366f1; font-size: 0.85rem; margin-bottom: 30px; font-family: sans-serif; }
+        
+        .app { max-width: 1000px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #c7d2fe; box-shadow: 0 10px 25px rgba(67, 56, 202, 0.1); }
+
+        .transl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 800px) { .transl-grid { grid-template-columns: 1fr; } }
+        
+        .t-col { display: flex; flex-direction: column; gap: 10px; }
+        .t-header { font-family: sans-serif; font-weight: bold; font-size: 1rem; color: #fff; background: #6366f1; padding: 10px; border-radius: 8px; text-align: center;}
+        
+        .t-text { background: #eef2ff; padding: 20px; border-radius: 8px; border: 1px solid #c7d2fe; font-size: 1.1rem; line-height: 1.8; flex: 1;}
+        .t-original { font-family: 'Lora', serif; background: #f1f5f9; border-color: #cbd5e1; color: #334155;}
+        
+        /* Highlightable words */
+        .h-word { cursor: pointer; border-bottom: 2px dotted #8b5cf6; padding-bottom: 2px; transition: 0.2s; position: relative; }
+        .h-word:hover, .h-word.active { background: #ddd6fe; border-bottom-color: #6d28d9; color: #4c1d95; }
+        
+        .h-word-orig:hover, .h-word-orig.active { background: #e2e8f0; border-bottom-color: #475569; color: #0f172a; }
+
+        /* Panel */
+        .analysis-panel { background: #fefce8; border: 1px solid #fde047; border-left: 5px solid #eab308; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; transition: 0.3s;}
+        .ap-title { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; color: #854d0e; display: flex; align-items: center; gap: 10px;}
+        .ap-desc { font-size: 0.95rem; color: #713f12; line-height: 1.6; }
+        
+        .insight-badge { background: #fef08a; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-family: sans-serif; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e0e7ff; color: #4338ca; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #c7d2fe; font-family: sans-serif; text-align: center;}
+        .back-btn:hover { background: #c7d2fe; color: #3730a3; }
+        
+        /* Switch works button */
+        .controls { text-align: center; margin-bottom: 20px; }
+        .btn { padding: 8px 15px; border-radius: 8px; border: none; background: #6366f1; color: #fff; font-weight: bold; cursor: pointer;}
+    </style>
+</head>
+<body>
+    <h1 style="font-family: sans-serif;">🌍 თარგმანი და ეკვივალენტობა</h1>
+    <p class="subtitle">დააკლიკეთ ხაზგასმულ სიტყვებს, რათა შეადაროთ როგორ თარგმნა ორი სხვადასხვა ავტორმა ერთი ორიგინალი</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="transl-grid">
+                
+                <div class="t-col">
+                    <div class="t-header" style="background:#475569;">🇬🇧 ორიგინალი (უ. შექსპირი)</div>
+                    <div class="t-text t-original">
+                        "<span class="h-word h-word-orig" data-link="1">To be, or not to be</span>, that is the <span class="h-word h-word-orig" data-link="2">question</span>: <br>
+                        Whether 'tis nobler in the mind to suffer <br>
+                        The <span class="h-word h-word-orig" data-link="3">slings and arrows of outrageous fortune</span>..."
+                        <br><br><span style="font-size:0.8rem; color:#64748b;">(Hamlet, Act 3, Scene 1)</span>
+                    </div>
+                </div>
+
+                <div class="t-col">
+                    <div class="t-header">🇬🇪 თარგმანი 1 (ივანე მაჩაბელი)</div>
+                    <div class="t-text">
+                        „<span class="h-word" data-link="1">ყოფნა? არ ყოფნა?</span> <span class="h-word" data-link="2">საკითხავი</span> აი, ეს არის:<br>
+                        სულის სიმდაბლე უფრო არის, რომ დაემორჩილოს<br>
+                        <span class="h-word" data-link="3">ბედის მუხთლობას და ყოველს მის ისარსა და ქვას</span>...“
+                    </div>
+                </div>
+
+                <div class="t-col">
+                    <div class="t-header" style="background:#8b5cf6;">🇬🇪 თარგმანი 2 (ოთარ ჭილაძე)</div>
+                    <div class="t-text">
+                        „<span class="h-word" data-link="1">ვიყოთ, არ ვიყოთ</span>, აი, რაშია <span class="h-word" data-link="2">საცნაურლი</span>:<br>
+                        რა უკეთესია — დავემორჩილოთ და ავიტანოთ<br>
+                        <span class="h-word" data-link="3">ამ გაცოფებული ბედისწერის ქვა და შურდული</span>...“
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="analysis-panel" id="analysis-panel">
+                <div class="ap-title">
+                    <span id="ap-title">ანალიზი</span>
+                    <span class="insight-badge" id="ap-badge">მთარგმნელობითი გადაწყვეტა</span>
+                </div>
+                <div class="ap-desc" id="ap-desc"></div>
+            </div>
+
+            <div style="font-family:sans-serif; font-size:0.85rem; color:#64748b; margin-top:20px; text-align:center;">
+                მთარგმნელობითი საქმიანობა არ არის მხოლოდ სიტყვების გამოცვლა. ეს არის კულტურის, რიტმისა და ემოციის გადატანა სხვა ენაზე.
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const insights = {
+            1: {
+                title: "To be, or not to be", type: "ფილოსოფიური ეკვივალენტობა",
+                desc: "1. <b>ყოფნა? არ-ყოფნა?</b> (მაჩაბელი): იყენებს არსებით სახელებს, უფრო სტატიკურს, მარადიულს.<br>2. <b>ვიყოთ, არ ვიყოთ</b>: იყენებს ზმნებს (რა ვაკეთოთ?), უფრო დინამიურია და პირდაპირ ქმედებაზე/არსებობაზე მიუთითებს. ინგლისური 'To be' არის საწყისი (infinitive), რომლის ზუსტი კალკი ქართულში არაბუნებრივია ('ყოფნა ან არ ყოფნა')."
+            },
+            2: {
+                title: "The question", type: "კონტექსტური თარგმანი",
+                desc: "შექსპირი იყენებს სიტყვას 'question' (შეკითხვა, საკითხი).<br>1. <b>საკითხავი</b> (მაჩაბელი) სიტყვა-სიტყვითი თარგმანია, მაგრამ ქართულში პოეტურად ჟღერს.<br>2. <b>საცნაურლი / საცნაური</b> (ჭილაძე) ნიშნავს იმას, რაც უნდა შევიცნოთ, ამოვიცნოთ. ეს უფრო ფილოსოფიური, გააზრებული ინტერპრეტაციაა გამოწვევისა, ვიდრე უბრალო 'კითხვა'."
+            },
+            3: {
+                title: "Slings and arrows of outrageous fortune", type: "მეტაფორის ადაპტაცია",
+                desc: "ორიგინალში არის 'აღშფოთებული/სასტიკი ბედისწერის შურდულები და ისრები'.<br>1. <b>მაჩაბელი:</b> 'ბედის მუხთლობას და მისს ისარსა და ქვას'. 'მუხთლობა' ძალიან ქართული კონცეპტია ბედთან მიმართებაში (მუხთალი საწუთრო).<br>2. <b>ჭილაძე:</b> 'გაცოფებული ბედისწერის ქვა და შურდული'. აქ შენარჩუნებულია 'sling' (შურდული) და 'outrageous'-ის საკმაოდ აგრესიული თარგმანი — 'გაცოფებული'."
+            }
+        };
+
+        const words = document.querySelectorAll('.h-word');
+        const panel = document.getElementById('analysis-panel');
+
+        words.forEach(w => {
+            w.addEventListener('click', function() {
+                const linkId = this.getAttribute('data-link');
+                
+                // Remove active from all, add to matched
+                words.forEach(el => el.classList.remove('active'));
+                document.querySelectorAll(`.h-word[data-link="${linkId}"]`).forEach(el => el.classList.add('active'));
+
+                // Show panel
+                const data = insights[linkId];
+                if(data) {
+                    document.getElementById('ap-title').innerHTML = `შეფასება: "${data.title}"`;
+                    document.getElementById('ap-badge').textContent = data.type;
+                    document.getElementById('ap-desc').innerHTML = data.desc;
+                    
+                    panel.style.display = 'block';
+                    panel.style.animation = 'none';
+                    panel.offsetHeight;
+                    panel.style.animation = 'fadeIn 0.3s ease-out';
+                }
+            });
+        });
+
+        // Add CSS for fade in dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }`;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>

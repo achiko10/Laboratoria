@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — მონაცემთა ბაზები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 850px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .card { background: #1e293b; border-radius: 16px; padding: 18px; border: 1px solid rgba(255,255,255,0.05); }
+        .card h3 { font-size: 0.9rem; margin-bottom: 10px; }
+        textarea { width: 100%; height: 120px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; font-family: 'Courier New'; font-size: 0.85rem; padding: 10px; resize: vertical; outline: none; tab-size: 2; }
+        textarea:focus { border-color: #8b5cf6; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-run { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+        .btn-sample { background: #334155; font-size: 0.75rem; }
+        .result-table-wrap { overflow-x: auto; max-height: 250px; overflow-y: auto; background: #0f172a; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        table th { background: #334155; padding: 8px; text-align: left; font-size: 0.75rem; color: #94a3b8; position: sticky; top: 0; }
+        table td { padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: 'Courier New'; font-size: 0.8rem; }
+        table tr:hover { background: rgba(255,255,255,0.03); }
+        .msg { padding: 10px; border-radius: 6px; font-size: 0.8rem; margin-top: 8px; }
+        .msg.success { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .msg.error { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .presets { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+        .preset { padding: 5px 8px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; color: #94a3b8; cursor: pointer; font-family: 'Courier New'; font-size: 0.65rem; transition: 0.2s; }
+        .preset:hover { background: #334155; color: #f8fafc; }
+        .schema { background: #0f172a; border-radius: 8px; padding: 10px; font-family: 'Courier New'; font-size: 0.7rem; color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); max-height: 150px; overflow-y: auto; line-height: 1.5; }
+        .info-box { background: #0f172a; border-left: 3px solid #8b5cf6; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; line-height: 1.5; }
+        .info-box b { color: #c4b5fd; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🗄️ SQL მონაცემთა ბაზის სიმულატორი</h1>
+    <p class="subtitle">ჩაწერე SQL მოთხოვნა, გაუშვი — ისწავლე SELECT, INSERT, UPDATE, DELETE</p>
+    <div class="app">
+        <div class="card">
+            <h3 style="color:#8b5cf6;">✏️ SQL მოთხოვნა</h3>
+            <div class="presets">
+                <button class="preset" onclick="setQuery('SELECT * FROM students')">SELECT *</button>
+                <button class="preset" onclick="setQuery(`SELECT name, grade FROM students WHERE grade >= 90`)">WHERE</button>
+                <button class="preset" onclick="setQuery(`SELECT * FROM students ORDER BY grade DESC`)">ORDER BY</button>
+                <button class="preset" onclick="setQuery(`SELECT COUNT(*) as total, AVG(grade) as avg_grade FROM students`)">COUNT/AVG</button>
+                <button class="preset" onclick="setQuery(`INSERT INTO students (name, age, grade, city) VALUES ('ნინო', 16, 95, 'ბათუმი')`)">INSERT</button>
+                <button class="preset" onclick="setQuery(`UPDATE students SET grade = 100 WHERE name = 'ანა'`)">UPDATE</button>
+                <button class="preset" onclick="setQuery(`DELETE FROM students WHERE grade < 60`)">DELETE</button>
+            </div>
+            <textarea id="sql-input" spellcheck="false">SELECT * FROM students</textarea>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <button class="btn btn-run" onclick="executeSQL()">▶ გაშვება</button>
+                <button class="btn btn-sample" onclick="resetDB()">↺ ბაზის აღდგენა</button>
+            </div>
+            <div id="sql-msg"></div>
+            <div style="margin-top:10px;">
+                <div style="font-size:0.8rem; color:#64748b; margin-bottom:5px;">სქემა:</div>
+                <div class="schema" id="schema"></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 style="color:#ec4899;">📊 შედეგი</h3>
+            <div class="result-table-wrap" id="result-area">
+                <div style="padding:20px; text-align:center; color:#64748b; font-size:0.8rem;">SQL მოთხოვნის შედეგი აქ გამოჩნდება</div>
+            </div>
+            <div class="info-box" style="margin-top:10px;">
+                <b>SQL ბრძანებები:</b><br>
+                <b>SELECT</b> — მონაცემების წაკითხვა<br>
+                <b>INSERT INTO</b> — ახალი ჩანაწერის დამატება<br>
+                <b>UPDATE</b> — არსებული მონაცემის შეცვლა<br>
+                <b>DELETE</b> — ჩანაწერის წაშლა<br>
+                <b>WHERE</b> — პირობა, ფილტრი<br>
+                <b>ORDER BY</b> — დალაგება (ASC/DESC)
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        let db = [];
+        const defaultData = [
+            { id: 1, name: 'ანა', age: 15, grade: 92, city: 'თბილისი' },
+            { id: 2, name: 'გიორგი', age: 16, grade: 78, city: 'ქუთაისი' },
+            { id: 3, name: 'მარიამ', age: 15, grade: 95, city: 'თბილისი' },
+            { id: 4, name: 'დავით', age: 17, grade: 88, city: 'ბათუმი' },
+            { id: 5, name: 'თამარ', age: 16, grade: 55, city: 'რუსთავი' },
+            { id: 6, name: 'ლუკა', age: 15, grade: 72, city: 'ქუთაისი' },
+            { id: 7, name: 'სოფო', age: 17, grade: 98, city: 'თბილისი' },
+            { id: 8, name: 'ნიკა', age: 16, grade: 65, city: 'ბათუმი' },
+        ];
+
+        function resetDB() {
+            db = JSON.parse(JSON.stringify(defaultData));
+            updateSchema();
+            showMsg('ბაზა აღდგენილია (' + db.length + ' ჩანაწერი)', 'success');
+        }
+
+        function updateSchema() {
+            document.getElementById('schema').innerHTML = `<b style="color:#8b5cf6">students</b> (${db.length} rows)\n` +
+                `  id     INT  PRIMARY KEY\n  name   TEXT\n  age    INT\n  grade  INT\n  city   TEXT`;
+        }
+
+        function setQuery(q) {
+            document.getElementById('sql-input').value = q;
+        }
+
+        function showMsg(text, type) {
+            document.getElementById('sql-msg').innerHTML = `<div class="msg ${type}">${text}</div>`;
+        }
+
+        function renderTable(data, columns) {
+            if (!data || data.length === 0) {
+                document.getElementById('result-area').innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:0.8rem;">ცარიელი შედეგი (0 ჩანაწერი)</div>';
+                return;
+            }
+            const cols = columns || Object.keys(data[0]);
+            let html = '<table><tr>' + cols.map(c => '<th>' + c + '</th>').join('') + '</tr>';
+            data.forEach(row => {
+                html += '<tr>' + cols.map(c => '<td>' + (row[c] !== undefined ? row[c] : '') + '</td>').join('') + '</tr>';
+            });
+            html += '</table>';
+            document.getElementById('result-area').innerHTML = html;
+        }
+
+        function executeSQL() {
+            const raw = document.getElementById('sql-input').value.trim();
+            if (!raw) return;
+            const sql = raw.replace(/\s+/g, ' ').trim();
+            const upper = sql.toUpperCase();
+
+            try {
+                if (upper.startsWith('SELECT')) {
+                    executeSelect(sql);
+                } else if (upper.startsWith('INSERT')) {
+                    executeInsert(sql);
+                } else if (upper.startsWith('UPDATE')) {
+                    executeUpdate(sql);
+                } else if (upper.startsWith('DELETE')) {
+                    executeDelete(sql);
+                } else {
+                    showMsg('❌ მხარდაჭერილი ბრძანებები: SELECT, INSERT, UPDATE, DELETE', 'error');
+                }
+            } catch (e) {
+                showMsg('❌ SQL შეცდომა: ' + e.message, 'error');
+            }
+        }
+
+        function executeSelect(sql) {
+            const upper = sql.toUpperCase();
+            let results = [...db];
+
+            // WHERE
+            const whereMatch = sql.match(/WHERE\s+(.+?)(?:\s+ORDER|\s+LIMIT|\s*$)/i);
+            if (whereMatch) {
+                const condition = whereMatch[1].trim();
+                results = results.filter(row => evaluateWhere(row, condition));
+            }
+
+            // ORDER BY
+            const orderMatch = sql.match(/ORDER\s+BY\s+(\w+)\s*(ASC|DESC)?/i);
+            if (orderMatch) {
+                const col = orderMatch[1].toLowerCase();
+                const dir = (orderMatch[2] || 'ASC').toUpperCase();
+                results.sort((a, b) => {
+                    const va = a[col], vb = b[col];
+                    if (typeof va === 'number') return dir === 'ASC' ? va - vb : vb - va;
+                    return dir === 'ASC' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+                });
+            }
+
+            // LIMIT
+            const limitMatch = sql.match(/LIMIT\s+(\d+)/i);
+            if (limitMatch) results = results.slice(0, +limitMatch[1]);
+
+            // Column selection
+            const colMatch = sql.match(/SELECT\s+(.+?)\s+FROM/i);
+            let columns = null;
+            if (colMatch) {
+                const colStr = colMatch[1].trim();
+                if (colStr !== '*') {
+                    // Check for aggregate functions
+                    if (/COUNT|AVG|SUM|MIN|MAX/i.test(colStr)) {
+                        const aggResult = computeAggregates(colStr, results);
+                        renderTable([aggResult]);
+                        showMsg(`✅ ${results.length} ჩანაწერი დამუშავდა`, 'success');
+                        return;
+                    }
+                    columns = colStr.split(',').map(c => c.trim().toLowerCase());
+                    results = results.map(row => {
+                        const newRow = {};
+                        columns.forEach(c => { if (row[c] !== undefined) newRow[c] = row[c]; });
+                        return newRow;
+                    });
+                }
+            }
+
+            renderTable(results, columns);
+            showMsg(`✅ ${results.length} ჩანაწერი ნაპოვნია`, 'success');
+        }
+
+        function evaluateWhere(row, condition) {
+            // Handle simple conditions: column op value
+            const match = condition.match(/(\w+)\s*(>=|<=|!=|=|>|<|LIKE)\s*'?([^']*)'?/i);
+            if (!match) return true;
+            const col = match[1].toLowerCase();
+            const op = match[2].toUpperCase();
+            let val = match[3];
+            let rowVal = row[col];
+            if (rowVal === undefined) return false;
+
+            // Try numeric comparison
+            if (!isNaN(val) && typeof rowVal === 'number') val = +val;
+
+            switch (op) {
+                case '=': return rowVal == val;
+                case '!=': return rowVal != val;
+                case '>': return rowVal > val;
+                case '<': return rowVal < val;
+                case '>=': return rowVal >= val;
+                case '<=': return rowVal <= val;
+                case 'LIKE': return String(rowVal).includes(val.replace(/%/g, ''));
+                default: return true;
+            }
+        }
+
+        function computeAggregates(colStr, data) {
+            const result = {};
+            const parts = colStr.split(',');
+            parts.forEach(part => {
+                part = part.trim();
+                const aliasMatch = part.match(/\s+as\s+(\w+)/i);
+                const alias = aliasMatch ? aliasMatch[1] : part;
+                const funcMatch = part.match(/(COUNT|AVG|SUM|MIN|MAX)\s*\(\s*(\*|\w+)\s*\)/i);
+                if (funcMatch) {
+                    const func = funcMatch[1].toUpperCase();
+                    const col = funcMatch[2].toLowerCase();
+                    if (func === 'COUNT') result[alias] = data.length;
+                    else {
+                        const vals = data.map(r => r[col]).filter(v => typeof v === 'number');
+                        if (func === 'AVG') result[alias] = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2);
+                        else if (func === 'SUM') result[alias] = vals.reduce((a, b) => a + b, 0);
+                        else if (func === 'MIN') result[alias] = Math.min(...vals);
+                        else if (func === 'MAX') result[alias] = Math.max(...vals);
+                    }
+                }
+            });
+            return result;
+        }
+
+        function executeInsert(sql) {
+            const match = sql.match(/INSERT\s+INTO\s+\w+\s*\((.+?)\)\s*VALUES\s*\((.+?)\)/i);
+            if (!match) throw new Error('INSERT სინტაქსი: INSERT INTO table (col1, col2) VALUES (val1, val2)');
+            const cols = match[1].split(',').map(c => c.trim().toLowerCase());
+            const vals = match[2].split(',').map(v => {
+                v = v.trim().replace(/^'|'$/g, '');
+                return isNaN(v) ? v : +v;
+            });
+            const newRow = { id: db.length > 0 ? Math.max(...db.map(r => r.id)) + 1 : 1 };
+            cols.forEach((c, i) => { newRow[c] = vals[i]; });
+            db.push(newRow);
+            updateSchema();
+            renderTable(db);
+            showMsg(`✅ 1 ჩანაწერი დამატებულია (id: ${newRow.id})`, 'success');
+        }
+
+        function executeUpdate(sql) {
+            const setMatch = sql.match(/SET\s+(.+?)(?:\s+WHERE|$)/i);
+            const whereMatch = sql.match(/WHERE\s+(.+)/i);
+            if (!setMatch) throw new Error('UPDATE სინტაქსი: UPDATE table SET col=val WHERE condition');
+            const setPart = setMatch[1].trim();
+            const setExpr = setPart.match(/(\w+)\s*=\s*'?([^',]*)'?/i);
+            if (!setExpr) throw new Error('SET სინტაქსი არასწორია');
+            const setCol = setExpr[1].toLowerCase();
+            let setVal = setExpr[2].trim();
+            if (!isNaN(setVal)) setVal = +setVal;
+            let count = 0;
+            db.forEach(row => {
+                if (!whereMatch || evaluateWhere(row, whereMatch[1])) {
+                    row[setCol] = setVal;
+                    count++;
+                }
+            });
+            renderTable(db);
+            showMsg(`✅ ${count} ჩანაწერი განახლებულია`, 'success');
+        }
+
+        function executeDelete(sql) {
+            const whereMatch = sql.match(/WHERE\s+(.+)/i);
+            if (!whereMatch) throw new Error('DELETE-ს WHERE აუცილებელია უსაფრთხოებისთვის');
+            const before = db.length;
+            db = db.filter(row => !evaluateWhere(row, whereMatch[1]));
+            updateSchema();
+            renderTable(db);
+            showMsg(`✅ ${before - db.length} ჩანაწერი წაშლილია`, 'success');
+        }
+
+        // Tab support
+        document.getElementById('sql-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') { e.preventDefault(); const s = this.selectionStart; this.value = this.value.substring(0, s) + '  ' + this.value.substring(this.selectionEnd); this.selectionStart = this.selectionEnd = s + 2; }
+        });
+
+        resetDB();
+    </script>
+</body>
+</html>

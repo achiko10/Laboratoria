@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — მეწარმეობა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #faf5ff; color: #4c1d95; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #6d28d9; font-weight: bold;}
+        .subtitle { text-align: center; color: #8b5cf6; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e9d5ff; box-shadow: 0 4px 15px rgba(109, 40, 217, 0.1); }
+
+        /* Dashboard */
+        .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;}
+        .dash-box { background: #f3e8ff; border: 1px solid #d8b4fe; padding: 15px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center;}
+        
+        .db-title { font-size: 0.8rem; font-weight: bold; color: #7c3aed; text-transform: uppercase; margin-bottom: 5px;}
+        .db-val { font-size: 1.5rem; color: #4c1d95; font-weight: bold; font-family: monospace;}
+
+        /* Controls */
+        .invest-area { background: #fdf4ff; border: 2px dashed #f0abfc; padding: 20px; border-radius: 10px;}
+        .ia-title { font-weight: bold; color: #a21caf; margin-bottom: 15px; font-size: 1.1rem;}
+        
+        .slider-group { margin-bottom: 15px; }
+        .sg-label { display: flex; justify-content: space-between; font-weight: bold; color: #86198f; font-size: 0.9rem; margin-bottom: 5px;}
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: #fbcfe8; border-radius: 4px; outline: none; transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #c026d3; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: 0.2s; }
+        input[type="range"]:disabled::-webkit-slider-thumb { background: #cbd5e1; }
+
+        .btn-advance { width: 100%; padding: 15px; background: #9333ea; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; margin-top: 20px; box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3);}
+        .btn-advance:hover { background: #7e22ce; transform: translateY(-2px);}
+        .btn-advance:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none;}
+
+        /* Logs / Events */
+        .logs-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; height: 100%; display: flex; flex-direction: column;}
+        .la-title { font-weight: bold; color: #334155; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 10px;}
+        
+        .log-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; padding-right: 5px;}
+        .log-item { background: #fff; padding: 10px; border-radius: 6px; border-left: 3px solid #64748b; box-shadow: 0 1px 3px rgba(0,0,0,0.05); animation: fadeIn 0.3s;}
+        
+        .log-good { border-color: #10b981; }
+        .log-bad { border-color: #ef4444; }
+        .log-info { border-color: #3b82f6; }
+
+        @keyframes fadeIn { from {opacity:0; transform:translateX(-10px);} to {opacity:1; transform:translateX(0);} }
+
+        /* End Screen */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:100;}
+        .modal-content { background: #fff; padding: 30px; border-radius: 15px; max-width: 400px; text-align: center; border: 4px solid #a855f7;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #f3e8ff; color: #6d28d9; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #d8b4fe; text-align: center;}
+        .back-btn:hover { background: #d8b4fe; color: #5b21b6; }
+    </style>
+</head>
+<body>
+    <h1>🚀 მეწარმეობა</h1>
+    <p class="subtitle">მართე სტარტაპი 12 თვის განმავლობაში. სწორად გადაანაწილე ინვესტიციები, რომ მოგებაზე გახვიდე!</p>
+    
+    <div class="app">
+        <!-- Main Game Area -->
+        <div class="card">
+            
+            <div class="dash-grid">
+                <div class="dash-box">
+                    <div class="db-title">თვე</div>
+                    <div class="db-val" id="d-month">1 / 12</div>
+                </div>
+                <div class="dash-box">
+                    <div class="db-title">ბიუჯეტი</div>
+                    <div class="db-val" id="d-funds" style="color:#059669;">5000 ₾</div>
+                </div>
+                <div class="dash-box">
+                    <div class="db-title">კლიენტები</div>
+                    <div class="db-val" id="d-cust" style="color:#ca8a04;">0</div>
+                </div>
+            </div>
+
+            <div class="invest-area">
+                <div class="ia-title">ინვესტიციების გადანაწილება (ერთ თვეზე):</div>
+                
+                <div class="slider-group">
+                    <div class="sg-label"><span>🛠️ პროდუქტის ხარისხი</span> <span id="v-prod">0 ₾</span></div>
+                    <input type="range" id="sl-prod" min="0" max="2000" step="100" value="500" oninput="updateCost()">
+                </div>
+                
+                <div class="slider-group">
+                    <div class="sg-label"><span>📣 მარკეტინგი</span> <span id="v-mark">0 ₾</span></div>
+                    <input type="range" id="sl-mark" min="0" max="2000" step="100" value="500" oninput="updateCost()">
+                </div>
+                
+                <div class="slider-group">
+                    <div class="sg-label"><span>🤝 მომსახურება (სერვისი)</span> <span id="v-serv">0 ₾</span></div>
+                    <input type="range" id="sl-serv" min="0" max="2000" step="100" value="200" oninput="updateCost()">
+                </div>
+
+                <div style="font-size:0.9rem; font-weight:bold; color:#be185d; text-align:right; margin-top:10px;">
+                    ჯამური ხარჯი თვეში: <span id="total-cost">1200</span> ₾
+                </div>
+                
+                <div id="warn-msg" style="color:#ef4444; font-size:0.8rem; font-weight:bold; text-align:right; height:15px;"></div>
+            </div>
+
+            <button class="btn-advance" id="btn-next" onclick="nextMonth()">თვიური ანგარიშის დახურვა ➞</button>
+        </div>
+
+        <!-- Logs Sidebar -->
+        <div class="logs-area">
+            <div class="la-title">📊 კომპანიის ისტორია</div>
+            <div class="log-list" id="log-list">
+                <div class="log-item log-info"><b>თვე 1:</b> კომპანია დარეგისტრირდა. საწყისი კაპიტალი: 5000₾. წარმატებები!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal End -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div style="font-size: 4rem; margin-bottom: 20px;" id="m-icon">🎯</div>
+            <h2 style="color: #6d28d9; margin-bottom: 10px;" id="m-title">სტარტაპი...</h2>
+            <p style="color: #475569; margin-bottom: 25px; line-height:1.5;" id="m-desc">მიზეზები</p>
+            <button onclick="window.location.reload()" style="padding:10px 20px; background:#a855f7; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">თავიდან თამაში</button>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        let state = {
+            month: 1,
+            funds: 5000,
+            customers: 0,
+            reputation: 50 // 0-100 scale, affects customer retention
+        };
+
+        const MAX_MONTHS = 12;
+
+        const slP = document.getElementById('sl-prod');
+        const slM = document.getElementById('sl-mark');
+        const slS = document.getElementById('sl-serv');
+        const totalsSpan = document.getElementById('total-cost');
+        const warnMsg = document.getElementById('warn-msg');
+        const btnNext = document.getElementById('btn-next');
+        const list = document.getElementById('log-list');
+
+        function updateUI() {
+            document.getElementById('d-month').textContent = `${state.month} / ${MAX_MONTHS}`;
+            document.getElementById('d-funds').textContent = Math.floor(state.funds) + ' ₾';
+            document.getElementById('d-cust').textContent = Math.floor(state.customers);
+        }
+
+        function updateCost() {
+            const sum = parseInt(slP.value) + parseInt(slM.value) + parseInt(slS.value);
+            document.getElementById('v-prod').textContent = slP.value + ' ₾';
+            document.getElementById('v-mark').textContent = slM.value + ' ₾';
+            document.getElementById('v-serv').textContent = slS.value + ' ₾';
+            totalsSpan.textContent = sum;
+
+            if (sum > state.funds && state.funds > 0) {
+                warnMsg.textContent = "ხარჯები აღემატება ბიუჯეტს!";
+                btnNext.disabled = true;
+            } else {
+                warnMsg.textContent = "";
+                btnNext.disabled = false;
+            }
+        }
+
+        function logEvent(text, type) {
+            const div = document.createElement('div');
+            div.className = `log-item log-${type}`;
+            div.innerHTML = `<b>თვე ${state.month}:</b> ${text}`;
+            list.prepend(div);
+        }
+
+        function endGame(won, reason) {
+            const m = document.getElementById('modal');
+            const tit = document.getElementById('m-title');
+            const desc = document.getElementById('m-desc');
+            const ic = document.getElementById('m-icon');
+            
+            m.style.display = 'flex';
+            if(won) {
+                tit.textContent = "წარმატებული სტარტაპი!";
+                ic.textContent = "🏆";
+                desc.textContent = `გილოცავ! 12 თვის შემდეგ კომპანიას დარჩა ${Math.floor(state.funds)}₾ და ${Math.floor(state.customers)} ლოიალური კლიენტი. მეწარმის უნარები ნამდვილად გაქვს!`;
+            } else {
+                tit.textContent = "გაკოტრება!";
+                ic.textContent = "📉";
+                desc.textContent = reason;
+            }
+        }
+
+        function nextMonth() {
+            const costProd = parseInt(slP.value);
+            const costMark = parseInt(slM.value);
+            const costServ = parseInt(slS.value);
+            const totalCost = costProd + costMark + costServ;
+
+            // Deduct cost
+            state.funds -= totalCost;
+
+            // Simple business model logic
+            
+            // 1. Marketing brings NEW customers. But efficiency drops if product is bad.
+            let newCust = (costMark / 50) * (state.reputation / 50);
+            
+            // 2. Product Quality boosts reputation heavily, prevents churn
+            if(costProd > 500) state.reputation += 10;
+            else if(costProd < 200) state.reputation -= 15;
+            
+            // 3. Service boosts reputation slightly, retains existing customers
+            if(costServ > 400) state.reputation += 5;
+            else if(costServ < 100) state.reputation -= 10;
+
+            state.reputation = Math.max(0, Math.min(100, state.reputation));
+
+            // Customer Churn
+            let lostCust = state.customers * ((100 - state.reputation) / 100) * 0.5;
+
+            state.customers = Math.max(0, state.customers + newCust - lostCust);
+
+            // Revenue: Every customer brings ~50 GEL profit this month
+            const revenue = state.customers * 50;
+            state.funds += revenue;
+
+            // Log Results
+            let logType = revenue > totalCost ? 'good' : 'bad';
+            if (revenue === 0) logType = 'info';
+
+            logEvent(`შემოსავალი: +${Math.floor(revenue)}₾, ხარჯი: -${totalCost}₾, კლიენტები: ${Math.floor(state.customers)}`, logType);
+
+            // Special events / warnings
+            if(state.reputation < 30) logEvent("⚠️ ყურადღება ხარისხზე! ცუდი მომსახურების გამო კლიენტები იკარგებიან.", "bad");
+
+            // Evaluate Win/Loss
+            if (state.funds < 0) {
+                updateUI();
+                return endGame(false, "კომპანიას ფული გამოელია. ხარჯები აღემატებოდა შემოსავლებს. ბიზნესმა ვერ გაამართლა.");
+            }
+
+            if (state.month >= MAX_MONTHS) {
+                updateUI();
+                if (state.funds > 5000) {
+                    return endGame(true, "");
+                } else {
+                    return endGame(false, `12 თვე გავიდა, მაგრამ საწყისი კაპიტალი (5000₾) ვერ გაზარდეთ. ბალანსი: ${Math.floor(state.funds)}₾. სტარტაპი გრძელვადიანად ვერ იარსებებს.`);
+                }
+            }
+
+            state.month++;
+            updateUI();
+            updateCost(); // re-eval sliders against new budget
+        }
+
+        // Init
+        updateUI();
+        updateCost();
+    </script>
+</body>
+</html>

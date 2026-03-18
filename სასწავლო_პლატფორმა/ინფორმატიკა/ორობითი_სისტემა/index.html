@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — ორობითი სისტემა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 750px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 22px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .card h3 { font-size: 0.95rem; margin-bottom: 12px; }
+        .bits-row { display: flex; gap: 4px; justify-content: center; margin-bottom: 15px; }
+        .bit { width: 50px; height: 60px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; user-select: none; }
+        .bit:hover { border-color: #22c55e; }
+        .bit.on { background: rgba(34,197,94,0.15); border-color: #22c55e; }
+        .bit .value { font-size: 1.5rem; font-weight: bold; font-family: 'Courier New'; }
+        .bit .weight { font-size: 0.6rem; color: #64748b; margin-top: 2px; }
+        .result-display { background: #0f172a; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .result-row:last-child { border-bottom: none; }
+        .result-row .label { color: #94a3b8; font-size: 0.85rem; }
+        .result-row .val { font-family: 'Courier New'; font-weight: bold; font-size: 1.1rem; }
+        .converter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+        .converter-row label { font-size: 0.85rem; color: #94a3b8; white-space: nowrap; min-width: 100px; }
+        .converter-row input { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; outline: none; }
+        .converter-row input:focus { border-color: #22c55e; }
+        .steps { background: #0f172a; border-left: 3px solid #22c55e; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.8; }
+        .steps b { color: #86efac; }
+        .quiz-area { text-align: center; }
+        .quiz-q { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; font-family: 'Courier New'; }
+        .quiz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 400px; margin: 0 auto 15px; }
+        .quiz-opt { padding: 12px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; font-family: 'Courier New'; font-size: 1rem; font-weight: bold; transition: 0.2s; }
+        .quiz-opt:hover { border-color: #22c55e; background: #334155; }
+        .quiz-opt.correct { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+        .quiz-opt.wrong { border-color: #ef4444; background: rgba(239,68,68,0.15); color: #ef4444; }
+        .score-bar { display: flex; gap: 20px; justify-content: center; font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px; }
+        .score-bar b { font-family: 'Courier New'; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-next { background: linear-gradient(135deg, #22c55e, #06b6d4); }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>💻 ორობითი რიცხვთა სისტემა</h1>
+    <p class="subtitle">დააკლიკე ბიტებზე, გადაიყვანე რიცხვები, ითამაშე ვიქტორინა!</p>
+    <div class="app">
+        <!-- Interactive Bits -->
+        <div class="card">
+            <h3 style="color:#22c55e;">🔢 8-ბიტიანი გადამრთველი</h3>
+            <div class="bits-row" id="bits-row"></div>
+            <div class="result-display">
+                <div class="result-row"><span class="label">ორობითი (2)</span><span class="val" id="r-bin" style="color:#22c55e;">00000000</span></div>
+                <div class="result-row"><span class="label">ათობითი (10)</span><span class="val" id="r-dec" style="color:#3b82f6;">0</span></div>
+                <div class="result-row"><span class="label">თექვსმეტობითი (16)</span><span class="val" id="r-hex" style="color:#f59e0b;">0x00</span></div>
+                <div class="result-row"><span class="label">რვაობითი (8)</span><span class="val" id="r-oct" style="color:#ec4899;">0o000</span></div>
+                <div class="result-row"><span class="label">ASCII სიმბოლო</span><span class="val" id="r-ascii" style="color:#a78bfa;">NUL</span></div>
+            </div>
+        </div>
+
+        <!-- Converter -->
+        <div class="card">
+            <h3 style="color:#3b82f6;">🔄 კონვერტერი</h3>
+            <div class="converter-row">
+                <label>ათობითი (10):</label>
+                <input type="number" id="conv-dec" placeholder="255" min="0" max="255">
+            </div>
+            <div class="converter-row">
+                <label>ორობითი (2):</label>
+                <input type="text" id="conv-bin" placeholder="11111111">
+            </div>
+            <div class="converter-row">
+                <label>16-ობითი (16):</label>
+                <input type="text" id="conv-hex" placeholder="FF">
+            </div>
+            <div class="steps" id="conv-steps">შეიყვანე რიცხვი ნებისმიერ ველში — დანარჩენი ავტომატურად გამოითვლება</div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="card">
+            <h3 style="color:#f59e0b;">🎮 ვიქტორინა</h3>
+            <div class="score-bar">
+                <span>🎯 სწორი: <b id="q-correct" style="color:#22c55e;">0</b></span>
+                <span>❌ შეცდომა: <b id="q-wrong" style="color:#ef4444;">0</b></span>
+                <span>🔥 სერია: <b id="q-streak" style="color:#f59e0b;">0</b></span>
+            </div>
+            <div class="quiz-area" id="quiz-area"></div>
+            <button class="btn btn-next" onclick="newQuiz()" style="margin-top:10px;">→ შემდეგი კითხვა</button>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        // === BITS ===
+        const bits = [0, 0, 0, 0, 0, 0, 0, 0];
+        const bitsRow = document.getElementById('bits-row');
+
+        function renderBits() {
+            bitsRow.innerHTML = bits.map((b, i) => {
+                const weight = Math.pow(2, 7 - i);
+                return `<div class="bit ${b ? 'on' : ''}" onclick="toggleBit(${i})">
+                    <span class="value">${b}</span>
+                    <span class="weight">${weight}</span>
+                </div>`;
+            }).join('');
+            const dec = bits.reduce((sum, b, i) => sum + b * Math.pow(2, 7 - i), 0);
+            document.getElementById('r-bin').textContent = bits.join('');
+            document.getElementById('r-dec').textContent = dec;
+            document.getElementById('r-hex').textContent = '0x' + dec.toString(16).toUpperCase().padStart(2, '0');
+            document.getElementById('r-oct').textContent = '0o' + dec.toString(8).padStart(3, '0');
+            const asciiChar = dec >= 32 && dec <= 126 ? String.fromCharCode(dec) : (dec === 0 ? 'NUL' : dec < 32 ? 'CTRL' : 'EXT');
+            document.getElementById('r-ascii').textContent = asciiChar;
+        }
+
+        function toggleBit(i) {
+            bits[i] = bits[i] ? 0 : 1;
+            renderBits();
+        }
+        renderBits();
+
+        // === CONVERTER ===
+        const convDec = document.getElementById('conv-dec');
+        const convBin = document.getElementById('conv-bin');
+        const convHex = document.getElementById('conv-hex');
+        const convSteps = document.getElementById('conv-steps');
+
+        convDec.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (isNaN(val) || val < 0 || val > 255) return;
+            convBin.value = val.toString(2).padStart(8, '0');
+            convHex.value = val.toString(16).toUpperCase().padStart(2, '0');
+            showDecToBinSteps(val);
+        });
+
+        convBin.addEventListener('input', function() {
+            const val = this.value.replace(/[^01]/g, '');
+            if (val === '') return;
+            const dec = parseInt(val, 2);
+            if (dec > 255) return;
+            convDec.value = dec;
+            convHex.value = dec.toString(16).toUpperCase().padStart(2, '0');
+            showBinToDecSteps(val, dec);
+        });
+
+        convHex.addEventListener('input', function() {
+            const val = this.value.replace(/[^0-9a-fA-F]/g, '');
+            if (val === '') return;
+            const dec = parseInt(val, 16);
+            if (dec > 255) return;
+            convDec.value = dec;
+            convBin.value = dec.toString(2).padStart(8, '0');
+            convSteps.innerHTML = `<b>16 → 10:</b> 0x${val.toUpperCase()} = <b>${dec}</b> (ათობითი)`;
+        });
+
+        function showDecToBinSteps(n) {
+            if (n === 0) { convSteps.innerHTML = '<b>0</b> ათობითი = <b>00000000</b> ორობითი'; return; }
+            let steps = [`<b>ათობითი → ორობითი: ${n}</b>`];
+            let temp = n, remainders = [];
+            while (temp > 0) {
+                const r = temp % 2;
+                steps.push(`${temp} ÷ 2 = ${Math.floor(temp / 2)}, ნაშთი = <b>${r}</b>`);
+                remainders.push(r);
+                temp = Math.floor(temp / 2);
+            }
+            steps.push(`შედეგი (ქვემოდან ზემოთ): <b style="color:#22c55e">${remainders.reverse().join('')}</b>`);
+            convSteps.innerHTML = steps.join('<br>');
+        }
+
+        function showBinToDecSteps(bin, dec) {
+            const digits = bin.split('').reverse();
+            let parts = digits.map((d, i) => d === '1' ? `${d}×2<sup>${i}</sup>=${Math.pow(2, i)}` : null).filter(Boolean);
+            convSteps.innerHTML = `<b>ორობითი → ათობითი:</b><br>${bin} = ${parts.join(' + ')} = <b style="color:#3b82f6">${dec}</b>`;
+        }
+
+        // === QUIZ ===
+        let qCorrect = 0, qWrong = 0, qStreak = 0;
+        let quizAnswered = false;
+
+        function newQuiz() {
+            quizAnswered = false;
+            const types = ['binToDec', 'decToBin', 'hexToDec', 'decToHex'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const num = Math.floor(Math.random() * 256);
+            const area = document.getElementById('quiz-area');
+
+            let question = '', correct = '', options = [];
+
+            if (type === 'binToDec') {
+                question = `${num.toString(2).padStart(8, '0')} (ორობითი) = ? (ათობითი)`;
+                correct = num.toString();
+                options = generateOptions(num, 0, 255, 4).map(String);
+            } else if (type === 'decToBin') {
+                question = `${num} (ათობითი) = ? (ორობითი)`;
+                correct = num.toString(2).padStart(8, '0');
+                options = generateOptions(num, 0, 255, 4).map(n => n.toString(2).padStart(8, '0'));
+            } else if (type === 'hexToDec') {
+                question = `0x${num.toString(16).toUpperCase().padStart(2, '0')} (16-ობითი) = ? (ათობითი)`;
+                correct = num.toString();
+                options = generateOptions(num, 0, 255, 4).map(String);
+            } else {
+                question = `${num} (ათობითი) = ? (16-ობითი)`;
+                correct = '0x' + num.toString(16).toUpperCase().padStart(2, '0');
+                options = generateOptions(num, 0, 255, 4).map(n => '0x' + n.toString(16).toUpperCase().padStart(2, '0'));
+            }
+
+            // Ensure correct answer is in options
+            if (!options.includes(correct)) options[Math.floor(Math.random() * options.length)] = correct;
+            // Shuffle
+            options.sort(() => Math.random() - 0.5);
+
+            area.innerHTML = `
+                <div class="quiz-q">${question}</div>
+                <div class="quiz-opts">
+                    ${options.map(opt => `<div class="quiz-opt" onclick="checkQuiz(this, '${opt}', '${correct}')">${opt}</div>`).join('')}
+                </div>`;
+        }
+
+        function generateOptions(correct, min, max, count) {
+            const opts = new Set([correct]);
+            while (opts.size < count) {
+                let n = correct + Math.floor(Math.random() * 30) - 15;
+                if (n < min) n = Math.floor(Math.random() * (max + 1));
+                if (n > max) n = Math.floor(Math.random() * (max + 1));
+                opts.add(n);
+            }
+            return [...opts];
+        }
+
+        function checkQuiz(el, selected, correct) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+            if (selected === correct) {
+                el.classList.add('correct');
+                qCorrect++; qStreak++;
+            } else {
+                el.classList.add('wrong');
+                qWrong++; qStreak = 0;
+                document.querySelectorAll('.quiz-opt').forEach(opt => {
+                    if (opt.textContent === correct) opt.classList.add('correct');
+                });
+            }
+            document.getElementById('q-correct').textContent = qCorrect;
+            document.getElementById('q-wrong').textContent = qWrong;
+            document.getElementById('q-streak').textContent = qStreak;
+        }
+
+        newQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — პერსპექტივა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #1e1b4b; color: #f8fafc; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #a5b4fc; text-align: center;}
+        .subtitle { color: #818cf8; font-size: 0.95rem; margin-bottom: 20px; text-align: center;}
+
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;}
+        .btn-mode { padding: 10px 20px; background: #312e81; color: #c7d2fe; border: 1px solid #4f46e5; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; outline: none;}
+        .btn-mode:hover { background: #4338ca; }
+        .btn-mode.active { background: #6366f1; color: #fff; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);}
+
+        /* SVG Canvas */
+        .canvas-container { position: relative; width: 100%; max-width: 800px; height: 500px; background: #f8fafc; border: 2px solid #6366f1; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+        
+        svg { width: 100%; height: 100%; display: block; user-select: none; }
+        
+        /* Grid / Scene elements */
+        .horizon { stroke: #475569; stroke-width: 2; stroke-dasharray: 5, 5; }
+        .vp-line { stroke: #a5b4fc; stroke-width: 1.5; stroke-dasharray: 4, 4; opacity: 0.7;}
+        .cube-edge { stroke: #0f172a; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round;}
+        .cube-face { fill: #6366f1; fill-opacity: 0.2; transition: fill-opacity 0.2s;}
+        .cube-face:hover { fill-opacity: 0.4; }
+        
+        /* Draggable Nodes */
+        .node { fill: #ef4444; stroke: #fff; stroke-width: 2; cursor: grab; }
+        .node:active { cursor: grabbing; fill: #dc2626;}
+        .vp-node { fill: #eab308; r: 8; stroke: #0f172a; stroke-width: 3;}
+        
+        .panel { background: #312e81; padding: 15px; border-radius: 8px; border: 1px solid #4f46e5; font-size: 0.9rem; line-height: 1.6; color: #e0e7ff; max-width: 800px; margin-top: 20px; text-align: center;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3730a3; color: #c7d2fe; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #4f46e5; transition: 0.2s;}
+        .back-btn:hover { background: #4f46e5; color: #fff;}
+    </style>
+</head>
+<body>
+    <h1>🏙️ პერსპექტივა</h1>
+    <p class="subtitle">გადააადგილეთ წერტილები, რათა დაინახოთ როგორ იცვლება 3D ფიგურა სივრცეში</p>
+    
+    <div class="controls">
+        <button class="btn-mode active" id="btn-1p" onclick="setMode('1p')">1-წერტილიანი პერსპექტივა</button>
+        <button class="btn-mode" id="btn-2p" onclick="setMode('2p')">2-წერტილიანი პერსპექტივა</button>
+    </div>
+
+    <div class="canvas-container" id="container">
+        <svg id="svg" viewBox="0 0 800 500">
+            <!-- Horizon -->
+            <line class="horizon" x1="0" y1="250" x2="800" y2="250" />
+            <text x="10" y="240" fill="#475569" font-size="12" font-family="sans-serif">ჰორიზონტის ხაზი</text>
+            
+            <!-- Dynamic Groups -->
+            <g id="lines-group"></g>
+            <g id="cube-group"></g>
+            <g id="nodes-group"></g>
+            <g id="vp-group"></g>
+        </svg>
+    </div>
+
+    <div class="panel" id="info">
+        <b>1-წერტილიანი პერსპექტივა:</b> გამოიყენება, როცა ობიექტის ერთი წინა მხარე პირდაპირ ჩვენკენაა მომართული. ყველა უხილავი, სიღრმეში მიმავალი ხაზი იყრის თავს ერთ უხილავ წერტილში (Vanishing Point) ჰორიზონტზე. გადაათრიე ყვითელი წერტილი ჰორიზონტზე ან წითელი წერტილი ფიგურის გადასაადგილებლად.
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const svg = document.getElementById('svg');
+        const linesG = document.getElementById('lines-group');
+        const cubeG = document.getElementById('cube-group');
+        const vpG = document.getElementById('vp-group');
+        
+        let mode = '1p';
+        // Base points
+        let vp1 = {x: 400, y: 250};
+        let vp2 = {x: 700, y: 250}; // used in 2p
+        
+        // 1-point cube front face (draggable center)
+        let fCenter = {x: 300, y: 350};
+        let fSize = 100;
+
+        // 2-point central vertical edge (draggable)
+        let edgePos = {x: 400, y: 350}; // center x, bottom y
+        let eHeight = 150;
+        let eWidthL = 80;
+        let eWidthR = 100;
+
+        let activeDrag = null;
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btn-1p').classList.remove('active');
+            document.getElementById('btn-2p').classList.remove('active');
+            document.getElementById(`btn-${newMode}`).classList.add('active');
+
+            if(mode === '1p') {
+                vp1 = {x: 400, y: 250};
+                document.getElementById('info').innerHTML = "<b>1-წერტილიანი პერსპექტივა:</b> გამოიყენება, როცა ობიექტის პირდაპირ ვდგავართ (მაგ: ვუყურებთ ოთახის კედელს ან შენობის ფასადს პირდაპირ). სიღრმის ხაზები იყრიან თავს 1 წერტილში ჰორიზონტზე.";
+            } else {
+                vp1 = {x: 100, y: 250};
+                vp2 = {x: 700, y: 250};
+                edgePos = {x: 400, y: 380};
+                document.getElementById('info').innerHTML = "<b>2-წერტილიანი პერსპექტივა:</b> გამოიყენება, როცა ობიექტს (მაგ: შენობას) ვუყურებთ კუთხიდან. ამ დროს სიღრმეში მიმავალი ხაზები ჰორიზონტის ხაზზე ორ სხვადასხვა წერტილში იყრის თავს.";
+            }
+            render();
+        }
+
+        function createCircle(id, cx, cy, cls, dragType) {
+            const cir = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            cir.setAttribute("cx", cx);
+            cir.setAttribute("cy", cy);
+            cir.setAttribute("r", cls === 'vp-node' ? 9 : 12);
+            cir.setAttribute("class", cls);
+            
+            // Drag logic
+            cir.addEventListener('mousedown', (e) => startDrag(e, dragType));
+            cir.addEventListener('touchstart', (e) => startDrag(e, dragType), {passive: false});
+            return cir;
+        }
+
+        function getSVGCoords(e) {
+            const pt = svg.createSVGPoint();
+            if (e.touches) {
+                pt.x = e.touches[0].clientX;
+                pt.y = e.touches[0].clientY;
+            } else {
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+            }
+            const ctm = svg.getScreenCTM();
+            return pt.matrixTransform(ctm.inverse());
+        }
+
+        function startDrag(e, type) {
+            e.preventDefault();
+            activeDrag = type;
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchmove', dragMove, {passive: false});
+            document.addEventListener('touchend', dragEnd);
+        }
+
+        function dragMove(e) {
+            if(!activeDrag) return;
+            e.preventDefault();
+            const pt = getSVGCoords(e);
+            
+            // Constrain
+            let x = Math.max(20, Math.min(pt.x, 780));
+            let y = Math.max(20, Math.min(pt.y, 480));
+
+            if (activeDrag === 'vp1') { vp1.x = x; vp1.y = 250; } // Lock to horizon
+            else if (activeDrag === 'vp2') { vp2.x = x; vp2.y = 250; } // Lock to horizon
+            else if (activeDrag === 'fig1p') { fCenter.x = x; fCenter.y = y; }
+            else if (activeDrag === 'fig2p') { edgePos.x = x; edgePos.y = y; }
+            
+            render();
+        }
+
+        function dragEnd() {
+            activeDrag = null;
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('touchend', dragEnd);
+        }
+
+        function render() {
+            linesG.innerHTML = '';
+            cubeG.innerHTML = '';
+            vpG.innerHTML = '';
+
+            if (mode === '1p') render1P();
+            else render2P();
+        }
+
+        function createLine(x1,y1,x2,y2, cls) {
+            const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+            l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+            l.setAttribute("class", cls);
+            return l;
+        }
+        
+        function createPath(pointsStr) {
+            const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            p.setAttribute("d", pointsStr);
+            p.setAttribute("class", "cube-face cube-edge");
+            return p;
+        }
+
+        function render1P() {
+            const hw = fSize/2;
+            // Front face corners
+            const P = [
+                {x: fCenter.x - hw, y: fCenter.y - hw}, // TL
+                {x: fCenter.x + hw, y: fCenter.y - hw}, // TR
+                {x: fCenter.x + hw, y: fCenter.y + hw}, // BR
+                {x: fCenter.x - hw, y: fCenter.y + hw}  // BL
+            ];
+            
+            // Perspective lines to VP1
+            P.forEach(pt => {
+                linesG.appendChild(createLine(pt.x, pt.y, vp1.x, vp1.y, 'vp-line'));
+            });
+
+            // Calculate back face (arbitrary depth factor 0.5)
+            const depth = 0.5;
+            const B = P.map(pt => ({
+                x: pt.x + (vp1.x - pt.x) * depth,
+                y: pt.y + (vp1.y - pt.y) * depth
+            }));
+
+            // Draw Order: Back, Top/Bot/Sides, Front
+            // Back
+            cubeG.appendChild(createPath(`M${B[0].x},${B[0].y} L${B[1].x},${B[1].y} L${B[2].x},${B[2].y} L${B[3].x},${B[3].y} Z`));
+            
+            // Sides
+            cubeG.appendChild(createPath(`M${P[0].x},${P[0].y} L${B[0].x},${B[0].y} L${B[3].x},${B[3].y} L${P[3].x},${P[3].y} Z`)); // Left
+            cubeG.appendChild(createPath(`M${P[1].x},${P[1].y} L${B[1].x},${B[1].y} L${B[2].x},${B[2].y} L${P[2].x},${P[2].y} Z`)); // Right
+            cubeG.appendChild(createPath(`M${P[0].x},${P[0].y} L${B[0].x},${B[0].y} L${B[1].x},${B[1].y} L${P[1].x},${P[1].y} Z`)); // Top
+            cubeG.appendChild(createPath(`M${P[3].x},${P[3].y} L${B[3].x},${B[3].y} L${B[2].x},${B[2].y} L${P[2].x},${P[2].y} Z`)); // Bottom
+            
+            // Front
+            cubeG.appendChild(createPath(`M${P[0].x},${P[0].y} L${P[1].x},${P[1].y} L${P[2].x},${P[2].y} L${P[3].x},${P[3].y} Z`));
+
+            // Controls
+            vpG.appendChild(createCircle('vp1', vp1.x, vp1.y, 'vp-node', 'vp1'));
+            vpG.appendChild(createCircle('fig1p', fCenter.x, fCenter.y, 'node', 'fig1p'));
+        }
+
+        function render2P() {
+            // Edge corners (Central vertical line)
+            const P0 = {x: edgePos.x, y: edgePos.y - eHeight}; // Top
+            const P1 = {x: edgePos.x, y: edgePos.y};         // Bottom
+
+            // Guidelines to VP1 and VP2
+            linesG.appendChild(createLine(P0.x, P0.y, vp1.x, vp1.y, 'vp-line'));
+            linesG.appendChild(createLine(P1.x, P1.y, vp1.x, vp1.y, 'vp-line'));
+            linesG.appendChild(createLine(P0.x, P0.y, vp2.x, vp2.y, 'vp-line'));
+            linesG.appendChild(createLine(P1.x, P1.y, vp2.x, vp2.y, 'vp-line'));
+
+            // Calculate Left edge
+            const d1 = 0.3; // depth left
+            const L0 = {x: P0.x + (vp1.x - P0.x)*d1, y: P0.y + (vp1.y - P0.y)*d1};
+            const L1 = {x: P1.x + (vp1.x - P1.x)*d1, y: P1.y + (vp1.y - P1.y)*d1};
+
+            // Calculate Right edge
+            const d2 = 0.35; // depth right
+            const R0 = {x: P0.x + (vp2.x - P0.x)*d2, y: P0.y + (vp2.y - P0.y)*d2};
+            const R1 = {x: P1.x + (vp2.x - P1.x)*d2, y: P1.y + (vp2.y - P1.y)*d2};
+
+            // Back corner (cross of L to VP2 and R to VP1)
+            // L0 to vp2
+            linesG.appendChild(createLine(L0.x, L0.y, vp2.x, vp2.y, 'vp-line'));
+            linesG.appendChild(createLine(L1.x, L1.y, vp2.x, vp2.y, 'vp-line'));
+            // R0 to vp1
+            linesG.appendChild(createLine(R0.x, R0.y, vp1.x, vp1.y, 'vp-line'));
+            linesG.appendChild(createLine(R1.x, R1.y, vp1.x, vp1.y, 'vp-line'));
+
+            // Math to find intersection of L0->vp2 and R0->vp1 (Top back point)
+            let t = ((L0.x - R0.x)*(vp1.y - R0.y) - (L0.y - R0.y)*(vp1.x - R0.x)) / ((L0.x - vp2.x)*(vp1.y - R0.y) - (L0.y - vp2.y)*(vp1.x - R0.x));
+            const B0 = {x: L0.x + t*(vp2.x - L0.x), y: L0.y + t*(vp2.y - L0.y)};
+            
+            // Math to find intersection of L1->vp2 and R1->vp1 (Bottom back point)
+            let t2 = ((L1.x - R1.x)*(vp1.y - R1.y) - (L1.y - R1.y)*(vp1.x - R1.x)) / ((L1.x - vp2.x)*(vp1.y - R1.y) - (L1.y - vp2.y)*(vp1.x - R1.x));
+            const B1 = {x: L1.x + t2*(vp2.x - L1.x), y: L1.y + t2*(vp2.y - L1.y)};
+
+
+            // Faces
+            cubeG.appendChild(createPath(`M${L0.x},${L0.y} L${B0.x},${B0.y} L${B1.x},${B1.y} L${L1.x},${L1.y} Z`)); // Left back
+            cubeG.appendChild(createPath(`M${R0.x},${R0.y} L${B0.x},${B0.y} L${B1.x},${B1.y} L${R1.x},${R1.y} Z`)); // Right back
+            cubeG.appendChild(createPath(`M${P1.x},${P1.y} L${L1.x},${L1.y} L${B1.x},${B1.y} L${R1.x},${R1.y} Z`)); // Bottom
+            
+            cubeG.appendChild(createPath(`M${P0.x},${P0.y} L${L0.x},${L0.y} L${L1.x},${L1.y} L${P1.x},${P1.y} Z`)); // Left Front
+            cubeG.appendChild(createPath(`M${P0.x},${P0.y} L${R0.x},${R0.y} L${R1.x},${R1.y} L${P1.x},${P1.y} Z`)); // Right Front
+            cubeG.appendChild(createPath(`M${P0.x},${P0.y} L${L0.x},${L0.y} L${B0.x},${B0.y} L${R0.x},${R0.y} Z`)); // Top
+
+            // Controls
+            vpG.appendChild(createCircle('vp1', vp1.x, vp1.y, 'vp-node', 'vp1'));
+            vpG.appendChild(createCircle('vp2', vp2.x, vp2.y, 'vp-node', 'vp2'));
+            vpG.appendChild(createCircle('fig2p', edgePos.x, edgePos.y - (eHeight/2), 'node', 'fig2p')); // Drag by center of front edge
+        }
+
+        // Init
+        render();
+
+    </script>
+</body>
+</html>

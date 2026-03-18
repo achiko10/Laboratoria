@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — მორფოლოგია (სიტყვის აგებულება)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f0fdf4; color: #14532d; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #16a34a; }
+        .subtitle { text-align: center; color: #22c55e; font-size: 0.85rem; margin-bottom: 20px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #bbf7d0; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.1); }
+
+        /* Word Display */
+        .word-display { background: #f0fdf4; border: 2px dashed #4ade80; border-radius: 12px; padding: 40px 20px; display: flex; justify-content: center; align-items: center; min-height: 150px; gap: 5px; margin-bottom: 30px; font-size: 2.5rem; font-weight: bold; flex-wrap: wrap;}
+        
+        /* Morphemes */
+        .morph { padding: 5px 15px; border-radius: 8px; position: relative; cursor: default; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; animation: popIn 0.3s forwards;}
+        @keyframes popIn { 0% { transform: scale(0); opacity:0;} 100% { transform: scale(1); opacity:1;} }
+        
+        .m-lbl { font-size: 0.7rem; position: absolute; top: -18px; color: #16a34a; white-space: nowrap; font-weight: normal; opacity: 0; transition: 0.3s; background: #fff; padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;}
+        .morph:hover .m-lbl { opacity: 1; top: -25px; }
+
+        .m-pref { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
+        .m-root { background: #fefce8; color: #a16207; border: 2px solid #fde047; font-size: 3rem; text-decoration: underline; text-decoration-color: #a16207; }
+        .m-suff { background: #e0f2fe; color: #0369a1; border: 2px solid #7dd3fc; }
+        .m-end  { background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; }
+
+        /* Factory Controls */
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        
+        .part-box { border: 1px solid #d1fae5; border-radius: 8px; padding: 15px; background: #fff; }
+        .pb-title { font-weight: bold; color: #15803d; margin-bottom: 15px; border-bottom: 2px solid #d1fae5; padding-bottom: 5px; font-size: 0.9rem; text-transform: uppercase;}
+        
+        .btn-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .m-btn { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        .m-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Specific button colors to match morphology tags */
+        .b-pref:hover, .b-pref.active { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+        .b-root:hover, .b-root.active { background: #fefce8; border-color: #fde047; color: #a16207; }
+        .b-suff:hover, .b-suff.active { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+        .b-end:hover,  .b-end.active  { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+
+        /* Analysis Panel */
+        .analysis { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 8px; padding: 15px; margin-top: 20px; color: #166534; font-size: 0.9rem; line-height: 1.6; }
+        .a-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #d1fae5; color: #16a34a; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #bbf7d0; text-align: center;}
+        .back-btn:hover { background: #bbf7d0; color: #14532d; }
+    </style>
+</head>
+<body>
+    <h1>🧩 მორფოლოგია</h1>
+    <p class="subtitle">სიტყვის აგებულება: ააწყვეთ სიტყვები მორფემებისგან (პრეფიქსი, ძირი, სუფიქსი)</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="word-display" id="word-display">
+                <!-- Word parts go here -->
+                <div style="font-size:1.2rem; color:#a1a1aa; font-weight:normal;">აირჩიეთ ძირი...</div>
+            </div>
+
+            <div class="controls-grid">
+                
+                <div class="part-box">
+                    <div class="pb-title">1. თავსართი (პრეფიქსი)</div>
+                    <div class="btn-grid">
+                        <button class="m-btn b-pref" onclick="setPart('pref', '')">(არცერთი)</button>
+                        <button class="m-btn b-pref" onclick="setPart('pref', 'გა')">გა-</button>
+                        <button class="m-btn b-pref" onclick="setPart('pref', 'შე')">შე-</button>
+                        <button class="m-btn b-pref" onclick="setPart('pref', 'მო')">მო-</button>
+                        <button class="m-btn b-pref" onclick="setPart('pref', 'და')">და-</button>
+                        <button class="m-btn b-pref" onclick="setPart('pref', 'სა')">სა-</button>
+                    </div>
+                </div>
+
+                <div class="part-box">
+                    <div class="pb-title">2. ფუძე / ძირი (Root)</div>
+                    <div class="btn-grid">
+                        <button class="m-btn b-root" onclick="setPart('root', 'კეთ')">-კეთ-</button>
+                        <button class="m-btn b-root" onclick="setPart('root', 'წერ')">-წერ-</button>
+                        <button class="m-btn b-root" onclick="setPart('root', 'ხატ')">-ხატ-</button>
+                        <button class="m-btn b-root" onclick="setPart('root', 'შენ')">-შენ-</button>
+                        <button class="m-btn b-root" onclick="setPart('root', 'სახლ')">-სახლ-</button>
+                    </div>
+                </div>
+
+                <div class="part-box">
+                    <div class="pb-title">3. ბოლოსართი (სუფიქსი)</div>
+                    <div class="btn-grid">
+                        <button class="m-btn b-suff" onclick="setPart('suff', '')">(არცერთი)</button>
+                        <button class="m-btn b-suff" onclick="setPart('suff', 'ებ')">-ებ</button>
+                        <button class="m-btn b-suff" onclick="setPart('suff', 'ილ')">-ილ</button>
+                        <button class="m-btn b-suff" onclick="setPart('suff', 'ელ')">-ელ</button>
+                        <button class="m-btn b-suff" onclick="setPart('suff', 'ობ')">-ობ</button>
+                    </div>
+                </div>
+
+                <div class="part-box">
+                    <div class="pb-title">4. დაბოლოება (ბრუნვა/პირი)</div>
+                    <div class="btn-grid">
+                        <button class="m-btn b-end" onclick="setPart('end', '')">(არცერთი)</button>
+                        <button class="m-btn b-end" onclick="setPart('end', 'ა')">-ა (სახ.)</button>
+                        <button class="m-btn b-end" onclick="setPart('end', 'ი')">-ი (სახ.)</button>
+                        <button class="m-btn b-end" onclick="setPart('end', 'ს')">-ს (მიც/პირი)</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="analysis" id="analysis" style="display:none;">
+                <div class="a-title" id="a-title">შედეგი</div>
+                <div id="a-desc"></div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const state = {
+            pref: '',
+            root: '',
+            suff: '',
+            end: ''
+        };
+
+        const partLabels = {
+            pref: "თავსართი (პრეფიქსი)",
+            root: "ძირი (ფესვი)",
+            suff: "ბოლოსართი (სუფიქსი)",
+            end: "დაბოლოება"
+        };
+
+        function setPart(type, val) {
+            state[type] = val;
+            
+            // Update buttons
+            document.querySelectorAll(`.b-${type}`).forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            renderWord();
+        }
+
+        function renderWord() {
+            const display = document.getElementById('word-display');
+            display.innerHTML = '';
+
+            let fullWord = '';
+
+            if(!state.root) {
+                display.innerHTML = '<div style="font-size:1.2rem; color:#a1a1aa; font-weight:normal;">აირჩიეთ ძირი...</div>';
+                document.getElementById('analysis').style.display = 'none';
+                return;
+            }
+
+            const buildMorpheme = (type, cssClass) => {
+                if(state[type]) {
+                    let div = document.createElement('div');
+                    div.className = `morph ${cssClass}`;
+                    div.innerHTML = `${state[type]}<div class="m-lbl">${partLabels[type]}</div>`;
+                    display.appendChild(div);
+                    fullWord += state[type];
+                }
+            };
+
+            buildMorpheme('pref', 'm-pref');
+            buildMorpheme('root', 'm-root');
+            buildMorpheme('suff', 'm-suff');
+            buildMorpheme('end', 'm-end');
+
+            analyzeWord(fullWord);
+        }
+
+        function analyzeWord(word) {
+            const panel = document.getElementById('analysis');
+            panel.style.display = 'block';
+            
+            document.getElementById('a-title').textContent = "აწყობილი სიტყვა: " + word;
+            
+            let html = "<b>მორფოლოგიური ანალიზი:</b><br><ul>";
+            
+            if (state.pref === 'სა' && state.end === 'ო') { // Mock logic for circumfix
+                 html += "<li><b>სა-...-ო</b> წარმოადგენს ცირკუმფიქსს (თავსართ-ბოლოსართი), რომელიც ქმნის დანიშნულების საგანს ან ადგილს (მაგ: სა-წერ-ო).</li>";
+            } else {
+                if(state.pref) html += `<li><b>${state.pref}-</b> (თავსართი/ზმნისწინი): ცვლის სიტყვის მნიშვნელობას ან უჩვენებს მიმართულებას/დროს.</li>`;
+                if(state.root) html += `<li><b>-${state.root}-</b> (ძირი): სიტყვის მთავარი, მატარებელი ნაწილი, რომელიც შეიცავს ძირითად მნიშვნელობას.</li>`;
+                if(state.suff) html += `<li><b>-${state.suff}-</b> (სუფიქსი/მაწარმოებელი): აწარმოებს ახალ სიტყვას ან გვიჩვენებს თემას (მაგ: ზმნის თემის ნიშანი).</li>`;
+                if(state.end) html += `<li><b>-${state.end}</b> (დაბოლოება/ფლექსია): იცვლის ფორმას წინადადებაში არსებული როლის მიხედვით (ბრუნვა ან პირი).</li>`;
+            }
+            
+            html += "</ul>";
+            
+            // Special custom messages
+            if(word === "გაკეთება") html += "<br>🌟 <b>ტიპური ზმნის საწყისი:</b> ეს არის სრული ასპექტის საწყისი (ინფინიტივი).";
+            if(word === "სასახლე") html += "<br>🌟 <b>ცირკუმფიქსი:</b> სა-სახლ-ე (ადგილი, სადაც სახლობენ - მეფე). <i>(შენიშვნა: 'ე' არჩეული არ გაქვთ ვარიანტებში, მაგალითისთვის)</i>";
+
+            document.getElementById('a-desc').innerHTML = html;
+        }
+
+    </script>
+</body>
+</html>

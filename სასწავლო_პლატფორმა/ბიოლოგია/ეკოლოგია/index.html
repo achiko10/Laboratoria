@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — ეკოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; height: 420px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 12px; }
+        .stat { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .stat-icon { font-size: 1.4rem; }
+        .stat-val { font-weight: bold; font-size: 1.2rem; }
+        .graph-area { height: 120px; background: #0f172a; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; position: relative; }
+        .graph-area canvas { width: 100%; height: 100%; }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; transition: 0.2s; color: white; width: 100%; background: #334155; }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #22c55e; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌍 ეკოსისტემა (მტაცებელი - მსხვერპლი)</h1>
+    <p class="subtitle">ლოტკა-ვოლტერას მოდელი: კურდღლები 🐇 vs მგლები 🐺</p>
+    <div class="container">
+        <div class="sim-area"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div class="stat"><span>🐇 კურდღლები</span><span class="stat-val" style="color:#22c55e;" id="count-r">0</span></div>
+            <div class="stat"><span>🐺 მგლები</span><span class="stat-val" style="color:#ef4444;" id="count-w">0</span></div>
+            <div class="stat"><span>🌾 ბალახი</span><span class="stat-val" style="color:#a3e635;" id="count-g">100%</span></div>
+            <div style="font-size:0.8rem; color:#94a3b8;">პოპულაციის გრაფიკი:</div>
+            <div class="graph-area"><canvas id="graph"></canvas></div>
+            <button onclick="resetSim()">↺ თავიდან დაწყება</button>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 ეკოსისტემის ბალანსი:</strong> მტაცებელი-მსხვერპლის ციკლური ურთიერთობა.<br>
+            • ბევრი ბალახი → კურდღლები მრავლდება → მგლებისთვის უფრო ბევრი საკვები → მგლები მრავლდება<br>
+            • ბევრი მგელი → კურდღლები მცირდება → მგლებს საკვები აკლდებათ → მგლები მცირდება → ბალახი იზრდება → ციკლი მეორდება.
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sim = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const graphCanvas = document.getElementById('graph');
+        const gctx = graphCanvas.getContext('2d');
+        function resizeGraph() { graphCanvas.width = graphCanvas.parentElement.offsetWidth * devicePixelRatio; graphCanvas.height = graphCanvas.parentElement.offsetHeight * devicePixelRatio; gctx.scale(devicePixelRatio, devicePixelRatio); }
+        resizeGraph();
+
+        let rabbits = [], wolves = [];
+        let grass = 100;
+        let history = { r:[], w:[] };
+        let tick = 0;
+
+        function resetSim() {
+            rabbits = []; wolves = [];
+            history = {r:[],w:[]};
+            tick = 0; grass = 100;
+            for(let i=0;i<30;i++) rabbits.push(makeAnimal(W,H));
+            for(let i=0;i<5;i++) wolves.push(makeAnimal(W,H));
+        }
+        function makeAnimal(mw,mh) {
+            return { x:20+Math.random()*(mw-40), y:20+Math.random()*(mh-40), vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2, energy:100+Math.random()*50 };
+        }
+
+        function step() {
+            tick++;
+            // Grass regrow
+            grass = Math.min(100, grass + 0.3);
+
+            // Rabbits
+            rabbits.forEach(r => {
+                r.x += r.vx; r.y += r.vy;
+                if(r.x<5||r.x>W-5) r.vx*=-1;
+                if(r.y<5||r.y>H-5) r.vy*=-1;
+                r.vx += (Math.random()-0.5)*0.3; r.vy += (Math.random()-0.5)*0.3;
+                // Eat grass
+                if(grass > 5) { r.energy += 0.3; grass -= 0.02; }
+                r.energy -= 0.15;
+                // Reproduce
+                if(r.energy > 150 && rabbits.length < 200 && Math.random()<0.02) {
+                    r.energy -= 60;
+                    rabbits.push({x:r.x+(Math.random()-0.5)*10, y:r.y+(Math.random()-0.5)*10, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2, energy:80});
+                }
+            });
+            rabbits = rabbits.filter(r => r.energy > 0);
+
+            // Wolves
+            wolves.forEach(w => {
+                // Chase nearest rabbit
+                let closest = null, minD = 999;
+                rabbits.forEach(r => { const d = Math.sqrt((r.x-w.x)**2+(r.y-w.y)**2); if(d<minD) {minD=d; closest=r;} });
+                if(closest && minD < 200) {
+                    const ang = Math.atan2(closest.y-w.y, closest.x-w.x);
+                    w.vx += Math.cos(ang)*0.15; w.vy += Math.sin(ang)*0.15;
+                } else {
+                    w.vx += (Math.random()-0.5)*0.3; w.vy += (Math.random()-0.5)*0.3;
+                }
+                const spd = Math.sqrt(w.vx*w.vx+w.vy*w.vy);
+                if(spd > 2.5) { w.vx *= 2.5/spd; w.vy *= 2.5/spd; }
+                w.x += w.vx; w.y += w.vy;
+                if(w.x<5||w.x>W-5) w.vx*=-1;
+                if(w.y<5||w.y>H-5) w.vy*=-1;
+                w.energy -= 0.25;
+
+                // Eat rabbit
+                if(closest && minD < 12) {
+                    w.energy += 60;
+                    closest.energy = 0; // Kill
+                }
+                // Reproduce
+                if(w.energy > 180 && wolves.length < 50 && Math.random()<0.01) {
+                    w.energy -= 80;
+                    wolves.push({x:w.x+(Math.random()-0.5)*10, y:w.y+(Math.random()-0.5)*10, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2, energy:100});
+                }
+            });
+            wolves = wolves.filter(w => w.energy > 0);
+
+            // Repopulate if extinct
+            if(rabbits.length === 0 && Math.random() < 0.05) for(let i=0;i<5;i++) rabbits.push(makeAnimal(W,H));
+            if(wolves.length === 0 && rabbits.length > 20 && Math.random() < 0.02) for(let i=0;i<2;i++) wolves.push(makeAnimal(W,H));
+
+            // Record history
+            if(tick % 5 === 0) {
+                history.r.push(rabbits.length);
+                history.w.push(wolves.length);
+                if(history.r.length > 200) { history.r.shift(); history.w.shift(); }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+
+            // Grass background
+            const gAlpha = grass / 100;
+            ctx.fillStyle = `rgba(34, 80, 20, ${0.3 + gAlpha*0.5})`;
+            ctx.fillRect(0,0,W,H);
+            for(let i=0;i<50;i++) {
+                ctx.fillStyle = `rgba(34, 197, 94, ${gAlpha*0.15})`;
+                ctx.fillRect(Math.random()*W, Math.random()*H, 3, 8+Math.random()*10);
+            }
+
+            // Rabbits
+            rabbits.forEach(r => {
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath(); ctx.ellipse(r.x, r.y, 5, 4, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(r.x-2, r.y-5, 1.5, 4, -0.2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(r.x+2, r.y-5, 1.5, 4, 0.2, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Wolves
+            wolves.forEach(w => {
+                ctx.fillStyle = '#6b7280';
+                ctx.beginPath(); ctx.ellipse(w.x, w.y, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(w.x-5, w.y-5); ctx.lineTo(w.x-3, w.y-10); ctx.lineTo(w.x-1, w.y-5); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(w.x+1, w.y-5); ctx.lineTo(w.x+3, w.y-10); ctx.lineTo(w.x+5, w.y-5); ctx.fill();
+                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(w.x-2, w.y-2, 1, 0, Math.PI*2); ctx.arc(w.x+2, w.y-2, 1, 0, Math.PI*2); ctx.fill();
+            });
+
+            step();
+
+            document.getElementById('count-r').textContent = rabbits.length;
+            document.getElementById('count-w').textContent = wolves.length;
+            document.getElementById('count-g').textContent = Math.round(grass) + '%';
+
+            // Draw graph
+            const gW = graphCanvas.parentElement.offsetWidth;
+            const gH = graphCanvas.parentElement.offsetHeight;
+            gctx.clearRect(0,0,gW,gH);
+            if(history.r.length > 1) {
+                const maxPop = Math.max(...history.r, ...history.w, 1);
+                // Rabbits line
+                gctx.beginPath(); gctx.strokeStyle = '#22c55e'; gctx.lineWidth = 1.5;
+                history.r.forEach((v,i) => { const x = (i/history.r.length)*gW; const y = gH - (v/maxPop)*gH; i===0 ? gctx.moveTo(x,y) : gctx.lineTo(x,y); });
+                gctx.stroke();
+                // Wolves line
+                gctx.beginPath(); gctx.strokeStyle = '#ef4444'; gctx.lineWidth = 1.5;
+                history.w.forEach((v,i) => { const x = (i/history.w.length)*gW; const y = gH - (v/maxPop)*gH; i===0 ? gctx.moveTo(x,y) : gctx.lineTo(x,y); });
+                gctx.stroke();
+            }
+
+            requestAnimationFrame(draw);
+        }
+        resetSim();
+        draw();
+    </script>
+</body>
+</html>

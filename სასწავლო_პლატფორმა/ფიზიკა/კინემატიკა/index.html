@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>კინემატიკა - ექსპერიმენტი</title>
+    <style>
+        /* შენი ორიგინალური სტილი */
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; text-align: center; padding: 20px; }
+        .ბარათი { background: white; max-width: 800px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .ღილაკი { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: 0.3s; }
+        .ღილაკი:hover { background: #2980b9; }
+
+        /* სიმულაციის დამატებითი სტილები */
+        #sim-wrapper { margin-top: 20px; background: #1a1a2e; border-radius: 10px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 400px; display: block; cursor: crosshair; }
+        .controls { background: #eeeeee; padding: 15px; border-radius: 0 0 10px 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 14px; }
+        .control-item { display: flex; flex-direction: column; align-items: center; }
+        .stats { position: absolute; top: 10px; left: 10px; color: #4ecca3; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div class="ბარათი">
+        <h1>საგანი: ფიზიკა</h1>
+        <h2>თემა: კინემატიკა</h2>
+        <p>მართე ჭურვის გასროლა: შეცვალე კუთხე და სიჩქარე ფიზიკის კანონების გამოსაცდელად.</p>
+
+        <div id="sim-wrapper">
+            <div class="stats">
+                მანძილი: <span id="d-res">0</span> მ<br>
+                სიმაღლე: <span id="h-res">0</span> მ
+            </div>
+            <canvas id="canvas"></canvas>
+            <div class="controls">
+                <div class="control-item">
+                    <label>კუთხე: <span id="a-val">45</span>°</label>
+                    <input type="range" id="angle" min="0" max="90" value="45">
+                </div>
+                <div class="control-item">
+                    <label>სიჩქარე: <span id="s-val">60</span></label>
+                    <input type="range" id="speed" min="10" max="100" value="60">
+                </div>
+                <button onclick="fire()" style="padding: 10px 20px; cursor:pointer; background:#2ecc71; border:none; color:white; border-radius:5px;">გასროლა 🚀</button>
+                <button onclick="clearSim()" style="padding: 10px 20px; cursor:pointer; background:#e74c3c; border:none; color:white; border-radius:5px;">გასუფთავება</button>
+            </div>
+        </div>
+
+        <a href="../../მთავარი_გვერდი.html" class="ღილაკი">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let balls = [];
+
+        function init() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        window.onresize = init;
+        init();
+
+        document.getElementById('angle').oninput = e => document.getElementById('a-val').innerText = e.target.value;
+        document.getElementById('speed').oninput = e => document.getElementById('s-val').innerText = e.target.value;
+
+        function fire() {
+            const angle = document.getElementById('angle').value * Math.PI / 180;
+            const speed = document.getElementById('speed').value * 0.8;
+            balls.push({
+                x: 0, y: canvas.height,
+                vx: Math.cos(angle) * speed,
+                vy: -Math.sin(angle) * speed,
+                path: [],
+                color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+                done: false
+            });
+        }
+
+        function clearSim() { balls = []; }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            balls.forEach(b => {
+                if (!b.done) {
+                    b.path.push({x: b.x, y: b.y});
+                    b.x += b.vx * 0.2;
+                    b.y += b.vy * 0.2;
+                    b.vy += 0.15; // გრავიტაცია
+
+                    if (b.y > canvas.height) {
+                        b.y = canvas.height;
+                        b.done = true;
+                        document.getElementById('d-res').innerText = Math.round(b.x);
+                        document.getElementById('h-res').innerText = Math.round(Math.abs(Math.min(...b.path.map(p => p.y)) - canvas.height));
+                    }
+                }
+
+                ctx.strokeStyle = b.color;
+                ctx.beginPath();
+                b.path.forEach((p, i) => {
+                    if(i===0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.stroke();
+
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 5, 0, 7);
+                ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

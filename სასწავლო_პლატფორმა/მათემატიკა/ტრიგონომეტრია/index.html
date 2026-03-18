@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — ტრიგონომეტრია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; cursor: pointer; }
+        #mainCanvas { height: 450px; }
+        #waveCanvas { height: 160px; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .angle-input { display: flex; align-items: center; gap: 8px; }
+        .angle-input input { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1.2rem; text-align: center; outline: none; }
+        .angle-input input:focus { border-color: #ec4899; }
+        .angle-input span { color: #94a3b8; font-size: 0.9rem; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #8b5cf6); cursor: pointer; }
+        .val-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .val-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .val-row:last-child { border-bottom: none; }
+        .val-name { font-weight: bold; }
+        .val-num { font-family: 'Courier New'; font-weight: bold; }
+        .quick-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+        .q-btn { padding: 6px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.75rem; transition: 0.2s; }
+        .q-btn:hover { background: #334155; color: #f8fafc; }
+        .identity { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #8b5cf6; }
+        .identity b { color: #c4b5fd; }
+        .wave-label { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🔄 ტრიგონომეტრია — ერთეულოვანი წრე</h1>
+    <p class="subtitle">გადაათრიე წერტილი წრეზე ან შეიყვანე კუთხე — ნახე sin, cos, tan მნიშვნელობები</p>
+    <div class="app">
+        <div>
+            <div class="canvas-wrap"><canvas id="mainCanvas"></canvas></div>
+            <div class="wave-label">📈 ტალღის ფორმა (sin/cos გრაფიკი):</div>
+            <div class="canvas-wrap" style="margin-top:5px;"><canvas id="waveCanvas"></canvas></div>
+        </div>
+        <div class="panel">
+            <div style="font-weight:bold; color:#ec4899;">კუთხე</div>
+            <div class="angle-input">
+                <input type="number" id="angle-deg" value="45" min="0" max="360"><span>°</span>
+            </div>
+            <input type="range" id="angle-slider" min="0" max="360" value="45">
+            <div class="angle-input" style="font-size:0.8rem; color:#94a3b8;">
+                <span>რადიანი:</span><span id="angle-rad" style="color:#f8fafc; font-family:Courier New;">0.785</span>
+            </div>
+            <div style="font-size:0.75rem; color:#64748b;">სწრაფი კუთხეები:</div>
+            <div class="quick-btns">
+                <button class="q-btn" onclick="setAngle(0)">0°</button>
+                <button class="q-btn" onclick="setAngle(30)">30°</button>
+                <button class="q-btn" onclick="setAngle(45)">45°</button>
+                <button class="q-btn" onclick="setAngle(60)">60°</button>
+                <button class="q-btn" onclick="setAngle(90)">90°</button>
+                <button class="q-btn" onclick="setAngle(120)">120°</button>
+                <button class="q-btn" onclick="setAngle(135)">135°</button>
+                <button class="q-btn" onclick="setAngle(180)">180°</button>
+                <button class="q-btn" onclick="setAngle(210)">210°</button>
+                <button class="q-btn" onclick="setAngle(270)">270°</button>
+                <button class="q-btn" onclick="setAngle(315)">315°</button>
+                <button class="q-btn" onclick="setAngle(360)">360°</button>
+            </div>
+            <div style="font-weight:bold; color:#8b5cf6; margin-top:5px;">მნიშვნელობები</div>
+            <div class="val-card">
+                <div class="val-row"><span class="val-name" style="color:#22c55e;">sin θ</span><span class="val-num" id="val-sin">0.707</span></div>
+                <div class="val-row"><span class="val-name" style="color:#3b82f6;">cos θ</span><span class="val-num" id="val-cos">0.707</span></div>
+                <div class="val-row"><span class="val-name" style="color:#f59e0b;">tan θ</span><span class="val-num" id="val-tan">1.000</span></div>
+                <div class="val-row"><span class="val-name" style="color:#ef4444;">cot θ</span><span class="val-num" id="val-cot">1.000</span></div>
+                <div class="val-row"><span class="val-name" style="color:#ec4899;">(x, y)</span><span class="val-num" id="val-xy">(0.71, 0.71)</span></div>
+            </div>
+            <div class="identity">
+                <b>იდენტობები:</b><br>
+                sin²θ + cos²θ = <span id="identity-check" style="color:#22c55e;">1</span><br>
+                tan θ = sin θ / cos θ<br>
+                sin(90°-θ) = cos θ
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const mc = document.getElementById('mainCanvas');
+        const mCtx = mc.getContext('2d');
+        const wc = document.getElementById('waveCanvas');
+        const wCtx = wc.getContext('2d');
+        let MW, MH, WW, WH;
+
+        function resize() {
+            const mWrap = mc.parentElement;
+            mc.width = mWrap.offsetWidth * devicePixelRatio;
+            mc.height = 450 * devicePixelRatio;
+            mCtx.scale(devicePixelRatio, devicePixelRatio);
+            MW = mWrap.offsetWidth; MH = 450;
+
+            const wWrap = wc.parentElement;
+            wc.width = wWrap.offsetWidth * devicePixelRatio;
+            wc.height = 160 * devicePixelRatio;
+            wCtx.scale(devicePixelRatio, devicePixelRatio);
+            WW = wWrap.offsetWidth; WH = 160;
+            drawAll();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        let angleDeg = 45;
+        const degInput = document.getElementById('angle-deg');
+        const slider = document.getElementById('angle-slider');
+
+        function setAngle(deg) {
+            angleDeg = ((deg % 360) + 360) % 360;
+            degInput.value = angleDeg;
+            slider.value = angleDeg;
+            updateValues();
+            drawAll();
+        }
+
+        degInput.addEventListener('input', () => { setAngle(parseFloat(degInput.value) || 0); });
+        slider.addEventListener('input', () => { setAngle(parseFloat(slider.value)); });
+
+        // Drag on circle
+        let dragging = false;
+        mc.addEventListener('mousedown', () => dragging = true);
+        mc.addEventListener('mouseup', () => dragging = false);
+        mc.addEventListener('mouseleave', () => dragging = false);
+        mc.addEventListener('mousemove', e => {
+            if(!dragging) return;
+            const rect = mc.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const cx = MW / 2, cy = MH / 2;
+            const ang = Math.atan2(-(my - cy), mx - cx);
+            let deg = ang * 180 / Math.PI;
+            if(deg < 0) deg += 360;
+            setAngle(Math.round(deg));
+        });
+        // Touch
+        mc.addEventListener('touchstart', e => { dragging = true; e.preventDefault(); }, {passive:false});
+        mc.addEventListener('touchend', () => dragging = false);
+        mc.addEventListener('touchmove', e => {
+            if(!dragging) return;
+            e.preventDefault();
+            const t = e.touches[0];
+            const rect = mc.getBoundingClientRect();
+            const mx = t.clientX - rect.left, my = t.clientY - rect.top;
+            const cx = MW / 2, cy = MH / 2;
+            const ang = Math.atan2(-(my - cy), mx - cx);
+            let deg = ang * 180 / Math.PI;
+            if(deg < 0) deg += 360;
+            setAngle(Math.round(deg));
+        }, {passive:false});
+
+        function updateValues() {
+            const rad = angleDeg * Math.PI / 180;
+            const s = Math.sin(rad), c = Math.cos(rad);
+            const t = Math.abs(c) < 1e-10 ? '∞' : (s/c).toFixed(4);
+            const cot = Math.abs(s) < 1e-10 ? '∞' : (c/s).toFixed(4);
+            document.getElementById('angle-rad').textContent = rad.toFixed(4);
+            document.getElementById('val-sin').textContent = s.toFixed(4);
+            document.getElementById('val-cos').textContent = c.toFixed(4);
+            document.getElementById('val-tan').textContent = t;
+            document.getElementById('val-cot').textContent = cot;
+            document.getElementById('val-xy').textContent = `(${c.toFixed(3)}, ${s.toFixed(3)})`;
+            document.getElementById('identity-check').textContent = (s*s + c*c).toFixed(6);
+        }
+
+        function drawAll() {
+            drawCircle();
+            drawWave();
+        }
+
+        function drawCircle() {
+            mCtx.clearRect(0,0,MW,MH);
+            const cx = MW/2, cy = MH/2;
+            const R = Math.min(MW, MH) * 0.38;
+            const rad = angleDeg * Math.PI / 180;
+            const px = cx + R * Math.cos(rad);
+            const py = cy - R * Math.sin(rad);
+
+            // Grid
+            mCtx.strokeStyle = 'rgba(255,255,255,0.04)'; mCtx.lineWidth = 1;
+            for(let i=-5;i<=5;i++) {
+                mCtx.beginPath(); mCtx.moveTo(cx+i*R/5,cy-R-20); mCtx.lineTo(cx+i*R/5,cy+R+20); mCtx.stroke();
+                mCtx.beginPath(); mCtx.moveTo(cx-R-20,cy+i*R/5); mCtx.lineTo(cx+R+20,cy+i*R/5); mCtx.stroke();
+            }
+
+            // Axes
+            mCtx.strokeStyle = 'rgba(255,255,255,0.2)'; mCtx.lineWidth = 1.5;
+            mCtx.beginPath(); mCtx.moveTo(cx-R-30,cy); mCtx.lineTo(cx+R+30,cy); mCtx.stroke();
+            mCtx.beginPath(); mCtx.moveTo(cx,cy-R-30); mCtx.lineTo(cx,cy+R+30); mCtx.stroke();
+            mCtx.fillStyle = '#64748b'; mCtx.font = '11px Arial'; mCtx.textAlign = 'center';
+            mCtx.fillText('0', cx+R+15, cy+15); mCtx.fillText('1', cx+R, cy-8);
+            mCtx.fillText('-1', cx-R, cy-8); mCtx.fillText('90°', cx+12, cy-R-5);
+
+            // Unit circle
+            mCtx.beginPath(); mCtx.arc(cx, cy, R, 0, Math.PI*2);
+            mCtx.strokeStyle = 'rgba(255,255,255,0.15)'; mCtx.lineWidth = 2; mCtx.stroke();
+
+            // Quadrant labels
+            mCtx.fillStyle = 'rgba(255,255,255,0.08)'; mCtx.font = 'bold 14px Arial';
+            mCtx.fillText('I',cx+R*0.5,cy-R*0.5); mCtx.fillText('II',cx-R*0.5,cy-R*0.5);
+            mCtx.fillText('III',cx-R*0.5,cy+R*0.5); mCtx.fillText('IV',cx+R*0.5,cy+R*0.5);
+
+            // Arc
+            mCtx.beginPath(); mCtx.arc(cx, cy, R*0.15, 0, -rad, rad > 0);
+            mCtx.strokeStyle = '#ec4899'; mCtx.lineWidth = 2; mCtx.stroke();
+            // Angle label
+            const labelR = R*0.22;
+            mCtx.fillStyle = '#ec4899'; mCtx.font = 'bold 13px Courier New';
+            mCtx.fillText(`${angleDeg}°`, cx + labelR*Math.cos(-rad/2), cy + labelR*Math.sin(-rad/2) + 4);
+
+            // Radius line
+            mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(px,py);
+            mCtx.strokeStyle = '#f8fafc'; mCtx.lineWidth = 2; mCtx.stroke();
+
+            // Sin line (vertical, green)
+            mCtx.beginPath(); mCtx.moveTo(px,cy); mCtx.lineTo(px,py);
+            mCtx.strokeStyle = '#22c55e'; mCtx.lineWidth = 3; mCtx.stroke();
+            mCtx.fillStyle = '#22c55e'; mCtx.font = 'bold 12px Arial';
+            mCtx.fillText('sin', px + 12, (cy+py)/2 + 4);
+
+            // Cos line (horizontal, blue)
+            mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(px,cy);
+            mCtx.strokeStyle = '#3b82f6'; mCtx.lineWidth = 3; mCtx.stroke();
+            mCtx.fillStyle = '#3b82f6';
+            mCtx.fillText('cos', (cx+px)/2, cy + 18);
+
+            // Tan line (yellow, tangent at x=R)
+            if(Math.abs(Math.cos(rad)) > 0.01) {
+                const tanVal = Math.tan(rad);
+                const tanY = cy - tanVal * R;
+                const clampedTanY = Math.max(cy-R*2, Math.min(cy+R*2, tanY));
+                mCtx.beginPath(); mCtx.moveTo(cx+R, cy); mCtx.lineTo(cx+R, clampedTanY);
+                mCtx.strokeStyle = '#f59e0b'; mCtx.lineWidth = 2.5; mCtx.stroke();
+                mCtx.fillStyle = '#f59e0b'; mCtx.font = 'bold 12px Arial';
+                mCtx.fillText('tan', cx+R+12, (cy+clampedTanY)/2);
+                // Extended radius to tangent
+                mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(cx+R, clampedTanY);
+                mCtx.setLineDash([4,4]); mCtx.strokeStyle = 'rgba(245,158,11,0.3)'; mCtx.lineWidth = 1; mCtx.stroke();
+                mCtx.setLineDash([]);
+            }
+
+            // Point on circle
+            mCtx.beginPath(); mCtx.arc(px, py, 7, 0, Math.PI*2);
+            mCtx.fillStyle = '#ec4899'; mCtx.fill();
+            mCtx.strokeStyle = '#fff'; mCtx.lineWidth = 2; mCtx.stroke();
+
+            // Coordinate label
+            const cosV = Math.cos(rad).toFixed(2), sinV = Math.sin(rad).toFixed(2);
+            mCtx.fillStyle = '#f8fafc'; mCtx.font = 'bold 11px Courier New';
+            mCtx.fillText(`(${cosV}, ${sinV})`, px + (px > cx ? 15 : -60), py + (py < cy ? -12 : 18));
+        }
+
+        function drawWave() {
+            wCtx.clearRect(0,0,WW,WH);
+            const cy = WH/2;
+            const rad = angleDeg * Math.PI / 180;
+
+            // Axis
+            wCtx.strokeStyle = 'rgba(255,255,255,0.15)'; wCtx.lineWidth = 1;
+            wCtx.beginPath(); wCtx.moveTo(0,cy); wCtx.lineTo(WW,cy); wCtx.stroke();
+
+            // Degree marks
+            wCtx.fillStyle = '#64748b'; wCtx.font = '9px Arial'; wCtx.textAlign = 'center';
+            [0,90,180,270,360].forEach(d => {
+                const x = (d/360)*WW;
+                wCtx.beginPath(); wCtx.moveTo(x,cy-5); wCtx.lineTo(x,cy+5); wCtx.stroke();
+                wCtx.fillText(d+'°',x,cy+15);
+            });
+
+            // Sin wave
+            wCtx.beginPath(); wCtx.strokeStyle = '#22c55e'; wCtx.lineWidth = 2;
+            for(let px=0;px<WW;px++) {
+                const d = (px/WW)*360;
+                const y = cy - Math.sin(d*Math.PI/180) * (WH*0.4);
+                px===0 ? wCtx.moveTo(px,y) : wCtx.lineTo(px,y);
+            }
+            wCtx.stroke();
+            wCtx.fillStyle='#22c55e'; wCtx.font='bold 10px Arial'; wCtx.textAlign='left'; wCtx.fillText('sin',5,cy-WH*0.35);
+
+            // Cos wave
+            wCtx.beginPath(); wCtx.strokeStyle = '#3b82f6'; wCtx.lineWidth = 2;
+            for(let px=0;px<WW;px++) {
+                const d = (px/WW)*360;
+                const y = cy - Math.cos(d*Math.PI/180) * (WH*0.4);
+                px===0 ? wCtx.moveTo(px,y) : wCtx.lineTo(px,y);
+            }
+            wCtx.stroke();
+            wCtx.fillStyle='#3b82f6'; wCtx.fillText('cos',5,cy+WH*0.35+10);
+
+            // Current angle marker
+            const markerX = (angleDeg/360)*WW;
+            const sinY = cy - Math.sin(rad)*(WH*0.4);
+            const cosY = cy - Math.cos(rad)*(WH*0.4);
+            // Vertical line
+            wCtx.beginPath(); wCtx.moveTo(markerX,0); wCtx.lineTo(markerX,WH);
+            wCtx.strokeStyle='rgba(236,72,153,0.3)'; wCtx.lineWidth=1; wCtx.stroke();
+            // Points
+            wCtx.beginPath(); wCtx.arc(markerX,sinY,5,0,Math.PI*2); wCtx.fillStyle='#22c55e'; wCtx.fill();
+            wCtx.beginPath(); wCtx.arc(markerX,cosY,5,0,Math.PI*2); wCtx.fillStyle='#3b82f6'; wCtx.fill();
+        }
+
+        updateValues();
+        drawAll();
+    </script>
+</body>
+</html>

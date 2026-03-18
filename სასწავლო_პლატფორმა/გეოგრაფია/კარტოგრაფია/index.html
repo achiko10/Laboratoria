@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — კარტოგრაფია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .map-wrap { position: relative; width: 100%; aspect-ratio: 2/1; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); cursor: crosshair; }
+        .world-map { width: 100%; height: 100%; position: absolute; top:0; left:0; pointer-events:none; opacity: 0.3; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500"><path fill="%23ffffff" d="M150,150 Q170,140 180,160 T200,200 T210,250 T200,350 T180,420 T140,400 T150,300 T130,220 Z M450,150 Q500,100 650,120 T800,180 T750,250 Q700,300 600,250 T500,300 T450,450 T400,350 T400,200 Z M800,300 Q850,300 900,350 T800,450 T750,350 Z" opacity="0.8"/></svg>'); background-size: cover; }
+        
+        .grid-line-h { position: absolute; left:0; right:0; border-top: 1px solid rgba(255,255,255,0.1); pointer-events:none; }
+        .grid-line-v { position: absolute; top:0; bottom:0; border-left: 1px solid rgba(255,255,255,0.1); pointer-events:none; }
+        .equator { border-color: #ef4444; z-index: 2; }
+        .prime-meridian { border-color: #3b82f6; z-index: 2; }
+        
+        .marker { position: absolute; width: 14px; height: 14px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 0 10px #ef4444; pointer-events: none; }
+        
+        .hover-lines-h { position: absolute; left:0; right:0; height:1px; background: rgba(255,255,255,0.3); pointer-events:none; display:none; }
+        .hover-lines-v { position: absolute; top:0; bottom:0; width:1px; background: rgba(255,255,255,0.3); pointer-events:none; display:none; }
+
+        .time-zone-lbl { position: absolute; bottom: 5px; font-size: 0.6rem; color: #94a3b8; transform: translateX(-50%); pointer-events:none; }
+
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        .coord-box { background: #0f172a; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .coord-title { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        .coord-val { font-family: 'Courier New'; font-size: 1.4rem; font-weight: bold; color: #f8fafc; margin-bottom: 5px; }
+        
+        .time-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .time-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .time-row:last-child { border: none; }
+        .time-city { font-weight: bold; font-size: 0.9rem; }
+        .time-val { font-family: 'Courier New'; font-size: 1.1rem; color: #3b82f6; }
+
+        .info-box { background: #0f172a; border-left: 3px solid #10b981; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #34d399; }
+        
+        .game-mode { background: #1e293b; padding: 15px; border-radius: 12px; border: 1px dashed #3b82f6; }
+        .btn { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; background: linear-gradient(135deg, #3b82f6, #06b6d4); width: 100%; margin-top: 10px; }
+        .btn:hover { filter: brightness(1.1); }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>📍 კარტოგრაფია</h1>
+    <p class="subtitle">გეოგრაფიული კოორდინატები (განედი/გრძედი) და სასაათო სარტყლები (Time Zones)</p>
+    
+    <div class="app">
+        <div>
+            <div class="map-wrap" id="map">
+                <div class="world-map"></div>
+                <!-- Grid -->
+                <div class="grid-line-h equator" style="top: 50%;"></div>
+                <div class="grid-line-v prime-meridian" style="left: 50%;"></div>
+                
+                <div class="grid-line-h" style="top: 16.6%; border-style:dashed; border-color:#fcd34d;"></div><div style="position:absolute; top:16.6%; left:2px; font-size:0.6rem; color:#fcd34d;">60° N</div>
+                <div class="grid-line-h" style="top: 33.3%; border-style:dashed;"></div><div style="position:absolute; top:33.3%; left:2px; font-size:0.6rem; color:#94a3b8;">30° N</div>
+                <div class="grid-line-h" style="top: 66.6%; border-style:dashed;"></div><div style="position:absolute; top:66.6%; left:2px; font-size:0.6rem; color:#94a3b8;">30° S</div>
+                <div class="grid-line-h" style="top: 83.3%; border-style:dashed; border-color:#fcd34d;"></div><div style="position:absolute; top:83.3%; left:2px; font-size:0.6rem; color:#fcd34d;">60° S</div>
+                
+                <div class="grid-line-v" style="left: 16.6%; border-style:dashed;"></div>
+                <div class="grid-line-v" style="left: 33.3%; border-style:dashed;"></div>
+                <div class="grid-line-v" style="left: 66.6%; border-style:dashed;"></div>
+                <div class="grid-line-v" style="left: 83.3%; border-style:dashed;"></div>
+                
+                <!-- Timezones labels -->
+                <div class="time-zone-lbl" style="left:16.6%">-8სთ</div>
+                <div class="time-zone-lbl" style="left:33.3%">-4სთ</div>
+                <div class="time-zone-lbl" style="left:50%; color:#3b82f6;">GMT 0</div>
+                <div class="time-zone-lbl" style="left:66.6%">+4სთ</div>
+                <div class="time-zone-lbl" style="left:83.3%">+8სთ</div>
+                
+                <div class="hover-lines-h" id="hl-h"></div>
+                <div class="hover-lines-v" id="hl-v"></div>
+                <div class="marker" id="marker"></div>
+            </div>
+            
+            <div class="info-box" style="margin-top:15px;">
+                <b>ეკვატორი (0° განედი):</b> ყოფს დედამიწას ჩრდილოეთ და სამხრეთ ნახევარსფეროებად. (წითელი ხაზი)<br><br>
+                <b>გრინვიჩის მერიდიანი (0° გრძედი):</b> ყოფს დასავლეთ და აღმოსავლეთ ნახევარსფეროებად. მისთის გამოითვლება მსოფლიო დრო (GMT/UTC). (ლურჯი ხაზი)
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="coord-box">
+                <div class="coord-title">შერჩეული კოორდინატები</div>
+                <div class="coord-val" id="lat-val">0° N</div>
+                <div class="coord-val" id="lng-val">0° E</div>
+                <div style="font-size:0.8rem; color:#34d399; margin-top:5px;" id="hemisphere">ჩრდილო-აღმოსავლეთ ნახევარსფერო</div>
+            </div>
+
+            <div class="time-box">
+                <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">🕒 ლოკალური დრო ბოლოს შერჩეულ წერტილში:</div>
+                <div class="time-row">
+                    <span class="time-city">შერჩეული პოზიცია:</span>
+                    <span class="time-val" id="pos-time">12:00</span>
+                </div>
+                <div class="time-row">
+                    <span class="time-city" style="color:#64748b; font-weight:normal;">ლონდონი (GMT):</span>
+                    <span class="time-val" style="color:#64748b;" id="gmt-time">12:00</span>
+                </div>
+                <div style="font-size:0.7rem; color:#94a3b8; margin-top:10px;">1 საათი = 15° გრძედი. თუ გრინვიჩიდან აღმოსავლეთით მივდივართ დრო ემატება, დასავლეთით — აკლდება.</div>
+            </div>
+
+            <div class="game-mode">
+                <div style="text-align:center; font-weight:bold; color:#fcd34d; margin-bottom:10px;">🎯 იპოვე წერტილი</div>
+                <div style="font-size:0.85rem; color:#cbd5e1; text-align:center;" id="game-target">დააკლიკე: <b>0° განედი, 0° გრძედი</b></div>
+                <button class="btn" onclick="startFindGame()">ახალი წერტილი</button>
+                <div id="game-feedback" style="text-align:center; font-size:0.8rem; margin-top:10px; font-weight:bold;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const map = document.getElementById('map');
+        const marker = document.getElementById('marker');
+        const hlH = document.getElementById('hl-h');
+        const hlV = document.getElementById('hl-v');
+        
+        let currentLat = 0, currentLng = 0;
+        let gameActive = false;
+        let targetLat = 0, targetLng = 0;
+
+        map.addEventListener('mousemove', (e) => {
+            const rect = map.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            hlH.style.display = 'block'; hlH.style.top = y + 'px';
+            hlV.style.display = 'block'; hlV.style.left = x + 'px';
+        });
+
+        map.addEventListener('mouseleave', () => {
+            hlH.style.display = 'none';
+            hlV.style.display = 'none';
+        });
+
+        map.addEventListener('click', (e) => {
+            const rect = map.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            marker.style.left = (x / rect.width)*100 + '%';
+            marker.style.top = (y / rect.height)*100 + '%';
+
+            // Calculate Lat Lng
+            // Y: 0 is 90N, height/2 is 0, height is 90S
+            // X: 0 is 180W, width/2 is 0, width is 180E
+            let lngPct = x / rect.width;
+            let latPct = y / rect.height;
+            
+            currentLng = (lngPct - 0.5) * 360; // -180 to 180
+            currentLat = (0.5 - latPct) * 180; // 90 to -90
+            
+            updateDisplay();
+            
+            if(gameActive) checkGame(currentLat, currentLng);
+        });
+
+        function updateDisplay() {
+            let latStr = Math.abs(currentLat).toFixed(1) + '° ' + (currentLat >= 0 ? 'N (ჩრდ.)' : 'S (სამხ.)');
+            let lngStr = Math.abs(currentLng).toFixed(1) + '° ' + (currentLng >= 0 ? 'E (აღმ.)' : 'W (დას.)');
+            
+            document.getElementById('lat-val').textContent = latStr;
+            document.getElementById('lng-val').textContent = lngStr;
+            
+            let hemiStr = "";
+            hemiStr += currentLat >= 0 ? 'ჩრდილო-' : 'სამხრეთ-';
+            hemiStr += currentLng >= 0 ? 'აღმოსავლეთ' : 'დასავლეთ';
+            document.getElementById('hemisphere').textContent = hemiStr + ' ნახევარსფერო';
+
+            // Calculate Time (Assuming GMT is 12:00 for simplicity)
+            // 15 degrees = 1 hour
+            let hourOffset = Math.round(currentLng / 15);
+            let gmtHour = 12;
+            let localHour = gmtHour + hourOffset;
+            
+            // wrap around 24h
+            if(localHour < 0) localHour += 24;
+            if(localHour >= 24) localHour -= 24;
+            
+            document.getElementById('pos-time').textContent = localHour.toString().padStart(2, '0') + ':00';
+            document.getElementById('pos-time').textContent += (hourOffset >= 0 ? ` (+${hourOffset}სთ)` : ` (${hourOffset}სთ)`);
+        }
+
+        function startFindGame() {
+            gameActive = true;
+            // Target multiples of 30 for playability
+            targetLat = (Math.floor(Math.random() * 5) - 2) * 30; // -60, -30, 0, 30, 60
+            targetLng = (Math.floor(Math.random() * 11) - 5) * 30; // -150 to 150
+            
+            let latStr = Math.abs(targetLat) + '° ' + (targetLat >= 0 ? 'N' : 'S');
+            let lngStr = Math.abs(targetLng) + '° ' + (targetLng >= 0 ? 'E' : 'W');
+            if(targetLat === 0) latStr = '0° (ეკვატორი)';
+            if(targetLng === 0) lngStr = '0° (გრინვიჩი)';
+            
+            document.getElementById('game-target').innerHTML = `იპოვე: <b>${latStr}, ${lngStr}</b>`;
+            document.getElementById('game-feedback').innerHTML = '';
+        }
+
+        function checkGame(lat, lng) {
+            let latDiff = Math.abs(lat - targetLat);
+            let lngDiff = Math.abs(lng - targetLng);
+            
+            if(latDiff < 10 && lngDiff < 10) {
+                document.getElementById('game-feedback').innerHTML = '🎉 ზუსტია! შენ იპოვე წერტილი!';
+                document.getElementById('game-feedback').style.color = '#10b981';
+                gameActive = false;
+            } else {
+                document.getElementById('game-feedback').innerHTML = '❌ არასწორია. სცადე თავიდან.';
+                document.getElementById('game-feedback').style.color = '#ef4444';
+            }
+        }
+
+        // Init center
+        marker.style.left = '50%'; marker.style.top = '50%';
+        updateDisplay();
+
+    </script>
+</body>
+</html>

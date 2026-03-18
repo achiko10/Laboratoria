@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — დიდი გეოგრაფიული აღმოჩენები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #e0f2fe; color: #0f172a; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #0284c7; font-weight: bold; }
+        .subtitle { text-align: center; color: #3b82f6; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #bae6fd; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.1); }
+        
+        /* Map Area */
+        .map-wrapper { position: relative; width: 100%; height: 400px; background: #bae6fd; border-radius: 8px; overflow: hidden; border: 2px solid #7dd3fc; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path fill="%23fef3c7" d="M100,50 Q150,0 200,60 T350,100 T450,50 T400,200 T450,350 T300,380 T200,150 Z" opacity="0.8"/><path fill="%23fef3c7" d="M550,100 Q600,50 700,80 T750,200 T650,300 T580,250 Z" opacity="0.8"/></svg>'); background-size: cover;}
+        
+        .abstract-label { position: absolute; font-size: 0.75rem; font-weight: bold; color: #b45309; opacity: 0.7; }
+
+        .route-svg { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+        .route-line { fill: none; stroke: #db2777; stroke-width: 4; stroke-dasharray: 1000; stroke-dashoffset: 1000; transition: stroke-dashoffset 3s linear; }
+        
+        .ship { position: absolute; font-size: 1.5rem; top: -100px; left: -100px; transition: 3s linear; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); transform-origin: center; opacity: 0;}
+
+        /* Controls */
+        .explorers { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .btn-exp { padding: 10px 15px; background: #e0f2fe; border: 2px solid #38bdf8; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0369a1; transition: 0.2s; font-size: 0.9rem; flex: 1; text-align: center;}
+        .btn-exp:hover { background: #bae6fd; }
+        .btn-exp.active { background: #0284c7; color: #fff; border-color: #0369a1; }
+
+        /* Panel */
+        .info-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #0284c7; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px; min-height: 180px;}
+        .ip-header { font-size: 1.2rem; font-weight: bold; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .ip-year { font-size: 0.9rem; color: #0284c7; font-weight: bold; background: #e0f2fe; padding: 2px 8px; border-radius: 4px; }
+        .ip-desc { font-size: 0.9rem; color: #334155; line-height: 1.6; }
+        .ip-impact { margin-top: auto; font-size: 0.85rem; background: #fefce8; border: 1px solid #fde047; padding: 10px; border-radius: 6px; color: #854d0e; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #bae6fd; color: #0369a1; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #7dd3fc;}
+        .back-btn:hover { background: #7dd3fc; color: #0c4a6e; }
+    </style>
+</head>
+<body>
+    <h1>⛵ დიდი გეოგრაფიული აღმოჩენები</h1>
+    <p class="subtitle">ინტერაქტიული რუკა: XV - XVII საუკუნეების ექსპედიციები</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="explorers">
+                <div class="btn-exp active" id="btn-columbus" onclick="playVoyage('columbus')">ქ. კოლუმბი (1492)</div>
+                <div class="btn-exp" id="btn-gama" onclick="playVoyage('gama')">ვასკო და გამა (1498)</div>
+                <div class="btn-exp" id="btn-magellan" onclick="playVoyage('magellan')">ფ. მაგელანი (1519)</div>
+            </div>
+
+            <div class="map-wrapper">
+                <div class="abstract-label" style="top: 20%; left: 35%;">ევროპა</div>
+                <div class="abstract-label" style="top: 50%; left: 40%;">აფრიკა</div>
+                <div class="abstract-label" style="top: 30%; left: 85%;">აზია / ინდოეთი</div>
+                <div class="abstract-label" style="top: 35%; left: 15%;">ამერიკა</div>
+                <div class="abstract-label" style="top: 80%; left: 10%; color:#0284c7;">წყნარი ოკეანე</div>
+                <div class="abstract-label" style="top: 80%; left: 80%; color:#0284c7;">ინდოეთის ოკეანე</div>
+
+                <svg class="route-svg" viewBox="0 0 800 400">
+                    <path class="route-line" id="r-line" d="" />
+                </svg>
+                <div class="ship" id="ship">⛵</div>
+            </div>
+
+            <div class="info-panel" style="margin-top:20px;">
+                <div class="ip-header" id="ip-name">აირჩიეთ მკვლევარი <span class="ip-year" id="ip-year">----</span></div>
+                <div class="ip-desc" id="ip-desc">
+                    დიდი გეოგრაფიული აღმოჩენების ეპოქაში (Age of Discovery) ევროპელებმა პირველად შემოიარეს დედამიწა, აღმოაჩინეს "ახალი სამყარო" და დაამყარეს პირდაპირი საზღვაო ვაჭრობა ინდოეთთან. მიზანი სანელებლებზე და ოქროზე მონოპოლიის მოპოვება იყო.
+                </div>
+                <div class="ip-impact" id="ip-impact">
+                    <b>შედეგი (კოლუმბის გაცვლა):</b> ძველი და ახალი სამყაროების დაკავშირება. ევროპაში შემოვიდა კარტოფილი, პომიდორი, სიმინდი. სამწუხაროდ, ამერიკაში გავრცელდა დაავადებები, რამაც ადგილობრივი მოსახლეობა გაანადგურა.
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const trips = {
+            columbus: {
+                name: "ქრისტეფორე კოლუმბი (ესპანეთი)", year: "1492 - 1493",
+                desc: "კოლუმბი ცდილობდა ინდოეთში დასავლეთის გზით, ატლანტის ოკეანის გადაცურვით მოხვედრას. ის მიადგა ბაჰამის კუნძულებს (ამერიკას), თუმცა სიცოცხლის ბოლომდე სჯეროდა, რომ აზიის (ინდოეთის) სანაპიროს მიაღწია.",
+                impact: "<b>ისტორიული მნიშვნელობა:</b> ევროპელებისთვის აღმოაჩინა 'ახალი სამყარო' (ამერიკა), რამაც საფუძველი ჩაუყარა მის კოლონიზაციასა და გლობალურ ვაჭრობას.",
+                path: "M 320 150 Q 250 200 150 200", color: "#16a34a",
+                startX: "40%", startY: "37.5%", endX: "18.75%", endY: "50%", rot: -10
+            },
+            gama: {
+                name: "ვასკო და გამა (პორტუგალია)", year: "1497 - 1499",
+                desc: "პირველი ევროპელი, რომელმაც ინდოეთს საზღვაო გზით, აფრიკის კონტინენტის შემოვლით (კეთილი იმედის კონცხის გავლით) მიაღწია.",
+                impact: "<b>ისტორიული მნიშვნელობა:</b> აზიის სანელებლებზე წვდომამ დაასრულა არაბული და იტალიური მონოპოლია და პორტუგალია უმდიდრეს საზღვაო იმპერიად აქცია.",
+                path: "M 320 150 C 300 250, 450 400, 500 350 S 700 200 700 150", color: "#ea580c",
+                startX: "40%", startY: "37.5%", endX: "87.5%", endY: "37.5%", rot: 20
+            },
+            magellan: {
+                name: "ფერნანდო მაგელანი (ესპანეთი)", year: "1519 - 1522",
+                desc: "მაგელანის ექსპედიციამ დაამტკიცა, რომ დედამიწა სფერულია. მან შემოუარა ამერიკას სამხრეთიდან (მაგელანის სრუტე) და გადაკვეთა უზარმაზარი, მშვიდობიანი ოკეანე, რომელსაც 'წყნარი ოკეანე' უწოდა. თავად მაგელანი ფილიპინებზე მოკლეს.",
+                impact: "<b>ისტორიული მნიშვნელობა:</b> კაცობრიობის ისტორიაში პირველი მოგზაურობა დედამიწის გარშემო (გლობუსის შემოვლა). დადასტურდა დედამიწის სფერულობა პრაქტიკით.",
+                path: "M 320 150 Q 200 200 200 350 T 100 380", color: "#9333ea", // Part 1 simplified
+                startX: "40%", startY: "37.5%", endX: "12.5%", endY: "95%", rot: 45
+            }
+        };
+
+        function playVoyage(id) {
+            // Update buttons
+            document.querySelectorAll('.btn-exp').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+
+            const data = trips[id];
+
+            // Update Info
+            document.getElementById('ip-name').innerHTML = `${data.name} <span class="ip-year">${data.year}</span>`;
+            document.getElementById('ip-desc').textContent = data.desc;
+            document.getElementById('ip-impact').innerHTML = data.impact;
+
+            // Animate SVG Line
+            const line = document.getElementById('r-line');
+            line.style.transition = 'none';
+            line.style.strokeDashoffset = '1000';
+            line.setAttribute('d', data.path);
+            line.style.stroke = data.color;
+            
+            // Animate Ship (simplified logic using start/end points using CSS translation to avoid complex SVG path math in raw JS)
+            const ship = document.getElementById('ship');
+            ship.style.transition = 'none';
+            ship.style.opacity = '1';
+            ship.style.left = data.startX;
+            ship.style.top = data.startY;
+            ship.style.transform = `scale(-1, 1) rotate(0deg)`; // face left initially
+            
+            if(data.endX > data.startX) ship.style.transform = `scale(1, 1) rotate(0deg)`;
+
+            // reflow
+            line.offsetHeight; 
+
+            // Start animation
+            line.style.transition = 'stroke-dashoffset 3s ease-in-out';
+            line.style.strokeDashoffset = '0';
+
+            ship.style.transition = '3s ease-in-out';
+            ship.style.left = data.endX;
+            ship.style.top = data.endY;
+            ship.style.transform = `scale(${data.endX > data.startX ? 1 : -1}, 1) rotate(${data.rot}deg)`;
+        }
+
+        // Init
+        setTimeout(() => playVoyage('columbus'), 500);
+
+    </script>
+</body>
+</html>

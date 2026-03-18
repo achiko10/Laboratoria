@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — მიკრობიოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #eab308); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 260px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; height: 450px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; background: radial-gradient(circle, #1a2744 50%, #0f172a); }
+        .hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; z-index: 5; border: 1px solid rgba(255,255,255,0.05); }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 12px; }
+        .control-group label { font-size: 0.85rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .control-group label b { color: #f8fafc; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #10b981; cursor: pointer; }
+        .stat { background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; font-size: 0.85rem; }
+        .stat-val { font-weight: bold; font-size: 1.1rem; color: #10b981; }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; width: 100%; background: #334155; }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #10b981; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🦠 ბაქტერიების ორობითი გაყოფა</h1>
+    <p class="subtitle">მიკროსკოპის ქვეშ: ბაქტერიების ექსპონენციალური ზრდა</p>
+    <div class="container">
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">თაობა: <b id="gen">0</b> | დრო: <b id="time-lbl">0</b> წთ</div>
+        </div>
+        <div class="panel">
+            <div class="control-group">
+                <label>ტემპერატურა: <b><span id="temp-val">37</span>°C</b></label>
+                <input type="range" id="temp" min="10" max="50" value="37">
+            </div>
+            <div class="control-group">
+                <label>საკვები ნივთიერება: <b><span id="food-val">80</span>%</b></label>
+                <input type="range" id="food" min="0" max="100" value="80">
+            </div>
+            <div class="stat"><span>🦠 რაოდენობა</span><span class="stat-val" id="count">1</span></div>
+            <div class="stat"><span>📈 გაყოფის სიჩქარე</span><span class="stat-val" id="rate" style="color:#eab308;">ნორმა</span></div>
+            <button onclick="resetSim()">↺ თავიდან დაწყება</button>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 ორობითი გაყოფა (Binary Fission):</strong> ბაქტერია 2 იდენტურ ასლად იყოფა 20-30 წუთში (ოპტიმალურ პირობებში).<br>
+            • <strong>ექსპონენციალური ზრდა:</strong> 1→2→4→8→16→32... საათში მილიონებს აღწევს!<br>
+            • <strong>ლიმიტირებელი ფაქტორები:</strong> ტემპერატურა (ოპტიმუმი 37°C), საკვები, სივრცე.
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sim = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const tempS = document.getElementById('temp');
+        const foodS = document.getElementById('food');
+        tempS.oninput = () => document.getElementById('temp-val').textContent = tempS.value;
+        foodS.oninput = () => document.getElementById('food-val').textContent = foodS.value;
+
+        let bacteria = [];
+        let gen = 0;
+        let simTime = 0;
+        let lastDivide = 0;
+
+        function resetSim() {
+            bacteria = []; gen = 0; simTime = 0; lastDivide = 0;
+            bacteria.push({ x: W/2, y: H/2, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, phase: 0, size: 1 });
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            simTime += 1/60;
+
+            const temp = +tempS.value;
+            const food = +foodS.value;
+            
+            // Growth rate based on temp and food
+            let growthRate = 0;
+            if(temp >= 20 && temp <= 45 && food > 10) {
+                const tempFit = 1 - Math.abs(temp - 37) / 20; // Optimal at 37
+                growthRate = tempFit * (food / 100);
+            }
+            
+            let rateLabel = 'სტოპ';
+            if(growthRate > 0.7) rateLabel = 'სწრაფი';
+            else if(growthRate > 0.3) rateLabel = 'ნორმა';
+            else if(growthRate > 0) rateLabel = 'ნელი';
+            document.getElementById('rate').textContent = rateLabel;
+
+            // Division every X seconds (based on rate)
+            const divideInterval = growthRate > 0 ? (3 / growthRate) : 999;
+            if(simTime - lastDivide > divideInterval && bacteria.length < 500 && growthRate > 0) {
+                lastDivide = simTime;
+                gen++;
+                const newBacteria = [];
+                bacteria.forEach(b => {
+                    if(bacteria.length + newBacteria.length < 500) {
+                        newBacteria.push({
+                            x: b.x + (Math.random()-0.5)*15,
+                            y: b.y + (Math.random()-0.5)*15,
+                            vx: (Math.random()-0.5)*0.8,
+                            vy: (Math.random()-0.5)*0.8,
+                            phase: Math.random()*Math.PI*2,
+                            size: 0.3
+                        });
+                    }
+                });
+                bacteria.push(...newBacteria);
+            }
+
+            // Move and draw
+            bacteria.forEach(b => {
+                b.x += b.vx; b.y += b.vy;
+                b.vx += (Math.random()-0.5)*0.1;
+                b.vy += (Math.random()-0.5)*0.1;
+                const spd = Math.sqrt(b.vx*b.vx+b.vy*b.vy);
+                if(spd > 1) { b.vx /= spd; b.vy /= spd; }
+                if(b.x<10) b.vx=Math.abs(b.vx); if(b.x>W-10) b.vx=-Math.abs(b.vx);
+                if(b.y<10) b.vy=Math.abs(b.vy); if(b.y>H-10) b.vy=-Math.abs(b.vy);
+                
+                if(b.size < 1) b.size += 0.02;
+
+                b.phase += 0.02;
+                const wobble = Math.sin(b.phase) * 0.5;
+
+                // Rod-shaped bacterium
+                ctx.save();
+                ctx.translate(b.x, b.y);
+                ctx.rotate(Math.atan2(b.vy, b.vx));
+                ctx.scale(b.size, b.size);
+
+                // Body
+                const bw = 14, bh = 6;
+                ctx.beginPath();
+                ctx.ellipse(0, wobble, bw/2, bh/2, 0, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(16, 185, 129, ${0.6 + b.size*0.3})`;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(5, 150, 105, 0.8)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Flagella
+                ctx.beginPath();
+                ctx.moveTo(-bw/2, wobble);
+                ctx.quadraticCurveTo(-bw/2-6, wobble + Math.sin(simTime*5+b.phase)*4, -bw/2-12, wobble);
+                ctx.strokeStyle = 'rgba(16,185,129,0.4)';
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // Microscope vignette
+            const grad = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35, W/2,H/2,Math.min(W,H)*0.55);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0,0,W,H);
+
+            document.getElementById('gen').textContent = gen;
+            document.getElementById('time-lbl').textContent = Math.floor(simTime / 2); // Simulated minutes
+            document.getElementById('count').textContent = bacteria.length;
+
+            requestAnimationFrame(draw);
+        }
+        resetSim();
+        draw();
+    </script>
+</body>
+</html>

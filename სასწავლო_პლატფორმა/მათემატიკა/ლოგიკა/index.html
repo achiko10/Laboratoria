@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — ლოგიკა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 800px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .gate-selector { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; }
+        .gate-btn { padding: 10px 16px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .gate-btn:hover { background: #334155; }
+        .gate-btn.active { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border-color: #06b6d4; }
+        .sim-area { display: flex; align-items: center; justify-content: center; gap: 30px; padding: 30px; min-height: 200px; }
+        .input-col { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .switch { width: 70px; height: 70px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; font-family: 'Courier New'; cursor: pointer; border: 3px solid; transition: 0.3s; user-select: none; }
+        .switch.off { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; }
+        .switch.on { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.2); }
+        .switch:hover { transform: scale(1.1); }
+        .gate-symbol { font-size: 2rem; color: #06b6d4; padding: 20px; background: rgba(6,182,212,0.1); border-radius: 12px; border: 2px solid rgba(6,182,212,0.3); text-align: center; min-width: 100px; }
+        .gate-symbol .name { font-size: 0.85rem; margin-top: 5px; }
+        .output-display { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; font-family: 'Courier New'; border: 3px solid; transition: 0.3s; }
+        .output-display.off { background: rgba(239,68,68,0.1); border-color: #ef4444; color: #ef4444; }
+        .output-display.on { background: rgba(34,197,94,0.1); border-color: #22c55e; color: #22c55e; box-shadow: 0 0 30px rgba(34,197,94,0.3); }
+        .wire { width: 40px; height: 3px; position: relative; }
+        .wire.on { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+        .wire.off { background: #475569; }
+        .truth-table { width: 100%; border-collapse: collapse; font-family: 'Courier New'; font-size: 0.85rem; }
+        .truth-table th { background: #0f172a; padding: 10px; border: 1px solid rgba(255,255,255,0.1); font-weight: bold; }
+        .truth-table td { padding: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .truth-table tr:hover { background: rgba(255,255,255,0.03); }
+        .truth-table .highlight { background: rgba(6,182,212,0.15); }
+        .td-1 { color: #22c55e; font-weight: bold; }
+        .td-0 { color: #ef4444; }
+        .desc { background: #0f172a; border-left: 3px solid #8b5cf6; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.6; margin-top: 15px; }
+        .desc b { color: #c4b5fd; }
+        .lbl { font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 5px; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🔌 ლოგიკური კარიბჭეები</h1>
+    <p class="subtitle">დააკლიკე შეყვანებზე (0/1), ნახე გამოსავალი — შეისწავლე AND, OR, NOT, XOR, NAND, NOR კარიბჭეები</p>
+    <div class="app">
+        <div class="card">
+            <div class="gate-selector" id="gate-selector"></div>
+            <div class="sim-area" id="sim-area"></div>
+        </div>
+        <div class="card">
+            <div style="font-weight:bold; color:#06b6d4; margin-bottom:10px;">📋 ჭეშმარიტობის ცხრილი</div>
+            <table class="truth-table" id="truth-table"></table>
+        </div>
+        <div class="card">
+            <div class="desc" id="gate-desc"></div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const gates = [
+            { name:'AND', symbol:'∧', inputs:2, fn:(a,b)=>a&b, desc:'გამომავალი = 1 <b>მხოლოდ</b> თუ ორივე შეყვანა = 1. ელექტრონიკაში: სერიული კავშირი. C-ში: a && b.' },
+            { name:'OR', symbol:'∨', inputs:2, fn:(a,b)=>a|b, desc:'გამომავალი = 1 თუ <b>ერთი მაინც</b> შეყვანა = 1. ელექტრონიკაში: პარალელური კავშირი. C-ში: a || b.' },
+            { name:'NOT', symbol:'¬', inputs:1, fn:(a)=>a?0:1, desc:'ინვერტორი: <b>აბრუნებს</b> სიგნალს. 0→1, 1→0. ყველა რთული წრედის საფუძველი. C-ში: !a.' },
+            { name:'XOR', symbol:'⊕', inputs:2, fn:(a,b)=>a^b, desc:'ექსკლუზიური OR: გამომავალი = 1 თუ შეყვანები <b>განსხვავებულია</b>. გამოიყენება: შიფრაცია, ჩეკსუმა.' },
+            { name:'NAND', symbol:'⊼', inputs:2, fn:(a,b)=>(a&b)?0:1, desc:'NOT + AND: AND-ის ინვერსია. <b>უნივერსალური კარიბჭე</b> — ნებისმიერი სხვა კარიბჭის აგება შეიძლება მხოლოდ NAND-ით!' },
+            { name:'NOR', symbol:'⊽', inputs:2, fn:(a,b)=>(a|b)?0:1, desc:'NOT + OR: OR-ის ინვერსია. ასევე <b>უნივერსალური</b> — ყველა კარიბჭე NOR-ით აიგება.' },
+            { name:'XNOR', symbol:'⊙', inputs:2, fn:(a,b)=>(a^b)?0:1, desc:'ექსკლუზიური NOR: გამომავალი = 1 თუ შეყვანები <b>ტოლია</b>. ეკვივალენტობის შემოწმება.' },
+        ];
+
+        let currentGate = 0;
+        let inputA = 0, inputB = 0;
+
+        // Build gate buttons
+        const selector = document.getElementById('gate-selector');
+        gates.forEach((g, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'gate-btn' + (i === 0 ? ' active' : '');
+            btn.textContent = g.name;
+            btn.onclick = () => { currentGate = i; inputA = 0; inputB = 0; document.querySelectorAll('.gate-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateAll(); };
+            selector.appendChild(btn);
+        });
+
+        function toggleInput(which) {
+            if (which === 'a') inputA = inputA ? 0 : 1;
+            else inputB = inputB ? 0 : 1;
+            updateAll();
+        }
+
+        function updateAll() {
+            const g = gates[currentGate];
+            const output = g.inputs === 1 ? g.fn(inputA) : g.fn(inputA, inputB);
+
+            // Sim area
+            const area = document.getElementById('sim-area');
+            const inputsHTML = g.inputs === 2 ?
+                `<div class="input-col">
+                    <div class="switch ${inputA?'on':'off'}" onclick="toggleInput('a')">${inputA}</div>
+                    <div class="lbl">A</div>
+                    <div class="switch ${inputB?'on':'off'}" onclick="toggleInput('b')">${inputB}</div>
+                    <div class="lbl">B</div>
+                </div>` :
+                `<div class="input-col">
+                    <div class="switch ${inputA?'on':'off'}" onclick="toggleInput('a')">${inputA}</div>
+                    <div class="lbl">A</div>
+                </div>`;
+            area.innerHTML = `
+                ${inputsHTML}
+                <div class="wire ${inputA?'on':'off'}"></div>
+                <div class="gate-symbol">${g.symbol}<div class="name">${g.name}</div></div>
+                <div class="wire ${output?'on':'off'}"></div>
+                <div class="output-display ${output?'on':'off'}">${output}</div>
+                <div class="lbl" style="margin-top:0;">Q</div>
+            `;
+
+            // Truth table
+            const table = document.getElementById('truth-table');
+            if (g.inputs === 2) {
+                const combos = [[0,0],[0,1],[1,0],[1,1]];
+                table.innerHTML = `
+                    <tr><th>A</th><th>B</th><th>${g.name} (Q)</th></tr>
+                    ${combos.map(([a,b]) => {
+                        const res = g.fn(a, b);
+                        const hl = (a === inputA && b === inputB) ? ' class="highlight"' : '';
+                        return `<tr${hl}><td class="td-${a}">${a}</td><td class="td-${b}">${b}</td><td class="${res?'td-1':'td-0'}" style="font-weight:bold">${res}</td></tr>`;
+                    }).join('')}
+                `;
+            } else {
+                table.innerHTML = `
+                    <tr><th>A</th><th>${g.name} (Q)</th></tr>
+                    <tr${inputA===0?' class="highlight"':''}><td class="td-0">0</td><td class="${g.fn(0)?'td-1':'td-0'}" style="font-weight:bold">${g.fn(0)}</td></tr>
+                    <tr${inputA===1?' class="highlight"':''}><td class="td-1">1</td><td class="${g.fn(1)?'td-1':'td-0'}" style="font-weight:bold">${g.fn(1)}</td></tr>
+                `;
+            }
+
+            document.getElementById('gate-desc').innerHTML = `<b>${g.name} (${g.symbol}):</b> ${g.desc}`;
+        }
+
+        updateAll();
+    </script>
+</body>
+</html>

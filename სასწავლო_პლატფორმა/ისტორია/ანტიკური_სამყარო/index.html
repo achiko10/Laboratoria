@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — ანტიკური სამყარო</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fdf6e3; color: #333; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #b45309; }
+        .subtitle { text-align: center; color: #78350f; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 15px; }
+        
+        .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid #fde68a; }
+        
+        /* Map Area */
+        .map-area { position: relative; width: 100%; aspect-ratio: 16/9; background: #e0f2fe; border-radius: 12px; overflow: hidden; border: 2px solid #bae6fd; display: flex; align-items: center; justify-content: center; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><path fill="%23fef3c7" d="M100,100 Q150,50 300,80 T500,150 T700,100 T750,200 T700,300 T600,350 T400,300 T200,350 T100,250 Z" opacity="0.8"/></svg>'); background-size: cover;}
+        
+        .region { position: absolute; padding: 10px 15px; background: rgba(255,255,255,0.9); border: 2px solid #fbbf24; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 0.9rem;}
+        .region:hover { transform: scale(1.1); background: #fef08a; z-index: 10; }
+        .region.active { background: #fbbf24; color: #fff; border-color: #d97706; transform: scale(1.1); z-index: 10; }
+
+        .region-egypt { top: 60%; left: 35%; }
+        .region-meso { top: 45%; left: 55%; }
+        .region-greece { top: 35%; left: 35%; }
+        .region-rome { top: 25%; left: 20%; }
+
+        /* Content Panel */
+        .content-panel { display: none; background: #fef3c7; border-radius: 12px; padding: 20px; border: 1px solid #fde68a; margin-top: 15px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .c-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 2px solid #fbbf24; padding-bottom: 10px; }
+        .c-emoji { font-size: 3rem; }
+        .c-title { font-size: 1.5rem; font-weight: bold; color: #b45309; }
+        .c-time { font-size: 0.85rem; color: #92400e; font-weight: normal; margin-top: 4px; }
+        
+        .c-body { font-size: 0.95rem; color: #451a03; line-height: 1.6; }
+        
+        .achievements { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .ach-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #fcd34d; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .ach-icon { font-size: 2rem; margin-bottom: 10px; }
+        .ach-title { font-weight: bold; color: #b45309; margin-bottom: 5px; }
+        .ach-desc { font-size: 0.8rem; color: #78350f; }
+
+        /* Timeline */
+        .timeline { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; padding: 20px 10px; position: relative; }
+        .tl-line { position: absolute; left: 20px; right: 20px; height: 4px; background: #fbbf24; top: 50%; transform: translateY(-50%); z-index: 1; }
+        .tl-node { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .tl-dot { width: 16px; height: 16px; background: #fff; border: 4px solid #f59e0b; border-radius: 50%; transition: 0.2s; }
+        .tl-year { position: absolute; top: -25px; font-size: 0.75rem; font-weight: bold; color: #b45309; white-space: nowrap; }
+        .tl-label { position: absolute; bottom: -25px; font-size: 0.75rem; color: #78350f; font-weight: bold; white-space: nowrap; }
+        .tl-node:hover .tl-dot, .tl-node.active .tl-dot { background: #f59e0b; transform: scale(1.3); }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #fbbf24; color: #78350f; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn:hover { background: #f59e0b; color: #451a03; }
+    </style>
+</head>
+<body>
+    <h1>🏛️ ანტიკური სამყარო</h1>
+    <p class="subtitle">შეისწავლე ძველი ცივილიზაციები. დააკლიკე რუკას ან ქრონოლოგიურ ხაზს!</p>
+    
+    <div class="app">
+        <div class="card">
+            <div class="map-area">
+                <!-- Abstract visual representation of Mediterranean & Middle East -->
+                <div class="region region-egypt" id="r-egypt" onclick="openCiv('egypt')">🇪🇬 ძვ. ეგვიპტე</div>
+                <div class="region region-meso" id="r-meso" onclick="openCiv('meso')">🏺 მესოპოტამია</div>
+                <div class="region region-greece" id="r-greece" onclick="openCiv('greece')">🏛️ ძვ. საბერძნეთი</div>
+                <div class="region region-rome" id="r-rome" onclick="openCiv('rome')">🦅 ძვ. რომი</div>
+            </div>
+
+            <div class="timeline">
+                <div class="tl-line"></div>
+                <div class="tl-node" onclick="openCiv('meso')" id="t-meso">
+                    <div class="tl-year">3500 ძვ.წ.</div>
+                    <div class="tl-dot"></div>
+                    <div class="tl-label">მესოპოტამია</div>
+                </div>
+                <div class="tl-node" onclick="openCiv('egypt')" id="t-egypt">
+                    <div class="tl-year">3100 ძვ.წ.</div>
+                    <div class="tl-dot"></div>
+                    <div class="tl-label">ეგვიპტე</div>
+                </div>
+                <div class="tl-node" onclick="openCiv('greece')" id="t-greece">
+                    <div class="tl-year">800 ძვ.წ.</div>
+                    <div class="tl-dot"></div>
+                    <div class="tl-label">საბერძნეთი</div>
+                </div>
+                <div class="tl-node" onclick="openCiv('rome')" id="t-rome">
+                    <div class="tl-year">753 ძვ.წ.</div>
+                    <div class="tl-dot"></div>
+                    <div class="tl-label">რომი</div>
+                </div>
+            </div>
+
+            <div class="content-panel" id="c-panel">
+                <div class="c-header">
+                    <div class="c-emoji" id="c-emoji">🏺</div>
+                    <div>
+                        <div class="c-title" id="c-title">ცივილიზაცია</div>
+                        <div class="c-time" id="c-time">ქრონოლოგია</div>
+                    </div>
+                </div>
+                <div class="c-body" id="c-body">
+                    აღწერა
+                </div>
+                <div class="achievements" id="achievements">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const civs = {
+            meso: {
+                title: "მესოპოტამია (შუამდინარეთი)", emoji: "🏺", time: "დაახლ. ძვ. წ. 3500 – ძვ. წ. 539",
+                desc: "მდებარეობდა მდინარეებს ტიგროსსა და ევფრატს შორის (დღევანდელი ერაყი). აქ ჩამოყალიბდა შუმერების, აქადელების, ბაბილონელებისა და ასურელების ცივილიზაციები. მას ხშირად უწოდებენ 'ცივილიზაციის აკვანს'.",
+                achievements: [
+                    { icon: "📝", title: "ლურსმული დამწერლობა", desc: "მსოფლიოში ერთ-ერთი პირველი დამწერლობა. იწერებოდა თიხის ფირფიტებზე." },
+                    { icon: "⚙️", title: "ბორბლის გამოგონება", desc: "პირველად გამოიყენეს ტრანსპორტისა და მეთუნეობისთვის." },
+                    { icon: "📜", title: "ჰამურაბის კანონები", desc: "პირველი დაწერილი კანონთა კრებული - 'თვალი თვალის წილ'." }
+                ]
+            },
+            egypt: {
+                title: "ძველი ეგვიპტე", emoji: "🇪🇬", time: "დაახლ. ძვ. წ. 3100 – ძვ. წ. 30",
+                desc: "განვითარდა ჩრდილო-აღმოსავლეთ აფრიკაში, მდინარე ნილოსის ველზე. ცნობილია ფარაონებით, მონუმენტური არქიტექტურითა და სიკვდილისშემდგომი ცხოვრების რთული რელიგიური რწმენით.",
+                achievements: [
+                    { icon: "🔺", title: "პირამიდები", desc: "ფარაონების გრანდიოზული სამარხები (მაგ: გიზას დიდი პირამიდა)." },
+                    { icon: "👁️", title: "იეროგლიფები", desc: "სურათოვანი დამწერლობის სისტემა, იწერებოდა პაპირუსზე." },
+                    { icon: "⚕️", title: "მედიცინა და მუმიფიკაცია", desc: "ადამიანის ანატომიის შესწავლა და სხეულის შენახვის ტექნიკა." }
+                ]
+            },
+            greece: {
+                title: "ძველი საბერძნეთი", emoji: "🏛️", time: "დაახლ. ძვ. წ. 800 – ძვ. წ. 146",
+                desc: "შედგებოდა დამოუკიდებელი ქალაქ-სახელმწიფოებისგან (პოლისებისგან), როგორიცაა ათენი და სპარტა. მან უდიდესი გავლენა მოახდინა დასავლური ცივილიზაციის განვითარებაზე.",
+                achievements: [
+                    { icon: "🗳️", title: "დემოკრატია", desc: "ხალხის მმართველობის იდეა, რომელიც პირველად ათენში დაინერგა." },
+                    { icon: "🧠", title: "ფილოსოფია", desc: "სოკრატე, პლატონი და არისტოტელე - დასავლური აზროვნების ფუძემდებლები." },
+                    { icon: "🏃", title: "ოლიმპიური თამაშები", desc: "სპორტული შეჯიბრებები, რომელიც იმართებოდა ღმერთების პატივსაცემად." }
+                ]
+            },
+            rome: {
+                title: "ძველი რომი", emoji: "🦅", time: "დაახლ. ძვ. წ. 753 – ა.წ. 476",
+                desc: "დაიწყო როგორც ქალაქმა იტალიაში და გადაიქცა მსოფლიოს უდიდეს იმპერიად, რომელიც მოიცავდა ევროპას, ჩრდ. აფრიკას და ახლო აღმოსავლეთს.",
+                achievements: [
+                    { icon: "⚖️", title: "რომაული სამართალი", desc: "იურიდიული სისტემა, რომელმაც საფუძველი ჩაუყარა თანამედროვე ევროპულ სამართალს." },
+                    { icon: "🌉", title: "ინჟინერია", desc: "აკვედუკები (წყალსადენები), კოლიზეუმი, კარგად ნაგები გზები." },
+                    { icon: "📚", title: "ლათინური ენა", desc: "ენა, რომლიდანაც წარმოიშვა რომანული ენები (ფრანგული, ესპანური, იტალიური)." }
+                ]
+            }
+        };
+
+        function openCiv(id) {
+            // reset active states
+            document.querySelectorAll('.region').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tl-node').forEach(el => el.classList.remove('active'));
+            
+            // set active states
+            document.getElementById('r-' + id).classList.add('active');
+            document.getElementById('t-' + id).classList.add('active');
+
+            // populate panel
+            const data = civs[id];
+            document.getElementById('c-title').textContent = data.title;
+            document.getElementById('c-emoji').textContent = data.emoji;
+            document.getElementById('c-time').textContent = data.time;
+            document.getElementById('c-body').textContent = data.desc;
+
+            const achContainer = document.getElementById('achievements');
+            achContainer.innerHTML = '';
+            data.achievements.forEach(ach => {
+                let card = document.createElement('div');
+                card.className = 'ach-card';
+                card.innerHTML = `
+                    <div class="ach-icon">${ach.icon}</div>
+                    <div class="ach-title">${ach.title}</div>
+                    <div class="ach-desc">${ach.desc}</div>
+                `;
+                achContainer.appendChild(card);
+            });
+
+            const panel = document.getElementById('c-panel');
+            panel.style.display = 'block';
+            
+            // Reset animation
+            panel.style.animation = 'none';
+            panel.offsetHeight; /* trigger reflow */
+            panel.style.animation = null; 
+        }
+
+        // Init optional
+        // openCiv('greece');
+    </script>
+</body>
+</html>

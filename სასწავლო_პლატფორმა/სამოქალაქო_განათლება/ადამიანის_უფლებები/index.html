@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — ადამიანის უფლებები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fffbeb; color: #451a03; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #b45309; font-weight: bold;}
+        .subtitle { text-align: center; color: #d97706; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .app { max-width: 800px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #fde68a; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.1); }
+
+        /* Scenario Box */
+        .scenario-box { background: #fefce8; border: 2px dashed #f59e0b; border-radius: 10px; padding: 25px; margin-bottom: 25px; text-align: center; position: relative;}
+        .sc-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #fff; font-weight: bold; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem;}
+        .sc-text { font-size: 1.2rem; color: #78350f; line-height: 1.5; font-weight: bold;}
+
+        /* Options */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+        
+        .opt-btn { background: #fff; border: 2px solid #fcd34d; border-radius: 8px; padding: 15px; cursor: pointer; transition: 0.2s; text-align: left; font-family: sans-serif; font-size: 0.95rem; color: #92400e; font-weight: bold; display: flex; align-items: center; gap: 10px;}
+        .opt-btn:hover { background: #fef08a; transform: translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .opt-icon { font-size: 1.5rem; }
+
+        /* Result formatting */
+        .opt-btn.correct { background: #d1fae5; border-color: #10b981; color: #065f46; animation: popIn 0.3s; }
+        .opt-btn.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; animation: shake 0.4s; }
+
+        @keyframes popIn { 0% {transform: scale(0.95);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        /* Explanation Box */
+        .expl-box { margin-top: 20px; padding: 15px; background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 6px; color: #0c4a6e; font-size: 0.95rem; display: none; line-height: 1.6;}
+        
+        /* Progress & Control */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-top: 2px solid #fef08a; padding-top: 15px;}
+        .prog-text { font-weight: bold; color: #b45309; }
+        .next-btn { padding: 10px 20px; background: #f59e0b; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; transition: 0.2s;}
+        .next-btn:hover { background: #d97706; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #fef08a; color: #b45309; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #fcd34d; text-align: center;}
+        .back-btn:hover { background: #fcd34d; color: #78350f; }
+        
+        /* Confetti Canvas for end */
+        #confetti { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 100;}
+    </style>
+</head>
+<body>
+    <canvas id="confetti"></canvas>
+    
+    <h1>⚖️ ადამიანის უფლებები</h1>
+    <p class="subtitle">შეაფასეთ სიტუაცია და დაადგინეთ, რომელი უფლება ირღვევა (ან არის დაცული)</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div id="game-view">
+                <div class="scenario-box">
+                    <div class="sc-num" id="sc-num">სიტუაცია 1/4</div>
+                    <div class="sc-text" id="sc-text">ჟურნალისტი დააპატიმრეს მხოლოდ იმის გამო, რომ მან გაზეთში გააკრიტიკა ქალაქის მერის პოლიტიკა.</div>
+                </div>
+
+                <div class="options-grid" id="options">
+                    <!-- Buttons injected via JS -->
+                </div>
+
+                <div class="expl-box" id="explanation">
+                    <!-- Explanation -->
+                </div>
+
+                <div class="controls">
+                    <div class="prog-text">სწორი პასუხი: <span id="score">0</span></div>
+                    <button class="next-btn" id="next-btn" onclick="nextQuestion()">შემდეგი ➞</button>
+                </div>
+            </div>
+            
+            <div id="end-view" style="display:none; text-align:center; padding: 30px 0;">
+                <div style="font-size: 5rem; margin-bottom: 20px;">🏆</div>
+                <h2 style="color: #b45309; margin-bottom:10px;">ტესტი დასრულდა!</h2>
+                <div style="font-size: 1.1rem; color: #78350f; margin-bottom: 20px;">თქვენი შედეგი: <span id="final-score" style="font-weight:bold; color:#16a34a;"></span></div>
+                <button onclick="restartGame()" style="padding:10px 20px; background:#f59e0b; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">თავიდან დაწყება</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const qs = [
+            {
+                text: "ჟურნალისტი დააპატიმრეს მხოლოდ იმის გამო, რომ მან გააკრიტიკა მერის გადაწყვეტილებები.",
+                options: [
+                    { icon: "🗣️", text: "გამოხატვის თავისუფლება", isCorrect: true },
+                    { icon: "🏠", text: "საკუთრების უფლება", isCorrect: false },
+                    { icon: "💼", text: "შრომის უფლება", isCorrect: false },
+                    { icon: "🎓", text: "განათლების უფლება", isCorrect: false }
+                ],
+                expl: "<b>გამოხატვის თავისუფლება (მუხლი 19)</b> აძლევს ადამიანს უფლებას ჰქონდეს საკუთარი მოსაზრება და გაავრცელოს ინფორმაცია ჩარევის გარეშე. ჟურნალისტის დაპატიმრება კრიტიკის გამო ამ უფლების პირდაპირი დარღვევაა."
+            },
+            {
+                text: "პატარა ბავშვი იძულებულია იმუშაოს ქარხანაში მძიმე პირობებში და არ დადის სკოლაში.",
+                options: [
+                    { icon: "🛡️", text: "პირადი უსაფრთხოების უფლება", isCorrect: false },
+                    { icon: "📖", text: "განათლებისა და ბავშვთა უფლებები", isCorrect: true },
+                    { icon: "⚖️", text: "სამართლიანი სასამართლოს უფლება", isCorrect: false },
+                    { icon: "🗳️", text: "არჩევნებში მონაწილეობის უფლება", isCorrect: false }
+                ],
+                expl: "<b>განათლებისა და ბავშვთა უფლებები:</b> უნივერსალური დეკლარაციის მიხედვით (მუხლი 26), დაწყებითი განათლება უნდა იყოს სავალდებულო და უფასო. ბავშვთა შრომა, რომელიც ხელს უშლის განათლებას, მიუღებელია."
+            },
+            {
+                text: "პოლიციამ პირს წაართვა კუთვნილი მიწის ნაკვეთი ყოველგვარი სასამართლო გადაწყვეტილებისა და კომპენსაციის გარეშე.",
+                options: [
+                    { icon: "🔒", text: "პირადი ცხოვრების ხელშეუხებლობა", isCorrect: false },
+                    { icon: "🗣️", text: "აზრის თავისუფლება", isCorrect: false },
+                    { icon: "🏠", text: "საკუთრების ხელშეუხებლობის უფლება", isCorrect: true },
+                    { icon: "🧳", text: "გადაადგილების თავისუფლება", isCorrect: false }
+                ],
+                expl: "<b>საკუთრების უფლება (მუხლი 17):</b> ყოველ ადამიანს აქვს საკუთრების უფლება. არავის შეიძლება ჩამოერთვას თავისი ქონება თვითნებურად, კანონიერი საფუძვლისა და კომპენსაციის გარეშე."
+            },
+            {
+                text: "დაკავებულ პირს არ აძლევენ ადვოკატის აყვანის საშუალებას და აშანტაჟებენ აღიარებითი ჩვენების მისაღებად.",
+                options: [
+                    { icon: "⚖️", text: "სამართლიანი სასამართლოს უფლება (უდანაშაულობის პრეზუმფცია)", isCorrect: true },
+                    { icon: "🛐", text: "რწმენის თავისუფლება", isCorrect: false },
+                    { icon: "🤝", text: "გაერთიანების თავისუფლება", isCorrect: false },
+                    { icon: "🎭", text: "კულტურულ ცხოვრებაში მონაწილეობა", isCorrect: false }
+                ],
+                expl: "<b>სამართლიანი სასამართლო და დაცვის უფლება (მუხლი 10, 11):</b> ყველას აქვს უფლება დაიცვას თავი დამოუკიდებელ სასამართლოში. ასევე მოქმედებს უდანაშაულობის პრეზუმფცია და აკრძალულია წამება/შანტაჟი ჩვენების მისაღებად."
+            }
+        ];
+
+        let currIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        function renderQuestion() {
+            const q = qs[currIndex];
+            document.getElementById('sc-num').textContent = `სიტუაცია ${currIndex + 1}/${qs.length}`;
+            document.getElementById('sc-text').textContent = q.text;
+            
+            const optsContainer = document.getElementById('options');
+            optsContainer.innerHTML = '';
+            
+            // Randomize options for uniqueness if desired, skipping for predictability here
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.innerHTML = `<span class="opt-icon">${opt.icon}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => selectOption(idx, btn);
+                optsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            answered = false;
+        }
+
+        function selectOption(idx, btn) {
+            if (answered) return;
+            answered = true;
+
+            const q = qs[currIndex];
+            const isCorrect = q.options[idx].isCorrect;
+            
+            document.querySelectorAll('.opt-btn').forEach(b => b.style.pointerEvents = 'none'); // disable all
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                score++;
+                document.getElementById('score').textContent = score;
+            } else {
+                btn.classList.add('wrong');
+                // find correct and highlight
+                const btns = document.querySelectorAll('.opt-btn');
+                q.options.forEach((o, i) => {
+                    if(o.isCorrect) btns[i].classList.add('correct');
+                });
+            }
+
+            const expl = document.getElementById('explanation');
+            expl.innerHTML = q.expl;
+            expl.style.display = 'block';
+
+            document.getElementById('next-btn').style.display = 'block';
+            
+            if(isCorrect) fireConfetti(); // mild confetti
+        }
+
+        function nextQuestion() {
+            currIndex++;
+            if (currIndex < qs.length) {
+                renderQuestion();
+            } else {
+                // End game
+                document.getElementById('game-view').style.display = 'none';
+                document.getElementById('end-view').style.display = 'block';
+                document.getElementById('final-score').textContent = `${score} / ${qs.length}`;
+            }
+        }
+
+        function restartGame() {
+            currIndex = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('game-view').style.display = 'block';
+            document.getElementById('end-view').style.display = 'none';
+            renderQuestion();
+        }
+
+        // Extremely simple Confetti (Canvas)
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            let particles = [];
+            for(let i=0; i<30; i++) {
+                particles.push({
+                    x: canvas.width/2, y: canvas.height/2 + 100,
+                    vx: (Math.random()-0.5)*10, vy: (Math.random()-1)*15,
+                    color: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][Math.floor(Math.random()*4)],
+                    size: Math.random()*8+4
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.vy += 0.5; // gravity
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    if(p.y < canvas.height) active = true;
+                });
+                if(active) requestAnimationFrame(animate);
+                else ctx.clearRect(0,0, canvas.width, canvas.height); // clear end
+            }
+            animate();
+        }
+
+        // Init
+        renderQuestion();
+    </script>
+</body>
+</html>

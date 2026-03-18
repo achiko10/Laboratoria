@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ლიტერატურა — ჟანრობრივი ანალიზი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fff1f2; color: #881337; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #be123c; }
+        .subtitle { text-align: center; color: #e11d48; font-size: 0.85rem; margin-bottom: 20px; }
+        
+        .app { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .buckets-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        @media (max-width: 768px) { .buckets-container { grid-template-columns: 1fr; } }
+        
+        /* Buckets */
+        .bucket { background: #fff; border: 2px dashed #f43f5e; border-radius: 12px; padding: 15px; min-height: 250px; display: flex; flex-direction: column; align-items: center; transition: 0.2s;}
+        .bucket.drag-over { background: #ffe4e6; border-color: #e11d48; }
+        
+        .b-title { font-size: 1.2rem; font-weight: bold; color: #9f1239; margin-bottom: 10px; border-bottom: 2px solid #fda4af; padding-bottom: 5px; width: 100%; text-align: center;}
+        .b-desc { font-size: 0.8rem; color: #be123c; text-align: center; margin-bottom: 15px; }
+        
+        .items-list { width: 100%; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+        /* Draggable Items Area */
+        .source-area { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #fecdd3; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.1); min-height: 150px;}
+        .source-title { font-weight: bold; color: #9f1239; margin-bottom: 15px; text-align: center; }
+        
+        .source-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+        /* Draggable Card */
+        .drag-item { padding: 10px 15px; background: #fef08a; border: 1px solid #eab308; border-radius: 8px; cursor: grab; font-weight: bold; color: #854d0e; font-size: 0.9rem; transition: transform 0.1s; user-select: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 250px; text-align: center;}
+        .drag-item:active { cursor: grabbing; transform: scale(1.05); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .drag-item.in-bucket { background: #f0fdf4; border-color: #86efac; color: #166534; box-shadow: none; animation: popIn 0.3s forwards;}
+        
+        @keyframes popIn { 0% {transform: scale(0.9);} 100% {transform: scale(1);}}
+
+        .msg { text-align: center; font-weight: bold; font-size: 1.1rem; color: #16a34a; margin-top: 15px; min-height: 25px;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #ffe4e6; color: #9f1239; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #fda4af; text-align: center;}
+        .back-btn:hover { background: #fecdd3; color: #881337; }
+    </style>
+</head>
+<body>
+    <h1>📚 ჟანრობრივი ანალიზი</h1>
+    <p class="subtitle">ლიტერატურული გვარები: გადაანაწილეთ ნაწარმოებები და მახასიათებლები სწორ კატეგორიებში</p>
+    
+    <div class="app">
+        
+        <div class="buckets-container">
+            <div class="bucket" id="b-epos">
+                <div class="b-title">📖 ეპოსი</div>
+                <div class="b-desc">თხრობითი ხასიათის ნაწარმოები, სადაც აღწერილია ამბავი ავტორისეული გადმოცემით.</div>
+                <div class="items-list" id="list-epos"></div>
+            </div>
+            
+            <div class="bucket" id="b-lyric">
+                <div class="b-title">🎵 ლირიკა</div>
+                <div class="b-desc">გამოხატავს ავტორის (ლირიკული გმირის) განცდებს, ფიქრებს, ემოციებს. ხშირად ლექსად იწერება.</div>
+                <div class="items-list" id="list-lyric"></div>
+            </div>
+            
+            <div class="bucket" id="b-drama">
+                <div class="b-title">🎭 დრამა</div>
+                <div class="b-desc">შექმნილია სცენაზე დასადგმელად (დიალოგები/მონოლოგები), ავტორის ჩარევის გარეშე.</div>
+                <div class="items-list" id="list-drama"></div>
+            </div>
+        </div>
+
+        <div class="source-area">
+            <div class="source-title">ჩასაგდები ბარათები (დაატარეთ მაუსით):</div>
+            <div class="source-grid" id="source-grid">
+                <!-- Items populated by JS -->
+            </div>
+        </div>
+
+        <div class="msg" id="msg"></div>
+        <div style="text-align:center;">
+             <button onclick="resetGame()" style="padding:8px 15px; background:#e11d48; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">↻ თავიდან დაწყება</button>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const cardsData = [
+            { id: 'c1', text: 'ვეფხისტყაოსანი (შ. რუსთაველი)', correct: 'b-epos' },
+            { id: 'c2', text: 'რომანი, მოთხრობა, იგავ-არაკი', correct: 'b-epos' },
+            { id: 'c3', text: '"მთაწმინდის მთვარე" (ნ. ბარათაშვილი)', correct: 'b-lyric' },
+            { id: 'c4', text: 'ჭარბობს ემოცია, განწყობა და პოეტური ენა', correct: 'b-lyric' },
+            { id: 'c5', text: 'ტრაგედია, კომედია', correct: 'b-drama' },
+            { id: 'c6', text: '"ოტელო" (უ. შექსპირი)', correct: 'b-drama' },
+            { id: 'c7', text: 'აგებულია დიალოგებსა და მონოლოგებზე ფრჩხილებში რემარკებით', correct: 'b-drama' },
+            { id: 'c8', text: 'ავტორი გვევლინება მთხრობელად ("დამკვირვებლად")', correct: 'b-epos' }
+        ];
+
+        let draggedItem = null;
+        let correctCount = 0;
+
+        function initGame() {
+            const grid = document.getElementById('source-grid');
+            grid.innerHTML = '';
+            correctCount = 0;
+            document.getElementById('msg').textContent = '';
+            
+            // clear buckets
+            document.getElementById('list-epos').innerHTML = '';
+            document.getElementById('list-lyric').innerHTML = '';
+            document.getElementById('list-drama').innerHTML = '';
+
+            // Shuffle
+            const shuffled = [...cardsData].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(c => {
+                let div = document.createElement('div');
+                div.className = 'drag-item';
+                div.draggable = true;
+                div.textContent = c.text;
+                div.id = c.id;
+                div.dataset.target = c.correct;
+
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragend', handleDragEnd);
+
+                grid.appendChild(div);
+            });
+
+            setupBuckets();
+        }
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            setTimeout(() => this.style.display = 'none', 0);
+        }
+
+        function handleDragEnd(e) {
+            this.style.display = 'block';
+            draggedItem = null;
+        }
+
+        function setupBuckets() {
+            const buckets = document.querySelectorAll('.bucket');
+            
+            buckets.forEach(b => {
+                // remove old listeners avoiding duplications if reset
+                b.replaceWith(b.cloneNode(true));
+            });
+
+            document.querySelectorAll('.bucket').forEach(b => {
+                b.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    b.classList.add('drag-over');
+                });
+
+                b.addEventListener('dragleave', e => {
+                    b.classList.remove('drag-over');
+                });
+
+                b.addEventListener('drop', e => {
+                    e.preventDefault();
+                    b.classList.remove('drag-over');
+                    
+                    if (draggedItem) {
+                        const targetBucket = draggedItem.dataset.target;
+                        
+                        if (b.id === targetBucket) {
+                            // Correct
+                            draggedItem.classList.add('in-bucket');
+                            draggedItem.draggable = false;
+                            document.getElementById('list-' + b.id.split('-')[1]).appendChild(draggedItem);
+                            correctCount++;
+                            
+                            if(correctCount === cardsData.length) {
+                                document.getElementById('msg').textContent = "🎉 შესანიშნავია! ყველა ნაწარმოები და მახასიათებელი სწორად გაანაწილეთ!";
+                            }
+
+                        } else {
+                            // Incorrect
+                            const oldTs = draggedItem.style.transition;
+                            draggedItem.style.transition = 'none';
+                            draggedItem.style.backgroundColor = '#fca5a5'; // red
+                            setTimeout(() => {
+                                 draggedItem.style.transition = oldTs;
+                                 draggedItem.style.backgroundColor = '';
+                            }, 500);
+                        }
+                    }
+                });
+            });
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // START
+        initGame();
+
+    </script>
+</body>
+</html>

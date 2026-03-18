@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — ეკონომიკური გეოგრაფია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #eab308); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 340px; gap: 15px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Interactive City / Economy visual */
+        .city-scene { position: relative; width: 100%; height: 280px; background: linear-gradient(to bottom, #bae6fd, #e0f2fe); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-end; justify-content: space-around; padding-bottom: 20px; transition: 0.5s; background-size: cover; }
+        
+        .e-item { text-align: center; transition: 0.3s; transform-origin: bottom; }
+        .e-icon { font-size: 3rem; margin-bottom: 5px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); transition: 0.3s;}
+        .e-lbl { font-weight: bold; font-size: 0.75rem; color: #334155; background: rgba(255,255,255,0.8); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        /* Sliders */
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .slider-row { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .s-top { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #334155; outline: none; margin-bottom: 5px; cursor: pointer; }
+        
+        #s1::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #22c55e; border: 2px solid #fff; }
+        #s2::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; border: 2px solid #fff; }
+        #s3::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; }
+        #s4::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #a855f7; border: 2px solid #fff; }
+
+        .s-desc { font-size: 0.7rem; color: #64748b; }
+
+        /* Dashboard */
+        .panel { display: flex; flex-direction: column; gap: 15px; }
+        
+        .dash-card { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .d-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .d-val { font-family: 'Courier New'; font-size: 2rem; font-weight: bold; color: #f8fafc; }
+        
+        .gdp-text { color: #10b981; }
+        .hdi-text { color: #3b82f6; }
+
+        .country-type { font-size: 1.1rem; font-weight: bold; margin-top: 15px; padding: 10px; background: #0f172a; border-radius: 8px; color: #eab308; border: 1px solid #eab308; }
+
+        .info-box { background: #0f172a; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 15px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #fcd34d; }
+
+        .btn-reset { width: 100%; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; color: white; background: #334155; transition: 0.2s; }
+        .btn-reset:hover { background: #475569; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🏭 ეკონომიკური გეოგრაფია</h1>
+    <p class="subtitle">ეკონომიკის სექტორები და ქვეყნის განვითარების დონე</p>
+    
+    <div class="app">
+        <div class="card">
+            <h3 style="color:#cbd5e1; font-size:0.9rem; margin-bottom:10px; text-align:center;">დაასაქმე 100% მოსახლეობა სექტორებში</h3>
+            
+            <div class="city-scene" id="scene">
+                <div class="e-item" id="e1">
+                    <div class="e-icon">🌾</div>
+                    <div class="e-lbl">სოფ. მეურნეობა</div>
+                </div>
+                <div class="e-item" id="e2">
+                    <div class="e-icon">🏭</div>
+                    <div class="e-lbl">მრეწველობა</div>
+                </div>
+                <div class="e-item" id="e3">
+                    <div class="e-icon">🏪</div>
+                    <div class="e-lbl">მომსახურება</div>
+                </div>
+                <div class="e-item" id="e4">
+                    <div class="e-icon">💻</div>
+                    <div class="e-lbl">ინოვაციები</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="slider-row" style="border-left: 3px solid #22c55e;">
+                    <div class="s-top"><span style="color:#22c55e;">პირველადი სექტორი</span> <span id="v1">50%</span></div>
+                    <input type="range" id="s1" min="0" max="100" value="50" oninput="updateSectors('s1')">
+                    <div class="s-desc">სოფლის მეურნეობა, მეთევზეობა, წიაღისეულის მოპოვება.</div>
+                </div>
+                <div class="slider-row" style="border-left: 3px solid #f59e0b;">
+                    <div class="s-top"><span style="color:#f59e0b;">მეორადი სექტორი</span> <span id="v2">30%</span></div>
+                    <input type="range" id="s2" min="0" max="100" value="30" oninput="updateSectors('s2')">
+                    <div class="s-desc">მრეწველობა, მშენებლობა, გადამამუშავებელი ქარხნები.</div>
+                </div>
+                <div class="slider-row" style="border-left: 3px solid #3b82f6;">
+                    <div class="s-top"><span style="color:#3b82f6;">მესამეული სექტორი</span> <span id="v3">15%</span></div>
+                    <input type="range" id="s3" min="0" max="100" value="15" oninput="updateSectors('s3')">
+                    <div class="s-desc">მომსახურების სფერო: ვაჭრობა, ტრანსპორტი, ტურიზმი, ჯანდაცვა.</div>
+                </div>
+                <div class="slider-row" style="border-left: 3px solid #a855f7;">
+                    <div class="s-top"><span style="color:#a855f7;">მეოთხეული სექტორი</span> <span id="v4">5%</span></div>
+                    <input type="range" id="s4" min="0" max="100" value="5" oninput="updateSectors('s4')">
+                    <div class="s-desc">ინტელექტუალური მომსახურება: IT, კვლევები, მეცნიერება.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="dash-card">
+                <div class="d-title">მთლიანი შიდა პროდუქტი (GDP per capita)</div>
+                <div class="d-val gdp-text" id="gdp-val">$2,500</div>
+                
+                <div style="height:20px;"></div>
+                
+                <div class="d-title">ადამიანური განვითარების ინდექსი (HDI)</div>
+                <div class="d-val hdi-text" id="hdi-val">0.450</div>
+
+                <div class="country-type" id="c-type">აგრარული (განვითარებადი)</div>
+            </div>
+
+            <div class="info-box">
+                <b>გაითვალისწინე:</b> ჯამი ყოველთვის 100%-ია. თუ ერთ სექტორს ზრდი, სხვები ავტომატურად მცირდება. როდესაც ქვეყანა ვითარდება, სამუშაო ძალა პირველადი სექტორიდან (სოფლის მეურნეობა) თანდათან გადადის მესამეულ და მეოთხეულ სექტორებში (მომსახურება და ტექნოლოგიები).
+            </div>
+            
+            <button class="btn-reset" onclick="preset('dev')">მაგალითი: განვითარებული ქვეყანა</button>
+            <button class="btn-reset" onclick="preset('ind')">მაგალითი: ინდუსტრიული ქვეყანა</button>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const sliders = [
+            document.getElementById('s1'),
+            document.getElementById('s2'),
+            document.getElementById('s3'),
+            document.getElementById('s4')
+        ];
+
+        function preset(type) {
+            if(type === 'dev') {
+                sliders[0].value = 2; sliders[1].value = 18; sliders[2].value = 65; sliders[3].value = 15;
+            } else if(type === 'ind') {
+                sliders[0].value = 15; sliders[1].value = 45; sliders[2].value = 35; sliders[3].value = 5;
+            }
+            updateSectors('s1', true);
+        }
+
+        function updateSectors(changedId, skipAdjust=false) {
+            let vals = sliders.map(s => parseInt(s.value));
+            
+            if(!skipAdjust) {
+                let changedIdx = parseInt(changedId.replace('s', '')) - 1;
+                let changedVal = vals[changedIdx];
+                
+                // Sum of others
+                let otherSum = 0;
+                for(let i=0; i<4; i++) { if(i !== changedIdx) otherSum += vals[i]; }
+                
+                let targetOtherSum = 100 - changedVal;
+                
+                // Proportionally adjust others to fit target
+                if(otherSum === 0) {
+                    // if others are 0, just distribute evenly
+                    for(let i=0; i<4; i++) { if(i !== changedIdx) vals[i] = targetOtherSum/3; }
+                } else {
+                    for(let i=0; i<4; i++) { 
+                        if(i !== changedIdx) {
+                            vals[i] = Math.round((vals[i] / otherSum) * targetOtherSum);
+                        }
+                    }
+                }
+                
+                // Fix rounding errors
+                let total = vals.reduce((a,b)=>a+b, 0);
+                if(total !== 100) {
+                    // find largest other and adjust
+                    let maxOtherIdx = -1; let maxVal = -1;
+                    for(let i=0; i<4; i++) { if(i !== changedIdx && vals[i] > maxVal) { maxVal=vals[i]; maxOtherIdx=i; } }
+                    if(maxOtherIdx !== -1) vals[maxOtherIdx] += (100 - total);
+                    else vals[0] += (100 - total); // fallback
+                }
+
+                // Update sliders
+                for(let i=0; i<4; i++) { sliders[i].value = vals[i]; }
+            }
+
+            // Update UI
+            for(let i=0; i<4; i++) {
+                document.getElementById('v'+(i+1)).textContent = vals[i] + '%';
+                // Scale visual items based on percentage height
+                let scale = 0.5 + (vals[i] / 100) * 1.5; // Scale from 0.5 to 2.0
+                document.getElementById('e'+(i+1)).style.transform = `scale(${scale})`;
+            }
+
+            calculateEconomy(vals[0], vals[1], vals[2], vals[3]);
+        }
+
+        function calculateEconomy(p1, p2, p3, p4) {
+            // Very simplified economic model algorithm
+            
+            // Primary sector relies heavily on raw labor, creates low GDP per unit relative to tech
+            // Tech creates enormous GDP per capita
+            let baseGdp = 500;
+            let p1V = p1 * 30; // 30 dollars per %
+            let p2V = p2 * 150; 
+            let p3V = p3 * 400;
+            let p4V = p4 * 1800;
+            
+            let gdp = baseGdp + p1V + p2V + p3V + p4V;
+            
+            // HDI roughly correlates with GDP but also services (health/edu usually in p3 and p4)
+            // min HDI 0.350, max 0.999
+            let hdiScore = 0.350 + (gdp / 80000) * 0.4 + (p3+p4)*0.003;
+            if(hdiScore > 0.990) hdiScore = 0.990;
+
+            // Determine type
+            let type = ""; let color = ""; let bg = "";
+            let sceneBg = "";
+            if(p1 > document.getElementById('s2').value && p1 > 40) {
+                type = "აგრარული (განვითარებადი)"; color = "#facc15"; 
+                sceneBg = "linear-gradient(to bottom, #bae6fd, #fef08a)";
+            } else if(p2 >= 35 && p4 < 10) {
+                type = "ინდუსტრიული (გარდამავალი)"; color = "#fb923c";
+                sceneBg = "linear-gradient(to bottom, #94a3b8, #cbd5e1)";
+            } else if((p3 + p4) > 60) {
+                type = "პოსტ-ინდუსტრიული (განვითარებული)"; color = "#4ade80";
+                sceneBg = "linear-gradient(to bottom, #38bdf8, #f8fafc)";
+            } else {
+                type = "შერეული ეკონომიკა"; color = "#60a5fa";
+                sceneBg = "linear-gradient(to bottom, #bae6fd, #e0f2fe)";
+            }
+
+            // Update UI
+            document.getElementById('gdp-val').textContent = '$' + Math.round(gdp).toLocaleString();
+            document.getElementById('hdi-val').textContent = hdiScore.toFixed(3);
+            
+            let ct = document.getElementById('c-type');
+            ct.textContent = type;
+            ct.style.color = color;
+            ct.style.borderColor = color;
+
+            document.getElementById('scene').style.background = sceneBg;
+        }
+
+        // Init
+        updateSectors('s1', true);
+    </script>
+</body>
+</html>

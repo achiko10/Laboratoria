@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — არქიტექტურული სტილები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #334155; text-align: center;}
+        .subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 25px; text-align: center;}
+
+        .app { width: 100%; max-width: 900px; display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+        
+        .panel { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+        .panel h2 { font-size: 1.1rem; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;}
+
+        /* Inventory */
+        .parts-bin { display: flex; flex-direction: column; gap: 10px;}
+        .part-item { background: #f8fafc; border: 1px solid #94a3b8; padding: 10px; border-radius: 6px; cursor: grab; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 0.85rem; transition: 0.2s;}
+        .part-item:hover { background: #e2e8f0; transform: translateX(5px);}
+        .part-item:active { cursor: grabbing;}
+        
+        .part-icon { font-size: 1.8rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); pointer-events: none;}
+
+        /* Builder Canvas */
+        .builder-area { position: relative; height: 400px; background: #e0f2fe; border: 2px dashed #94a3b8; border-radius: 8px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 20px;}
+        
+        /* Base structure is fixed */
+        .base-building { width: 300px; height: 150px; background: #cbd5e1; border: 4px solid #475569; border-top: none; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative;}
+        .door { width: 60px; height: 80px; background: #1e293b; border-radius: 30px 30px 0 0; border: 2px solid #0f172a;}
+        
+        /* Dropzones */
+        .dropzone { position: absolute; border: 2px dashed #ef4444; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; transition: 0.2s;}
+        .dropzone.drag-over { background: rgba(34, 197, 94, 0.3); border-color: #22c55e; }
+        
+        /* Zone 1: Roof */
+        .zone-roof { top: -80px; width: 320px; height: 80px; left: -14px;}
+        /* Zone 2: Columns (overlay on base) */
+        .zone-cols { top: 0; width: 280px; height: 150px;}
+
+        /* Visual parts when placed */
+        .placed-part { font-size: 6rem; position: absolute; pointer-events: none; line-height: 1; text-align: center; width: 100%; display: flex; justify-content: center; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4));}
+        .placed-roof { top: -50px; }
+        .placed-cols { top: -20px; font-size: 8rem;}
+
+        /* Analysis Box */
+        .analysis { background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 20px; min-height: 100px; text-align: center;}
+        .style-name { font-size: 1.4rem; font-weight: bold; color: #2563eb; margin-bottom: 10px;}
+        .style-desc { font-size: 0.95rem; color: #475569; line-height: 1.5;}
+
+        .btn-reset { width: 100%; padding: 10px; margin-top: 20px; background: #fff; border: 1px solid #ef4444; color: #ef4444; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s;}
+        .btn-reset:hover { background: #fef2f2;}
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e2e8f0; color: #475569; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #cbd5e1; font-family: sans-serif; transition: 0.2s;}
+        .back-btn:hover { background: #cbd5e1; color: #1e293b;}
+        
+        /* Fallback for drag image */
+        .dragging { opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <h1>🏛️ არქიტექტურული სტილები</h1>
+    <p class="subtitle">გადაათრიე არქიტექტურული ელემენტები შენობის ბაზაზე და აღმოაჩინე რომელი სტილი მიიღე</p>
+    
+    <div class="app">
+        
+        <div class="panel">
+            <h2>საამშენებლო მარაგი</h2>
+            <div class="parts-bin" id="inventory">
+                <!-- Roofs -->
+                <div class="part-item" draggable="true" data-type="roof" data-val="greek">
+                    <span class="part-icon">📐</span> ტიმპანი (ბერძნ.)
+                </div>
+                <div class="part-item" draggable="true" data-type="roof" data-val="roman">
+                    <span class="part-icon">🕌</span> გუმბათი (რომაულ/რენესან.)
+                </div>
+                <!-- columns/walls -->
+                <div class="part-item" draggable="true" data-type="cols" data-val="greek">
+                    <span class="part-icon">🏛️</span> დორიული სვეტები
+                </div>
+                <div class="part-item" draggable="true" data-type="cols" data-val="gothic">
+                    <span class="part-icon">⛪</span> ვისტრებიანი თაღები
+                </div>
+            </div>
+            
+            <button class="btn-reset" onclick="resetBuilder()">შენობის დაშლა</button>
+        </div>
+
+        <div class="panel">
+            <div class="builder-area">
+                
+                <div class="base-building">
+                    <div class="dropzone zone-cols" id="dz-cols" data-req="cols"></div>
+                    <div class="dropzone zone-roof" id="dz-roof" data-req="roof"></div>
+                    
+                    <!-- Rendering Elements -->
+                    <div class="placed-part placed-cols" id="render-cols"></div>
+                    <div class="placed-part placed-roof" id="render-roof"></div>
+                    
+                    <div class="door" id="render-door"></div>
+                </div>
+
+            </div>
+
+            <div class="analysis" id="analysis">
+                <div class="style-name" id="s-name">ცარიელი სტრუქტურა</div>
+                <div class="style-desc" id="s-desc">დაამატე სახურავი და სვეტები/თაღები შენობის სტილის განსასაზღვრად.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const parts = document.querySelectorAll('.part-item');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        let buildingState = {
+            roof: null,
+            cols: null
+        };
+
+        // Emoji Map for rendering
+        const visuals = {
+            roof: { greek: '📐', roman: '🕌' },
+            cols: { greek: '🏛️', gothic: '⛪' }
+        };
+
+        // Drag events
+        parts.forEach(part => {
+            part.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('type', part.dataset.type);
+                e.dataTransfer.setData('val', part.dataset.val);
+                setTimeout(() => part.classList.add('dragging'), 0);
+            });
+            part.addEventListener('dragend', () => {
+                part.classList.remove('dragging');
+            });
+        });
+
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault(); // allow drop
+                // check if type matches
+                const dragType = document.querySelector('.dragging')?.dataset.type;
+                if(dragType === zone.dataset.req) {
+                    zone.classList.add('drag-over');
+                }
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                
+                const type = e.dataTransfer.getData('type');
+                const val = e.dataTransfer.getData('val');
+                
+                if (type === zone.dataset.req) {
+                    // Place it
+                    buildingState[type] = val;
+                    renderBuilding();
+                    analyzeStyle();
+                }
+            });
+        });
+
+        function renderBuilding() {
+            // Render roof
+            const rRoof = document.getElementById('render-roof');
+            if (buildingState.roof) {
+                rRoof.innerHTML = visuals.roof[buildingState.roof];
+                document.getElementById('dz-roof').style.border = 'none';
+            } else {
+                rRoof.innerHTML = '';
+                document.getElementById('dz-roof').style.border = '2px dashed #ef4444';
+            }
+
+            // Render cols
+            const rCols = document.getElementById('render-cols');
+            if (buildingState.cols) {
+                // If it's a gothic arch, we hide the default door as the arch has its own
+                if (buildingState.cols === 'gothic') {
+                    rCols.innerHTML = visuals.cols.gothic;
+                    document.getElementById('render-door').style.display = 'none';
+                } else {
+                    rCols.innerHTML = visuals.cols.greek;
+                    document.getElementById('render-door').style.display = 'block';
+                }
+                document.getElementById('dz-cols').style.border = 'none';
+            } else {
+                rCols.innerHTML = '';
+                document.getElementById('render-door').style.display = 'block';
+                document.getElementById('dz-cols').style.border = '2px dashed #ef4444';
+            }
+        }
+
+        function analyzeStyle() {
+            const name = document.getElementById('s-name');
+            const desc = document.getElementById('s-desc');
+            
+            const r = buildingState.roof;
+            const c = buildingState.cols;
+
+            if(!r && !c) {
+                name.textContent = "ცარიელი სტრუქტურა";
+                desc.textContent = "დაამატე სახურავი და სვეტები/თაღები შენობის სტილის განსასაზღვრად.";
+                return;
+            }
+
+            if(r === 'greek' && c === 'greek') {
+                name.textContent = "კლასიკური ანტიკური (ბერძნული)";
+                name.style.color = "#0284c7";
+                desc.textContent = "ანტიკური საბერძნეთის არქიტექტურა. ხასიათდება მკაცრი სიმეტრიით, მსხვილი სვეტებით (დორიული ორდერი) და სამკუთხა სახურავით, რომელსაც ტიმპანი (ფრონტონი) ეწოდება. მაგალითი: პართენონი.";
+            } 
+            else if (r === 'roman' && c === 'gothic') {
+                name.textContent = "ეკლექტიკა / შეუთავსებელი";
+                name.style.color = "#ef4444";
+                desc.textContent = "თქვენ შეაერთეთ გოთური ეკლესიის მახვილი თაღები საერო ან რომაულ გუმბათთან. ისტორიულად ასეთი სუფთა სტილი არ არსებობდა, ეს უფრო თანამედროვე ეკლექტიკაა.";
+            }
+            else if (r === 'roman' && c === 'greek') {
+                name.textContent = "ნეოკლასიციზმი / რენესანსი";
+                name.style.color = "#d97706";
+                desc.textContent = "ანტიკური კოლონადისა (რომანული/ბერძნული) და მონუმენტური გუმბათის შეხამება დამახასიათებელია რენესანსისა და ნეოკლასიციზმისთვის. ოსტატები აბრუნებდნენ ანტიკურ სიმეტრიას გრანდიოზულ მასშტაბში. მაგ: კაპიტოლიუმი, წმ. პეტრეს ტაძარი.";
+            }
+            else if (!r && c === 'gothic') {
+                name.textContent = "გოთიკური საწყისები";
+                name.style.color = "#4f46e5";
+                desc.textContent = "ისრისებრი თაღები (Pointed Arches) გოთური არქიტექტურის მთავარი ელემენტია (XII-XVI სს). ის საშუალებას აძლევდა არქიტექტორებს აეშენებინათ ძალიან მაღალი, ნათელი ტაძრები.";
+            } else {
+                name.textContent = "მშენებლობის პროცესში...";
+                name.style.color = "#475569";
+                desc.textContent = "დაამატეთ მეტი ელემენტი სრულყოფილი სტილის მისაღებად.";
+            }
+        }
+
+        function resetBuilder() {
+            buildingState.roof = null;
+            buildingState.cols = null;
+            renderBuilding();
+            analyzeStyle();
+        }
+
+        // Init
+        renderBuilding();
+
+    </script>
+</body>
+</html>

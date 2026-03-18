@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ოპტიკა — სინათლის გარდატეხა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0a0e17; color: #e0e6f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ffee00, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #7a84a0; font-size: 0.85rem; margin-bottom: 20px; }
+        .sim-area { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 400px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; padding: 20px; background: #0d1220; border-top: 1px solid rgba(255,255,255,0.06); }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-group label { font-size: 0.8rem; color: #7a84a0; display: flex; justify-content: space-between; }
+        .control-group label b { color: #e0e6f0; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #1e2740; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #ffee00, #00ff88); cursor: pointer; }
+        select { background: #1e2740; color: #e0e6f0; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 0.8rem; }
+        .formula-bar { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); padding: 12px 20px; margin: 16px 0; border-radius: 10px; text-align: center; font-size: 1rem; font-weight: 700; }
+        .formula-bar .val { color: #00ff88; }
+        .info-panel { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 0.82rem; line-height: 1.7; color: #9ca3b8; border-left: 3px solid #00ff88; }
+        .info-panel strong { color: #e0e6f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e2740; color: #7a84a0; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; }
+        .back-btn:hover { background: #2a3350; color: #e0e6f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔦 ოპტიკა — სინათლის გარდატეხა</h1>
+        <p class="subtitle">შეცვალე კუთხე და გარემო · სნელიუსის კანონი: n₁·sin(θ₁) = n₂·sin(θ₂)</p>
+
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="formula-bar">
+            n₁·sin(θ₁) = n₂·sin(θ₂) → <span class="val" id="fb-n1">1.00</span> × sin(<span class="val" id="fb-a1">45</span>°) = <span class="val" id="fb-n2">1.50</span> × sin(<span class="val" id="fb-a2">28</span>°)
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>დაცემის კუთხე: <b><span id="angle-val">45</span>°</b></label>
+                <input type="range" id="angle" min="0" max="89" value="45">
+            </div>
+            <div class="control-group">
+                <label>გარემო 1:</label>
+                <select id="medium1" onchange="update()">
+                    <option value="1.00">ვაკუუმი (n=1.00)</option>
+                    <option value="1.00" selected>ჰაერი (n=1.00)</option>
+                    <option value="1.33">წყალი (n=1.33)</option>
+                    <option value="1.50">მინა (n=1.50)</option>
+                    <option value="2.42">ბრილიანტი (n=2.42)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>გარემო 2:</label>
+                <select id="medium2" onchange="update()">
+                    <option value="1.00">ვაკუუმი (n=1.00)</option>
+                    <option value="1.00">ჰაერი (n=1.00)</option>
+                    <option value="1.33">წყალი (n=1.33)</option>
+                    <option value="1.50" selected>მინა (n=1.50)</option>
+                    <option value="2.42">ბრილიანტი (n=2.42)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 სნელიუსის კანონი:</strong> სინათლე გარდატეხისას იცვლის მიმართულებას. n₁·sin(θ₁) = n₂·sin(θ₂)<br>
+            • <strong>მინაში</strong> სინათლე ნელდება და ნორმალისკენ იხრება<br>
+            • <strong>სრული შიდა არეკვლა</strong> ხდება როცა θ₁ > კრიტიკული კუთხე<br>
+            • 🎯 <strong>ექსპერიმენტი:</strong> გაზარდე კუთხე წყალი→ჰაერზე — 48°-ზე ხომ არ ხდება სრული არეკვლა?
+        </div>
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.offsetWidth; H = canvas.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const angleSlider = document.getElementById('angle');
+        angleSlider.oninput = update;
+
+        function getN1() { return +document.getElementById('medium1').value; }
+        function getN2() { return +document.getElementById('medium2').value; }
+        function getAngle() { return +angleSlider.value; }
+
+        function update() {
+            document.getElementById('angle-val').textContent = getAngle();
+        }
+
+        function getMediumColor(n) {
+            if (n >= 2.0) return { fill: 'rgba(180,220,255,0.15)', label: '💎' };
+            if (n >= 1.4) return { fill: 'rgba(100,200,255,0.1)', label: '🔲' };
+            if (n >= 1.2) return { fill: 'rgba(50,150,255,0.12)', label: '🌊' };
+            return { fill: 'rgba(0,0,0,0)', label: '☁️' };
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+
+            const n1 = getN1(), n2 = getN2();
+            const theta1 = getAngle() * Math.PI / 180;
+            const midY = H / 2;
+            const midX = W / 2;
+
+            // Draw media
+            const m1 = getMediumColor(n1);
+            const m2 = getMediumColor(n2);
+            ctx.fillStyle = m1.fill;
+            ctx.fillRect(0, 0, W, midY);
+            ctx.fillStyle = m2.fill;
+            ctx.fillRect(0, midY, W, H - midY);
+
+            // Interface line
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Normal line
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, H); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#5a6a8a';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('ნორმალი', midX, 15);
+
+            // Labels
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#7a84a0';
+            ctx.textAlign = 'left';
+            ctx.fillText(`გარემო 1: n₁ = ${n1.toFixed(2)}`, 15, 30);
+            ctx.fillText(`გარემო 2: n₂ = ${n2.toFixed(2)}`, 15, midY + 25);
+
+            // Incident ray
+            const rayLen = Math.min(W, H) * 0.4;
+            const incX = midX - Math.sin(theta1) * rayLen;
+            const incY = midY - Math.cos(theta1) * rayLen;
+
+            ctx.strokeStyle = '#ffee00';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#ffee00';
+            ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.moveTo(incX, incY); ctx.lineTo(midX, midY); ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Arrow on incident ray
+            drawArrow(ctx, incX, incY, midX, midY, '#ffee00');
+
+            // Angle arc θ₁
+            ctx.strokeStyle = 'rgba(255,238,0,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(midX, midY, 40, -Math.PI / 2, -Math.PI / 2 + theta1, false);
+            ctx.stroke();
+            const labelAngle1 = -Math.PI / 2 + theta1 / 2;
+            ctx.fillStyle = '#ffee00';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(`θ₁=${getAngle()}°`, midX + Math.cos(labelAngle1) * 55, midY + Math.sin(labelAngle1) * 55);
+
+            // Calculate refraction
+            const sinTheta2 = (n1 / n2) * Math.sin(theta1);
+            const totalReflection = Math.abs(sinTheta2) > 1;
+
+            // Reflected ray
+            const refAngle = theta1;
+            const reflX = midX + Math.sin(refAngle) * rayLen;
+            const reflY = midY - Math.cos(refAngle) * rayLen;
+            ctx.strokeStyle = totalReflection ? 'rgba(255,77,106,0.8)' : 'rgba(255,77,106,0.3)';
+            ctx.lineWidth = totalReflection ? 2.5 : 1.5;
+            ctx.setLineDash(totalReflection ? [] : [4, 4]);
+            ctx.beginPath(); ctx.moveTo(midX, midY); ctx.lineTo(reflX, reflY); ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (!totalReflection) {
+                // Refracted ray
+                const theta2 = Math.asin(sinTheta2);
+                const refractX = midX + Math.sin(theta2) * rayLen;
+                const refractY = midY + Math.cos(theta2) * rayLen;
+
+                ctx.strokeStyle = '#00ff88';
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = '#00ff88';
+                ctx.shadowBlur = 10;
+                ctx.beginPath(); ctx.moveTo(midX, midY); ctx.lineTo(refractX, refractY); ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                drawArrow(ctx, midX, midY, refractX, refractY, '#00ff88');
+
+                // Angle arc θ₂
+                ctx.strokeStyle = 'rgba(0,255,136,0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(midX, midY, 45, Math.PI / 2 - theta2, Math.PI / 2, false);
+                ctx.stroke();
+                const t2deg = Math.round(theta2 * 180 / Math.PI);
+                const labelAngle2 = Math.PI / 2 - theta2 / 2;
+                ctx.fillStyle = '#00ff88';
+                ctx.fillText(`θ₂=${t2deg}°`, midX + Math.cos(labelAngle2) * 60, midY + Math.sin(labelAngle2) * 60);
+
+                // Update formula bar
+                document.getElementById('fb-n1').textContent = n1.toFixed(2);
+                document.getElementById('fb-a1').textContent = getAngle();
+                document.getElementById('fb-n2').textContent = n2.toFixed(2);
+                document.getElementById('fb-a2').textContent = t2deg;
+            } else {
+                // Total internal reflection notice
+                ctx.fillStyle = '#ff4d6a';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚠️ სრული შიდა არეკვლა!', midX, midY + 40);
+                document.getElementById('fb-a2').textContent = '—';
+            }
+
+            // Legend
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#ffee00'; ctx.fillText('🟡 დაცემის სხივი', W - 15, 20);
+            ctx.fillStyle = '#00ff88'; ctx.fillText('🟢 გარდატეხის სხივი', W - 15, 35);
+            ctx.fillStyle = '#ff4d6a'; ctx.fillText('🔴 არეკვლის სხივი', W - 15, 50);
+
+            requestAnimationFrame(animate);
+        }
+
+        function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+            const dx = toX - fromX, dy = toY - fromY;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            const nx = dx / len, ny = dy / len;
+            const midX2 = fromX + nx * len * 0.6, midY2 = fromY + ny * len * 0.6;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(midX2 + nx * 8, midY2 + ny * 8);
+            ctx.lineTo(midX2 - ny * 5, midY2 + nx * 5);
+            ctx.lineTo(midX2 + ny * 5, midY2 - nx * 5);
+            ctx.fill();
+        }
+
+        animate();
+        update();
+    </script>
+</body>
+</html>

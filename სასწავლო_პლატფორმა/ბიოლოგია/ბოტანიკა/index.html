@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — ბოტანიკა (ფოტოსინთეზი)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #eab308); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; height: 450px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
+        .control-group label { font-size: 0.85rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .control-group label b { color: #f8fafc; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; border: 1px solid rgba(255,255,255,0.1); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #eab308); cursor: pointer; }
+        .meter { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .meter-label { font-size: 0.8rem; color: #94a3b8; }
+        .meter-val { font-weight: bold; font-size: 1.1rem; }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #22c55e; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌿 ფოტოსინთეზი</h1>
+    <p class="subtitle">6CO₂ + 6H₂O + სინათლე → C₆H₁₂O₆ + 6O₂</p>
+    <div class="container">
+        <div class="sim-area"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div class="control-group">
+                <label>სინათლის ინტენსივობა: <b><span id="light-val">50</span>%</b></label>
+                <input type="range" id="light" min="0" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label>CO₂ კონცენტრაცია: <b><span id="co2-val">50</span>%</b></label>
+                <input type="range" id="co2" min="0" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label>წყლის მიწოდება: <b><span id="water-val">50</span>%</b></label>
+                <input type="range" id="water" min="0" max="100" value="50">
+            </div>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <div class="meter"><span class="meter-label">O₂ გამოყოფა</span><span class="meter-val" id="o2-out" style="color:#60a5fa;">0</span></div>
+            <div class="meter"><span class="meter-label">გლუკოზა</span><span class="meter-val" id="glucose-out" style="color:#eab308;">0</span></div>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 ფოტოსინთეზი:</strong> მცენარის ფოთლის ქლოროპლასტებში მიმდინარე პროცესი.<br>
+            • <strong>სინათლის ფაზა:</strong> ქლოროფილი შთანთქავს სინათლეს, წყალი იშლება (H₂O → H⁺ + O₂).<br>
+            • <strong>ბნელი ფაზა (კალვინის ციკლი):</strong> CO₂ გარდაიქმნება გლუკოზად (C₆H₁₂O₆).<br>
+            • <strong>ლიმიტირებელი ფაქტორები:</strong> სინათლე, CO₂ და წყალი — ყველას ერთდროულად სჭირდება!
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sim = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const lightS = document.getElementById('light');
+        const co2S = document.getElementById('co2');
+        const waterS = document.getElementById('water');
+        lightS.oninput = () => document.getElementById('light-val').textContent = lightS.value;
+        co2S.oninput = () => document.getElementById('co2-val').textContent = co2S.value;
+        waterS.oninput = () => document.getElementById('water-val').textContent = waterS.value;
+
+        let bubbles = []; // O2 bubbles
+        let co2Particles = [];
+        let waterDrops = [];
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            const light = +lightS.value;
+            const co2 = +co2S.value;
+            const water = +waterS.value;
+            const rate = Math.min(light, co2, water) / 100; // Limiting factor
+
+            // Sky gradient based on light
+            const skyGrad = ctx.createLinearGradient(0,0,0,H*0.5);
+            skyGrad.addColorStop(0, `rgba(${56 + light*1.5}, ${130 + light*0.5}, ${246}, ${0.3 + light/200})`);
+            skyGrad.addColorStop(1, 'rgba(15, 23, 42, 0.8)');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0,0,W,H*0.5);
+
+            // Sun
+            if(light > 5) {
+                const sunR = 20 + light * 0.3;
+                ctx.beginPath();
+                ctx.arc(W*0.85, H*0.1, sunR, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(250, 204, 21, ${light/100})`;
+                ctx.fill();
+                ctx.shadowColor = '#eab308'; ctx.shadowBlur = 30 + light*0.5;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Light rays to leaf
+                if(light > 20) {
+                    for(let i=0; i<3; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(W*0.85, H*0.1);
+                        ctx.lineTo(W*0.3 + i*W*0.15, H*0.35);
+                        ctx.strokeStyle = `rgba(250, 204, 21, ${light/400})`;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Ground
+            ctx.fillStyle = '#3b2415';
+            ctx.fillRect(0, H*0.75, W, H*0.25);
+            ctx.fillStyle = '#422a13';
+            ctx.fillRect(0, H*0.73, W, H*0.04);
+
+            // Tree trunk
+            ctx.fillStyle = '#5c3a1e';
+            ctx.fillRect(W*0.47, H*0.4, W*0.06, H*0.35);
+
+            // Leaf / Crown area
+            const leafColor = rate > 0.1 ? `rgba(34, 197, 94, ${0.5 + rate*0.5})` : 'rgba(100, 116, 139, 0.6)';
+            ctx.fillStyle = leafColor;
+            ctx.beginPath();
+            ctx.ellipse(W*0.5, H*0.32, W*0.2, H*0.15, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(W*0.38, H*0.38, W*0.12, H*0.1, -0.3, 0, Math.PI*2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(W*0.62, H*0.38, W*0.12, H*0.1, 0.3, 0, Math.PI*2);
+            ctx.fill();
+
+            // Roots + water arrows
+            ctx.strokeStyle = '#5c3a1e';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(W*0.48, H*0.75); ctx.lineTo(W*0.35, H*0.9); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W*0.52, H*0.75); ctx.lineTo(W*0.65, H*0.9); ctx.stroke();
+
+            // Water arrows going up
+            if(water > 10) {
+                const wAlpha = water / 200;
+                ctx.strokeStyle = `rgba(56, 189, 248, ${wAlpha})`;
+                ctx.setLineDash([4,4]);
+                ctx.beginPath(); ctx.moveTo(W*0.40, H*0.85); ctx.lineTo(W*0.49, H*0.5); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(W*0.60, H*0.85); ctx.lineTo(W*0.51, H*0.5); ctx.stroke();
+                ctx.setLineDash([]);
+                // Water label
+                ctx.fillStyle = `rgba(56, 189, 248, ${wAlpha + 0.3})`;
+                ctx.font = '11px Arial'; ctx.fillText('H₂O ↑', W*0.36, H*0.82);
+            }
+
+            // CO2 arrows coming in
+            if(co2 > 10) {
+                const cAlpha = co2 / 200;
+                ctx.fillStyle = `rgba(148, 163, 184, ${cAlpha + 0.3})`;
+                ctx.font = '11px Arial';
+                ctx.fillText('CO₂ →', W*0.1, H*0.3);
+                ctx.strokeStyle = `rgba(148, 163, 184, ${cAlpha})`;
+                ctx.setLineDash([4,4]);
+                ctx.beginPath(); ctx.moveTo(W*0.15, H*0.32); ctx.lineTo(W*0.3, H*0.35); ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // O2 bubbles going up
+            if(rate > 0.05 && Math.random() < rate * 0.3) {
+                bubbles.push({ x: W*0.5 + (Math.random()-0.5)*W*0.25, y: H*0.25, vy: -0.5 - rate*2, life: 80 + Math.random()*40 });
+            }
+            bubbles = bubbles.filter(b => {
+                b.y += b.vy; b.x += Math.sin(b.y*0.05)*0.3; b.life--;
+                ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(96, 165, 250, ${b.life/100})`;
+                ctx.fill();
+                if(b.life > 70) {
+                    ctx.fillStyle = `rgba(255,255,255,0.7)`;
+                    ctx.font = '8px Arial'; ctx.fillText('O₂', b.x+5, b.y-2);
+                }
+                return b.life > 0 && b.y > 0;
+            });
+
+            // Output meters
+            const o2Out = Math.round(rate * 100);
+            const glucoseOut = Math.round(rate * 60);
+            document.getElementById('o2-out').textContent = o2Out;
+            document.getElementById('glucose-out').textContent = glucoseOut;
+
+            // Glucose label inside leaf
+            if(rate > 0.2) {
+                ctx.fillStyle = `rgba(234, 179, 8, ${rate})`;
+                ctx.font = 'bold 13px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('C₆H₁₂O₆', W*0.5, H*0.33);
+                ctx.textAlign = 'start';
+            }
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

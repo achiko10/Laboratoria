@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — მუსიკალური ნოტაცია (ფორტეპიანო)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #fafafa; color: #333; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #ea580c; text-align: center;}
+        .subtitle { color: #f97316; font-size: 0.95rem; margin-bottom: 30px; text-align: center;}
+
+        .app-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center; gap: 30px;}
+
+        /* Sheet Music Area */
+        .sheet-container { width: 100%; height: 200px; background: #fff; border: 2px solid #fdba74; border-radius: 12px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.1); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+        
+        /* 5 Lines of the staff */
+        .staff { width: 90%; height: 120px; position: relative;}
+        .staff-line { position: absolute; width: 100%; height: 2px; background: #000; left: 0;}
+        .staff-line:nth-child(1) { top: 0%; }
+        .staff-line:nth-child(2) { top: 25%; }
+        .staff-line:nth-child(3) { top: 50%; }
+        .staff-line:nth-child(4) { top: 75%; }
+        .staff-line:nth-child(5) { top: 100%; }
+
+        /* Treble Clef Graphic (Simple CSS representation) */
+        .clef { position: absolute; left: -10px; top: -10px; font-size: 6rem; font-family: serif; color: #000; line-height: 1;}
+
+        /* The Note */
+        .note { position: absolute; width: 26px; height: 18px; border-radius: 50%; background: #ea580c; border: 2px solid #000; left: 150px; transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: none;}
+        .note::after { content: ''; position: absolute; right: -2px; bottom: 5px; width: 2px; height: 45px; background: #000;}
+        .ledger-line { position: absolute; width: 40px; height: 2px; background: #000; left: 143px; display: none;}
+
+        .note-name { position: absolute; top: 10px; right: 20px; font-size: 2.5rem; font-weight: bold; color: #ea580c; text-transform: uppercase; border-bottom: 3px solid #ea580c;}
+
+        /* Piano Keyboard */
+        .piano { display: flex; position: relative; height: 200px; background: #333; padding: 3px; border-radius: 5px 5px 12px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+        
+        .key-white { width: 60px; height: 100%; background: #fff; border: 1px solid #ccc; border-radius: 0 0 5px 5px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; font-weight: bold; color: #999; cursor: pointer; user-select: none; position: relative; z-index: 1;}
+        .key-white:hover { background: #fdfbf7; }
+        .key-white.active { background: #fed7aa; transform: translateY(2px); border-bottom-width: 0;}
+
+        /* Black Keys are absolute positioned */
+        .black-group { position: absolute; top: 0; left: 0; width: 100%; height: 60%; pointer-events: none; z-index: 2;}
+        .key-black { position: absolute; width: 36px; height: 100%; background: #111; border-radius: 0 0 4px 4px; border: 1px solid #000; cursor: pointer; pointer-events: auto;}
+        .key-black:hover { background: #222; }
+        .key-black.active { background: #ea580c; }
+        
+        /* Positioning black keys strictly according to White keys (1 octave C4-B4 + C5) */
+        /* C=0, D=60, E=120, F=180, G=240, A=300, B=360, C5=420 */
+        .kb-cs { left: 42px; } /* C# */
+        .kb-ds { left: 102px; } /* D# */
+        .kb-fs { left: 222px; } /* F# */
+        .kb-gs { left: 282px; } /* G# */
+        .kb-as { left: 342px; } /* A# */
+
+        /* Quiz Mode */
+        .controls { display: flex; gap: 15px; margin-bottom: 10px;}
+        .btn-mode { padding: 10px 20px; background: #fff; color: #ea580c; border: 2px solid #ea580c; border-radius: 8px; font-weight: bold; cursor: pointer;}
+        .btn-mode.active { background: #ea580c; color: #fff;}
+        .btn-mode:hover:not(.active) { background: #fff7ed; }
+
+        .quiz-status { font-size: 1.2rem; font-weight: bold; color: #16a34a; min-height: 30px;}
+
+        .back-btn { display: inline-block; margin-top: 30px; padding: 10px 20px; background: #fff; color: #c2410c; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #fdba74; transition: 0.2s;}
+        .back-btn:hover { background: #ffedd5; }
+    </style>
+</head>
+<body>
+    <h1>🎹 მუსიკალური ნოტაცია</h1>
+    <p class="subtitle">დააჭირე კლავიშებს, რომ მოისმინო ნოტები და დაინახო მათი პოზიცია ხუთხაზიან სისტემაზე.</p>
+
+    <div class="controls">
+        <button class="btn-mode active" id="mode-free" onclick="setMode('free')">თავისუფალი დაკვრა</button>
+        <button class="btn-mode" id="mode-quiz" onclick="setMode('quiz')">ტესტი (იპოვე ნოტი)</button>
+    </div>
+    
+    <div class="quiz-status" id="quiz-msg"></div>
+
+    <div class="app-container">
+        
+        <!-- Sheet Music -->
+        <div class="sheet-container">
+            <div class="note-name" id="note-display"></div>
+            
+            <div class="staff">
+                <!-- Using a big G symbol as a pseudo-treble clef -->
+                <div class="clef">𝄞</div>
+                
+                <!-- 5 Lines -->
+                <div class="staff-line"></div>
+                <div class="staff-line"></div>
+                <div class="staff-line"></div>
+                <div class="staff-line"></div>
+                <div class="staff-line"></div>
+
+                <!-- Ledger Line for Middle C (C4) -->
+                <!-- C4 sits below the staff. Staff height 120px. Lines at 0, 30, 60, 90, 120 -->
+                <div class="ledger-line" id="ledger-c4" style="top: 150px;"></div>
+                
+                <!-- The dynamic Note head -->
+                <div class="note" id="note-head"></div>
+            </div>
+        </div>
+
+        <!-- Piano -->
+        <div class="piano" id="piano-board">
+            <!-- White Keys (C4 to C5) -->
+            <div class="key-white" data-note="C" data-freq="261.63">C do</div>
+            <div class="key-white" data-note="D" data-freq="293.66">D re</div>
+            <div class="key-white" data-note="E" data-freq="329.63">E mi</div>
+            <div class="key-white" data-note="F" data-freq="349.23">F fa</div>
+            <div class="key-white" data-note="G" data-freq="392.00">G sol</div>
+            <div class="key-white" data-note="A" data-freq="440.00">A la</div>
+            <div class="key-white" data-note="B" data-freq="493.88">B si</div>
+            <div class="key-white" data-note="C5" data-freq="523.25">C do</div>
+            
+            <!-- Black Keys (Sharps) -->
+            <div class="black-group">
+                <div class="key-black kb-cs" data-note="C#" data-freq="277.18" data-is-black="true"></div>
+                <div class="key-black kb-ds" data-note="D#" data-freq="311.13" data-is-black="true"></div>
+                
+                <div class="key-black kb-fs" data-note="F#" data-freq="369.99" data-is-black="true"></div>
+                <div class="key-black kb-gs" data-note="G#" data-freq="415.30" data-is-black="true"></div>
+                <div class="key-black kb-as" data-note="A#" data-freq="466.16" data-is-black="true"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        // Audio Context (Synthesizer)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playTone(frequency) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'triangle'; // Sounds a bit softer, like a cheap piano
+            oscillator.frequency.value = frequency;
+            
+            // Envelope (Fade out)
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 1.5);
+        }
+
+        // Note mappings to Staff Y positions
+        // Lines: E4(120px), G4(90px), B4(60px), D5(30px), F5(0px)
+        // Spaces: F4(105px), A4(75px), C5(45px), E5(15px)
+        // Below staff: D4(135px), C4(150px)
+        const noteMap = {
+            "C": { y: 141, ledger: true, name: "C (დო)" },
+            "C#": { y: 141, ledger: true, name: "C#", isSharp: true },
+            "D":  { y: 126, ledger: false, name: "D (რე)" },
+            "D#":  { y: 126, ledger: false, name: "D#", isSharp: true },
+            "E":  { y: 111, ledger: false, name: "E (მი)" },
+            "F":  { y: 96, ledger: false, name: "F (ფა)" },
+            "F#":  { y: 96, ledger: false, name: "F#", isSharp: true },
+            "G":  { y: 81, ledger: false, name: "G (სოლ)" },
+            "G#":  { y: 81, ledger: false, name: "G#", isSharp: true },
+            "A":  { y: 66, ledger: false, name: "A (ლა)" },
+            "A#":  { y: 66, ledger: false, name: "A#", isSharp: true },
+            "B":  { y: 51, ledger: false, name: "B (სი)" },
+            "C5": { y: 36, ledger: false, name: "C5 (დო)" }
+        };
+
+        const noteHead = document.getElementById('note-head');
+        const ledgerC4 = document.getElementById('ledger-c4');
+        const display = document.getElementById('note-display');
+        const msg = document.getElementById('quiz-msg');
+
+        let isQuizMode = false;
+        let targetNote = null;
+        
+        const whiteKeysOnly = ["C", "D", "E", "F", "G", "A", "B", "C5"];
+
+        function getNewQuizNote() {
+            // Pick random white key
+            targetNote = whiteKeysOnly[Math.floor(Math.random() * whiteKeysOnly.length)];
+            const data = noteMap[targetNote];
+            
+            // Show note on staff but hide name
+            noteHead.style.display = 'block';
+            noteHead.style.top = data.y + 'px';
+            ledgerC4.style.display = data.ledger ? 'block' : 'none';
+            display.textContent = "?";
+            
+            msg.textContent = `დაუკარით მოცემული ნოტი!`;
+            msg.style.color = "#ea580c";
+        }
+
+        function setMode(mode) {
+            isQuizMode = (mode === 'quiz');
+            document.getElementById('mode-free').classList.remove('active');
+            document.getElementById('mode-quiz').classList.remove('active');
+            document.getElementById(`mode-${mode}`).classList.add('active');
+
+            noteHead.style.display = 'none';
+            ledgerC4.style.display = 'none';
+            display.textContent = "";
+            msg.textContent = "";
+
+            if (isQuizMode) {
+                getNewQuizNote();
+            }
+        }
+
+        // Attach event listeners to keys
+        const keys = document.querySelectorAll('.key-white, .key-black');
+        keys.forEach(key => {
+            key.addEventListener('mousedown', function() {
+                const note = this.getAttribute('data-note');
+                const freq = parseFloat(this.getAttribute('data-freq'));
+                
+                // Visual feedback
+                this.classList.add('active');
+                setTimeout(() => this.classList.remove('active'), 200);
+
+                // Play sound
+                playTone(freq);
+
+                if (isQuizMode) {
+                    if (note === targetNote) {
+                        // Correct!
+                        msg.textContent = `✅ სწორია! ეს არის ${noteMap[note].name}`;
+                        msg.style.color = "#16a34a";
+                        display.textContent = noteMap[note].name;
+                        
+                        setTimeout(() => getNewQuizNote(), 1500);
+                    } else {
+                        // Wrong
+                        msg.textContent = `❌ შეცდომა! სცადეთ თავიდან.`;
+                        msg.style.color = "#dc2626";
+                    }
+                } else {
+                    // Free Play Mode
+                    const data = noteMap[note];
+                    noteHead.style.display = 'block';
+                    noteHead.style.top = data.y + 'px';
+                    ledgerC4.style.display = data.ledger ? 'block' : 'none';
+                    
+                    let sharpMark = data.isSharp ? "♯ " : "";
+                    display.textContent = sharpMark + data.name;
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>მათემატიკა — სტატისტიკა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #8b5cf6, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 800px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .data-input-area { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+        .data-input-area input { flex: 1; min-width: 200px; padding: 12px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; outline: none; }
+        .data-input-area input:focus { border-color: #8b5cf6; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-add { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .btn-rand { background: #334155; }
+        .btn-clear { background: #ef4444; }
+        .btns-row { display: flex; gap: 8px; margin-bottom: 15px; }
+        .data-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #0f172a; border-radius: 8px; min-height: 50px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .chip { padding: 6px 12px; background: #334155; border-radius: 20px; font-family: 'Courier New'; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .chip .remove { cursor: pointer; color: #ef4444; font-weight: bold; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .stat-card .label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.3rem; font-weight: bold; font-family: 'Courier New'; }
+        .chart-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
+        .chart-tab { padding: 8px 15px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.8rem; transition: 0.2s; }
+        .chart-tab.active { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border-color: #8b5cf6; }
+        .chart-area { background: #0f172a; border-radius: 8px; height: 280px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .chart-area canvas { width: 100%; height: 100%; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>📊 სტატისტიკა — მონაცემთა ანალიზი</h1>
+    <p class="subtitle">შეიყვანე რიცხვები, ნახე საშუალო, მედიანა, მოდა, სტანდარტული გადახრა და გრაფიკები</p>
+    <div class="app">
+        <div class="card">
+            <div class="data-input-area">
+                <input type="text" id="data-input" placeholder="შეიყვანე რიცხვი (ან რამდენიმე მძიმით: 5, 8, 12)" autofocus>
+                <button class="btn btn-add" onclick="addData()">+ დამატება</button>
+            </div>
+            <div class="btns-row">
+                <button class="btn btn-rand" onclick="generateRandom(10)">🎲 10 შემთხვევითი</button>
+                <button class="btn btn-rand" onclick="generateRandom(25)">🎲 25 შემთხვ.</button>
+                <button class="btn btn-rand" onclick="generateRandom(50)">🎲 50 შემთხვ.</button>
+                <button class="btn btn-clear" onclick="clearData()">🗑️ გასუფთავება</button>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:5px;">მონაცემები (<span id="data-count">0</span>):</div>
+            <div class="data-chips" id="chips"></div>
+        </div>
+        <div class="card">
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card"><div class="label">საშუალო (x̄)</div><div class="value" id="s-mean">—</div></div>
+                <div class="stat-card"><div class="label">მედიანა</div><div class="value" id="s-median">—</div></div>
+                <div class="stat-card"><div class="label">მოდა</div><div class="value" id="s-mode">—</div></div>
+                <div class="stat-card"><div class="label">მინ</div><div class="value" id="s-min" style="color:#3b82f6;">—</div></div>
+                <div class="stat-card"><div class="label">მაქს</div><div class="value" id="s-max" style="color:#ef4444;">—</div></div>
+                <div class="stat-card"><div class="label">დიაპაზონი</div><div class="value" id="s-range" style="color:#f59e0b;">—</div></div>
+                <div class="stat-card"><div class="label">სტ. გადახრა (σ)</div><div class="value" id="s-std" style="color:#ec4899;">—</div></div>
+                <div class="stat-card"><div class="label">ვარიანსი (σ²)</div><div class="value" id="s-var" style="color:#8b5cf6;">—</div></div>
+                <div class="stat-card"><div class="label">ჯამი (Σ)</div><div class="value" id="s-sum" style="color:#22c55e;">—</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="chart-tabs">
+                <button class="chart-tab active" onclick="setChart('bar')">📊 ჰისტოგრამა</button>
+                <button class="chart-tab" onclick="setChart('pie')">🥧 წრიული</button>
+                <button class="chart-tab" onclick="setChart('dot')">⚫ წერტილოვანი</button>
+            </div>
+            <div class="chart-area"><canvas id="chart"></canvas></div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        let data = [];
+        let chartType = 'bar';
+        const chartCanvas = document.getElementById('chart');
+        const cCtx = chartCanvas.getContext('2d');
+        const colors = ['#8b5cf6','#3b82f6','#22c55e','#f59e0b','#ef4444','#ec4899','#06b6d4','#a78bfa','#f97316','#14b8a6'];
+
+        document.getElementById('data-input').addEventListener('keydown', e => { if(e.key==='Enter') addData(); });
+
+        function addData() {
+            const input = document.getElementById('data-input');
+            const vals = input.value.split(/[,;\s]+/).map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            if (vals.length === 0) return;
+            data.push(...vals);
+            input.value = '';
+            refresh();
+        }
+
+        function generateRandom(n) {
+            for (let i = 0; i < n; i++) data.push(Math.round(Math.random() * 100));
+            refresh();
+        }
+
+        function clearData() { data = []; refresh(); }
+
+        function removeItem(i) { data.splice(i, 1); refresh(); }
+
+        function refresh() {
+            // Chips
+            const chips = document.getElementById('chips');
+            chips.innerHTML = data.map((v, i) => `<span class="chip">${v} <span class="remove" onclick="removeItem(${i})">×</span></span>`).join('');
+            document.getElementById('data-count').textContent = data.length;
+            updateStats();
+            drawChart();
+        }
+
+        function updateStats() {
+            if (data.length === 0) {
+                ['mean','median','mode','min','max','range','std','var','sum'].forEach(id => document.getElementById('s-'+id).textContent = '—');
+                return;
+            }
+            const sorted = [...data].sort((a, b) => a - b);
+            const n = data.length;
+            const sum = data.reduce((a, b) => a + b, 0);
+            const mean = sum / n;
+            const median = n % 2 === 0 ? (sorted[n/2-1] + sorted[n/2]) / 2 : sorted[Math.floor(n/2)];
+            // Mode
+            const freq = {};
+            data.forEach(v => freq[v] = (freq[v] || 0) + 1);
+            const maxFreq = Math.max(...Object.values(freq));
+            const modes = Object.keys(freq).filter(k => freq[k] === maxFreq);
+            const modeStr = maxFreq > 1 ? modes.join(', ') : 'არ არის';
+            // Std
+            const variance = data.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+            const std = Math.sqrt(variance);
+
+            document.getElementById('s-mean').textContent = mean.toFixed(2);
+            document.getElementById('s-median').textContent = median;
+            document.getElementById('s-mode').textContent = modeStr;
+            document.getElementById('s-min').textContent = sorted[0];
+            document.getElementById('s-max').textContent = sorted[n - 1];
+            document.getElementById('s-range').textContent = sorted[n - 1] - sorted[0];
+            document.getElementById('s-std').textContent = std.toFixed(2);
+            document.getElementById('s-var').textContent = variance.toFixed(2);
+            document.getElementById('s-sum').textContent = sum;
+        }
+
+        function setChart(type) {
+            chartType = type;
+            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            drawChart();
+        }
+
+        function drawChart() {
+            const parent = chartCanvas.parentElement;
+            chartCanvas.width = parent.offsetWidth * devicePixelRatio;
+            chartCanvas.height = parent.offsetHeight * devicePixelRatio;
+            cCtx.scale(devicePixelRatio, devicePixelRatio);
+            const cW = parent.offsetWidth, cH = parent.offsetHeight;
+            cCtx.clearRect(0, 0, cW, cH);
+            if (data.length === 0) {
+                cCtx.fillStyle = '#64748b'; cCtx.font = '14px Noto Sans Georgian'; cCtx.textAlign = 'center';
+                cCtx.fillText('დაამატე მონაცემები გრაფიკის სანახავად', cW / 2, cH / 2);
+                return;
+            }
+
+            const pad = 40;
+            if (chartType === 'bar') {
+                // Group into bins
+                const sorted = [...data].sort((a, b) => a - b);
+                const min = sorted[0], max = sorted[sorted.length - 1];
+                const numBins = Math.min(Math.ceil(Math.sqrt(data.length)), 15);
+                const binWidth = (max - min + 1) / numBins || 1;
+                const bins = new Array(numBins).fill(0);
+                data.forEach(v => { const bi = Math.min(Math.floor((v - min) / binWidth), numBins - 1); bins[bi]++; });
+                const maxBin = Math.max(...bins, 1);
+                const barW = (cW - pad * 2) / numBins - 4;
+                bins.forEach((count, i) => {
+                    const x = pad + i * ((cW - pad * 2) / numBins) + 2;
+                    const h = (count / maxBin) * (cH - pad * 2);
+                    const y = cH - pad - h;
+                    cCtx.fillStyle = colors[i % colors.length];
+                    cCtx.beginPath();
+                    cCtx.roundRect(x, y, barW, h, [4, 4, 0, 0]);
+                    cCtx.fill();
+                    // Count label
+                    cCtx.fillStyle = '#f8fafc'; cCtx.font = 'bold 11px Courier New'; cCtx.textAlign = 'center';
+                    cCtx.fillText(count, x + barW / 2, y - 5);
+                    // Bin range
+                    const bStart = (min + i * binWidth).toFixed(0);
+                    cCtx.fillStyle = '#64748b'; cCtx.font = '9px Arial';
+                    cCtx.fillText(bStart, x + barW / 2, cH - pad + 15);
+                });
+            } else if (chartType === 'pie') {
+                const freq = {};
+                data.forEach(v => freq[v] = (freq[v] || 0) + 1);
+                const entries = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const total = entries.reduce((s, [, c]) => s + c, 0);
+                let startAngle = -Math.PI / 2;
+                const cx = cW / 2, cy = cH / 2, r = Math.min(cW, cH) * 0.35;
+                entries.forEach(([val, count], i) => {
+                    const slice = (count / total) * Math.PI * 2;
+                    cCtx.beginPath(); cCtx.moveTo(cx, cy); cCtx.arc(cx, cy, r, startAngle, startAngle + slice);
+                    cCtx.closePath(); cCtx.fillStyle = colors[i % colors.length]; cCtx.fill();
+                    cCtx.strokeStyle = '#0f172a'; cCtx.lineWidth = 2; cCtx.stroke();
+                    // Label
+                    const midAngle = startAngle + slice / 2;
+                    const lx = cx + (r * 0.65) * Math.cos(midAngle);
+                    const ly = cy + (r * 0.65) * Math.sin(midAngle);
+                    cCtx.fillStyle = '#fff'; cCtx.font = 'bold 11px Courier New'; cCtx.textAlign = 'center';
+                    cCtx.fillText(val, lx, ly);
+                    cCtx.fillText(`(${count})`, lx, ly + 13);
+                    startAngle += slice;
+                });
+            } else if (chartType === 'dot') {
+                const sorted = [...data].sort((a, b) => a - b);
+                const min = sorted[0], max = sorted[sorted.length - 1];
+                const range = max - min || 1;
+                // Mean line
+                const mean = data.reduce((a, b) => a + b, 0) / data.length;
+                const meanX = pad + ((mean - min) / range) * (cW - pad * 2);
+                cCtx.setLineDash([4, 4]); cCtx.strokeStyle = '#f59e0b'; cCtx.lineWidth = 1.5;
+                cCtx.beginPath(); cCtx.moveTo(meanX, pad); cCtx.lineTo(meanX, cH - pad); cCtx.stroke();
+                cCtx.setLineDash([]);
+                cCtx.fillStyle = '#f59e0b'; cCtx.font = '10px Arial'; cCtx.textAlign = 'center';
+                cCtx.fillText('x̄=' + mean.toFixed(1), meanX, pad - 5);
+
+                // Axis
+                cCtx.strokeStyle = 'rgba(255,255,255,0.2)'; cCtx.lineWidth = 1;
+                cCtx.beginPath(); cCtx.moveTo(pad, cH - pad); cCtx.lineTo(cW - pad, cH - pad); cCtx.stroke();
+
+                data.forEach((v, i) => {
+                    const x = pad + ((v - min) / range) * (cW - pad * 2);
+                    const y = cH - pad - 15 - (i % 15) * 12;
+                    cCtx.beginPath(); cCtx.arc(x, y, 5, 0, Math.PI * 2);
+                    cCtx.fillStyle = colors[i % colors.length]; cCtx.fill();
+                });
+                // Ticks
+                cCtx.fillStyle = '#64748b'; cCtx.font = '9px Arial'; cCtx.textAlign = 'center';
+                for (let i = 0; i <= 5; i++) {
+                    const v = min + (range / 5) * i;
+                    const x = pad + (i / 5) * (cW - pad * 2);
+                    cCtx.fillText(v.toFixed(0), x, cH - pad + 15);
+                }
+            }
+        }
+        refresh();
+    </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გეოგრაფია — ლითოსფერო</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 850px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #f97316, #ef4444); color: white; border-color: #f97316; }
+        .canvas-wrap { background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); position: relative; }
+        canvas { display: block; width: 100%; height: 350px; }
+        .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; align-items: center; }
+        .slider-group { flex: 1; min-width: 200px; }
+        .slider-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; margin-bottom: 5px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #f97316; cursor: pointer; }
+        .info-box { background: #0f172a; border-left: 3px solid #f97316; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #fdba74; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; background: linear-gradient(135deg, #f97316, #ef4444); }
+        .btn:hover { transform: translateY(-1px); }
+        .overlay-layer { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
+        .layer-label { font-size: 0.8rem; font-weight: bold; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px; display: inline-block; clear: both; float: left; margin-bottom: 5px;}
+        .earthquake-stat { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 8px; font-family: 'Courier New'; font-size: 0.9rem; color: #ef4444; border: 1px solid #ef4444; display: none; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🌍 ლითოსფერო</h1>
+    <p class="subtitle">დედამიწის აგებულება, ტექტონიკური ფილების მოძრაობა და მიწისძვრები</p>
+    <div class="app">
+        <div class="tabs">
+            <button class="tab active" onclick="setView('layers')">🧅 დედამიწის ფენები</button>
+            <button class="tab" onclick="setView('tectonics')">🌋 ტექტონიკური ფილები</button>
+        </div>
+
+        <!-- Layers -->
+        <div class="card" id="view-layers">
+            <h3 style="color:#fdba74; margin-bottom:10px; font-size:1rem;">დედამიწის შიდა სტრუქტურა</h3>
+            <div class="canvas-wrap">
+                <canvas id="layersCanvas"></canvas>
+            </div>
+            <div class="controls">
+                <div class="slider-group">
+                    <label>ჩაყვინთვის სიღრმე: <b id="depth-val" style="color:#f8fafc;">0</b> კმ</label>
+                    <input type="range" id="depth-slider" min="0" max="6371" value="0" oninput="updateLayers()">
+                </div>
+            </div>
+            <div class="info-box" style="margin-top:15px;">
+                <b id="layer-name" style="font-size:1.1rem; display:block; margin-bottom:5px;">ქერქი</b>
+                <span id="layer-desc">ყველაზე თხელი, გარე ფენა. სისქე 5-70 კმ. აგებულია მყარი ქანებით.</span>
+            </div>
+        </div>
+
+        <!-- Tectonics -->
+        <div class="card" id="view-tectonics" style="display:none;">
+            <h3 style="color:#ef4444; margin-bottom:10px; font-size:1rem;">ფილების საზღვრები და მიწისძვრები</h3>
+            <div class="canvas-wrap">
+                <canvas id="tectonicsCanvas"></canvas>
+                <div id="eq-stat" class="earthquake-stat"> მაგნიტუდა: 7.2 <br> გამოთავ. ენერგია! </div>
+            </div>
+            <div class="controls">
+                <div class="slider-group">
+                    <label>დაძაბულობა (Tension): <b id="tension-val" style="color:#f8fafc;">0</b>%</label>
+                    <input type="range" id="tension-slider" min="0" max="100" value="0" oninput="updateTectonics()">
+                </div>
+                <button class="btn" onclick="triggerEarthquake()" id="eq-btn" disabled>💥 მიწისძვრის სიმულაცია</button>
+            </div>
+            <div class="info-box" style="margin-top:15px;">
+                <b>კონვერგენტული საზღვარი:</b> ფილები ეჯახება ერთმანეთს. ქმნის მთებს (Მაგ: ჰიმალაი) ან ღრმულებს. გროვდება დიდი დაძაბულობა, რამაც შეიძლება გამოიწვიოს ძლიერი <b>მიწისძვრა</b>.
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        function setView(v) {
+            document.getElementById('view-layers').style.display = v==='layers'?'block':'none';
+            document.getElementById('view-tectonics').style.display = v==='tectonics'?'block':'none';
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            event.target.classList.add('active');
+            if(v==='layers') updateLayers();
+            if(v==='tectonics') updateTectonics();
+        }
+
+        // === LAYERS ===
+        const lc = document.getElementById('layersCanvas');
+        const lctx = lc.getContext('2d');
+        let LW, LH;
+
+        const earthLayers = [
+            { name: 'ქერქი', depth: 0, maxDepth: 70, color: '#8b5cf6', desc: 'ყველაზე თხელი, გარე ფენა. შეადგენს დედამიწის მოცულობის 1%-ს. სისქე 5-70 კმ. ტემპერატურა: ზედაპირიდან 400°C-მდე.' },
+            { name: 'მანტია', depth: 70, maxDepth: 2890, color: '#ea580c', desc: 'ყველაზე სქელი ფენა (სიღრმე 2890 კმ-მდე). შედგება ცხელი, პლასტიკური ქანებისგან. ტემპერატურა: 1000°C - 3700°C. აქ ხდება კონვექციური დინებები.' },
+            { name: 'გარე ბირთვი', depth: 2890, maxDepth: 5150, color: '#ef4444', desc: 'თხევადი რკინის განა და ნიკელის ფენა. მისი მოძრაობა ქმნის დედამიწის მაგნიტურ ველს. ტემპერატურა: 4500°C - 5500°C.' },
+            { name: 'შიდა ბირთვი', depth: 5150, maxDepth: 6371, color: '#fef08a', desc: 'მყარი რკინისა და ნიკელის სფერო. უზარმაზარი წნევის გამო იგი მყარ მდგომარეობაშია. ტემპერატურა აღწევს 6000°C-ს (მზის ზედაპირის ტოლი).' }
+        ];
+
+        function resizeLC() {
+            LW = lc.parentElement.offsetWidth; LH = 350;
+            lc.width = LW * devicePixelRatio; lc.height = LH * devicePixelRatio;
+            lctx.scale(devicePixelRatio, devicePixelRatio);
+            updateLayers();
+        }
+        window.addEventListener('resize', resizeLC);
+
+        function updateLayers() {
+            const depth = parseInt(document.getElementById('depth-slider').value);
+            document.getElementById('depth-val').textContent = depth;
+
+            let currentLayer = earthLayers[0];
+            for(let l of earthLayers) {
+                if(depth >= l.depth && depth <= l.maxDepth) { currentLayer = l; break; }
+                if(depth >= 6371) currentLayer = earthLayers[3];
+            }
+
+            document.getElementById('layer-name').textContent = currentLayer.name;
+            document.getElementById('layer-name').style.color = currentLayer.color;
+            document.getElementById('layer-desc').textContent = currentLayer.desc;
+
+            drawLayers(depth);
+        }
+
+        function drawLayers(currentDepth) {
+            lctx.clearRect(0,0,LW,LH);
+            const cx = LW/2, cy = LH/2;
+            const maxR = Math.min(LW, LH)/2 - 20;
+
+            // Draw layers
+            for (let i = earthLayers.length - 1; i >= 0; i--) {
+                const l = earthLayers[i];
+                const r = maxR * (1 - l.depth/6371);
+                lctx.beginPath();
+                lctx.arc(cx, cy, Math.max(0, r), 0, Math.PI*2);
+                lctx.fillStyle = l.color;
+                lctx.fill();
+                if(i===0) { lctx.strokeStyle='#fff'; lctx.lineWidth=2; lctx.stroke(); } // crust border
+            }
+
+            // Draw depth marker
+            const markerR = maxR * (1 - currentDepth/6371);
+            lctx.beginPath();
+            lctx.arc(cx, cy, Math.max(0, markerR), 0, Math.PI*2);
+            lctx.strokeStyle = '#fff';
+            lctx.lineWidth = 1.5;
+            lctx.setLineDash([5, 5]);
+            lctx.stroke();
+            lctx.setLineDash([]);
+
+            // Pointer
+            lctx.beginPath();
+            lctx.arc(cx, cy - markerR, 5, 0, Math.PI*2);
+            lctx.fillStyle = '#fff';
+            lctx.fill();
+            
+            lctx.fillStyle = '#fff';
+            lctx.font = 'bold 12px Noto Sans Georgian';
+            lctx.textAlign = 'center';
+            lctx.fillText(`${currentDepth} კმ`, cx, cy - markerR - 10);
+        }
+
+        // === TECTONICS ===
+        const tc = document.getElementById('tectonicsCanvas');
+        const tctx = tc.getContext('2d');
+        let TW, TH;
+        let earthquakeActive = false;
+        let eqFrames = 0;
+
+        function resizeTC() {
+            TW = tc.parentElement.offsetWidth; TH = 350;
+            tc.width = TW * devicePixelRatio; tc.height = TH * devicePixelRatio;
+            tctx.scale(devicePixelRatio, devicePixelRatio);
+            updateTectonics();
+        }
+        window.addEventListener('resize', resizeTC);
+
+        function updateTectonics() {
+            if(earthquakeActive) return;
+            const tension = parseInt(document.getElementById('tension-slider').value);
+            document.getElementById('tension-val').textContent = tension;
+            const btn = document.getElementById('eq-btn');
+            
+            if(tension >= 90) {
+                btn.disabled = false;
+                btn.style.boxShadow = '0 0 15px #ef4444';
+            } else {
+                btn.disabled = true;
+                btn.style.boxShadow = 'none';
+            }
+            drawTectonics(tension, 0);
+        }
+
+        function drawTectonics(tension, shake) {
+            tctx.clearRect(0,0,TW,TH);
+            
+            // Background (Mantle)
+            tctx.fillStyle = '#ea580c';
+            tctx.fillRect(0, TH/2, TW, TH/2);
+            
+            // Convection currents
+            tctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            tctx.lineWidth = 3;
+            tctx.beginPath();
+            tctx.arc(TW*0.25, TH*0.75, 40, 0, Math.PI*2);
+            tctx.stroke();
+            tctx.beginPath();
+            tctx.arc(TW*0.75, TH*0.75, 40, 0, Math.PI*2);
+            tctx.stroke();
+            
+            // Arrow indicators
+            tctx.fillStyle='rgba(255,255,255,0.5)';
+            tctx.font='20px Aial'; tctx.textAlign='center';
+            tctx.fillText('↻', TW*0.25, TH*0.75+6);
+            tctx.fillText('↺', TW*0.75, TH*0.75+6);
+
+            // Plates
+            const push = (tension / 100) * 30; // Max push 30px
+            const plateY = TH/2 - 40;
+            
+            tctx.save();
+            tctx.translate(shake, 0);
+
+            // Left Plate
+            tctx.fillStyle = '#a1a1aa'; // rock color
+            tctx.beginPath();
+            tctx.moveTo(0, plateY);
+            tctx.lineTo(TW/2 - 5 + push, plateY);
+            tctx.lineTo(TW/2 - 30 + push, plateY + 60);
+            tctx.lineTo(0, plateY + 60);
+            tctx.fill();
+            tctx.strokeStyle = '#52525b'; tctx.lineWidth=2; tctx.stroke();
+
+            // Right Plate
+            tctx.fillStyle = '#71717a';
+            tctx.beginPath();
+            tctx.moveTo(TW, plateY);
+            tctx.lineTo(TW/2 + 5 - push, plateY);
+            tctx.lineTo(TW/2 + 20 - push, plateY + 60);
+            tctx.lineTo(TW, plateY + 60);
+            tctx.fill();
+            tctx.strokeStyle = '#3f3f46'; tctx.lineWidth=2; tctx.stroke();
+
+            // Mountains building
+            if(push > 0) {
+                tctx.fillStyle = '#d4d4d8';
+                tctx.beginPath();
+                tctx.moveTo(TW/2 - push, plateY);
+                tctx.lineTo(TW/2, plateY - push*1.5);
+                tctx.lineTo(TW/2 + push, plateY);
+                tctx.fill();
+            }
+
+            // Tension visualizer
+            if(tension > 0 && !earthquakeActive) {
+                tctx.fillStyle = `rgba(239, 68, 68, ${tension/100})`;
+                tctx.beginPath();
+                tctx.arc(TW/2, plateY+30, tension/3, 0, Math.PI*2);
+                tctx.fill();
+            }
+
+            // Seismic waves during earthquake
+            if(earthquakeActive) {
+                const radius = eqFrames * 5;
+                tctx.strokeStyle = `rgba(239, 68, 68, ${1 - eqFrames/60})`;
+                tctx.lineWidth = 3;
+                tctx.beginPath();
+                tctx.arc(TW/2, plateY+30, radius, 0, Math.PI*2);
+                tctx.stroke();
+                
+                tctx.beginPath();
+                tctx.arc(TW/2, plateY+30, Math.max(0, radius-20), 0, Math.PI*2);
+                tctx.stroke();
+            }
+
+            tctx.restore();
+            
+            // Labels
+            tctx.fillStyle = '#fff';
+            tctx.font = '14px Noto Sans Georgian';
+            tctx.textAlign = 'center';
+            tctx.fillText('კონტინენტური ფილა 1', TW*0.25, plateY + 30);
+            tctx.fillText('კონტინენტური ფილა 2', TW*0.75, plateY + 30);
+            tctx.fillText('მანტია', TW/2, TH*0.85);
+
+            if(!earthquakeActive) {
+                tctx.fillStyle = '#ef4444';
+                tctx.font = '24px Arial';
+                tctx.fillText('→', TW*0.35, plateY - 10);
+                tctx.fillText('←', TW*0.65, plateY - 10);
+            }
+        }
+
+        function triggerEarthquake() {
+            if(earthquakeActive) return;
+            earthquakeActive = true;
+            eqFrames = 0;
+            document.getElementById('tension-slider').value = 0;
+            document.getElementById('tension-val').textContent = 0;
+            document.getElementById('eq-btn').disabled = true;
+            document.getElementById('eq-btn').style.boxShadow = 'none';
+            
+            const stat = document.getElementById('eq-stat');
+            stat.style.display = 'block';
+            stat.innerHTML = `მაგნიტუდა: ${(7.0 + Math.random()).toFixed(1)} <br> ბიძგები ფიქსირდება!`;
+            
+            animateEarthquake();
+        }
+
+        function animateEarthquake() {
+            if(eqFrames > 60) {
+                earthquakeActive = false;
+                document.getElementById('eq-stat').style.display = 'none';
+                drawTectonics(0, 0);
+                return;
+            }
+            const shake = (Math.random() - 0.5) * 20 * (1 - eqFrames/60);
+            drawTectonics(90, shake);
+            eqFrames++;
+            requestAnimationFrame(animateEarthquake);
+        }
+
+        // Init
+        setTimeout(() => { resizeLC(); resizeTC(); }, 100);
+    </script>
+</body>
+</html>

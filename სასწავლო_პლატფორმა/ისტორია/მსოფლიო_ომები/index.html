@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — მსოფლიო ომები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #18181b; color: #f4f4f5; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; color: #ef4444; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .subtitle { text-align: center; color: #a1a1aa; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 15px; }
+        
+        .card { background: #27272a; border-radius: 12px; padding: 20px; border: 1px solid #3f3f46; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* War Selector */
+        .war-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .w-tab { flex: 1; padding: 12px; text-align: center; background: #18181b; border: 2px solid #52525b; border-radius: 8px; cursor: pointer; font-weight: bold; color: #a1a1aa; transition: 0.2s; font-size: 0.95rem; }
+        .w-tab:hover { background: #3f3f46; color: #fff; }
+        .w-tab.active { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #fca5a5; }
+
+        /* Map Area (Abstracted CSS representation for alliances) */
+        .map-area { position: relative; width: 100%; height: 350px; background: #0f172a; border-radius: 8px; overflow: hidden; border: 1px solid #334155; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path fill="%231e293b" d="M100,50 L300,30 L400,100 L700,50 L750,200 L650,350 L400,300 L200,380 Z" opacity="0.6"/></svg>'); background-size: cover; }
+        
+        .c-block { position: absolute; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; color: #fff; text-shadow: 1px 1px 2px #000; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: 0.5s; text-align: center; cursor: pointer; }
+        .c-block:hover { transform: scale(1.1); z-index: 10; }
+
+        /* WWI Alliances */
+        .allies-ww1 { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .central-ww1 { background: linear-gradient(135deg, #b45309, #d97706); }
+        
+        /* WWII Alliances */
+        .allies-ww2 { background: linear-gradient(135deg, #15803d, #16a34a); }
+        .axis-ww2 { background: linear-gradient(135deg, #991b1b, #dc2626); }
+        
+        .neutral { background: linear-gradient(135deg, #52525b, #71717a); }
+
+        /* Legend */
+        .legend { display: flex; justify-content: center; gap: 20px; font-size: 0.85rem; margin-bottom: 20px; flex-wrap: wrap; }
+        .l-item { display: flex; align-items: center; gap: 5px; }
+        .l-box { width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* Info Dashboard */
+        .info-dash { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .info-dash { grid-template-columns: 1fr; } }
+
+        .stat-box { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid #3f3f46; }
+        .s-title { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 10px; }
+        .s-val { font-family: 'Courier New'; font-size: 1.5rem; font-weight: bold; color: #f4f4f5; }
+        
+        .desc-box { background: #18181b; padding: 15px; border-radius: 8px; border-left: 3px solid #ef4444; font-size: 0.85rem; line-height: 1.6; color: #d4d4d8; }
+
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #27272a; color: #a1a1aa; text-decoration: none; border-radius: 8px; font-size: 0.85rem; border: 1px solid #3f3f46; font-weight: bold; }
+        .back-btn:hover { background: #3f3f46; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>🌍 მსოფლიო ომები</h1>
+    <p class="subtitle">XX საუკუნის გლობალური კონფლიქტები: ალიანსები და სტატისტიკა</p>
+    
+    <div class="app">
+        <div class="card">
+            <div class="war-tabs">
+                <div class="w-tab active" onclick="switchWar('ww1')" id="tab-ww1">პირველი მსოფლიო ომი (1914-1918)</div>
+                <div class="w-tab" onclick="switchWar('ww2')" id="tab-ww2">მეორე მსოფლიო ომი (1939-1945)</div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend" id="legend">
+                <!-- populated by JS -->
+            </div>
+
+            <div class="map-area" id="map-area">
+                <!-- Blocks populated by JS to simulate map -->
+            </div>
+
+            <div class="info-dash">
+                <div class="stat-box">
+                    <div class="s-title" id="s-t-cause">მთავარი მიზეზი / გამომწვევი</div>
+                    <div class="s-val" id="s-val-cause" style="font-size:1.1rem; color:#fca5a5; font-family:sans-serif;">სარაევოს მკვლელობა</div>
+                </div>
+                <div class="stat-box">
+                    <div class="s-title">მსხვერპლი (დაახლ.)</div>
+                    <div class="s-val" id="s-val-deaths" style="color:#ef4444;">20 მილიონი</div>
+                </div>
+            </div>
+
+            <div class="desc-box" id="desc-box" style="margin-top:15px;">
+                პირველი მსოფლიო ომი დაიწყო ავსტრია-უნგრეთის ტახტის მემკვიდრის ფრანც ფერდინანდის მკვლელობით 1914 წელს. ევროპაში არსებულმა რთულმა ალიანსებმა და მილიტარიზაციამ ლოკალური კონფლიქტი გლობალურ ომად აქცია. იგი ხასიათდებოდა პოზიციური და სანგრების ომით.
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        const geoData = {
+            ww1: {
+                cause: "სარაევოს ატენტატი (ფერდინანდის მკვლელობა)", deaths: "20 მილიონი",
+                desc: "პირველი მსოფლიო ომი (WWI) ცნობილია, როგორც სანგრების ომი. დაინერგა ახალი ტექნოლოგიები: ტანკი, ავიაცია, ქიმიური იარაღი. დასრულდა 1918 წელს, დაიშალა 4 იმპერია (რუსეთის, გერმანიის, ავსტრია-უნგრეთის, ოსმალეთის).",
+                legend: [ { color: "linear-gradient(135deg, #1d4ed8, #2563eb)", text: "ანტანტა (Allies)" }, { color: "linear-gradient(135deg, #b45309, #d97706)", text: "ცენტრალური ძალები" }, { color: "linear-gradient(135deg, #52525b, #71717a)", text: "ნეიტრალური" } ],
+                countries: [
+                    { name: "დიდი ბრიტანეთი", css: "allies-ww1", top: 30, left: 20 },
+                    { name: "საფრანგეთი", css: "allies-ww1", top: 50, left: 25 },
+                    { name: "რუსეთი(1917მდე)", css: "allies-ww1", top: 30, left: 70 },
+                    { name: "იტალია(1915-1918)", css: "allies-ww1", top: 65, left: 40 },
+                    { name: "გერმანიის იმპერია", css: "central-ww1", top: 40, left: 45 },
+                    { name: "ავსტრია-უნგრეთი", css: "central-ww1", top: 55, left: 55 },
+                    { name: "ოსმალეთის იმპ.", css: "central-ww1", top: 75, left: 70 },
+                    { name: "აშშ (1917-დან)", css: "allies-ww1", top: 40, left: 5 },
+                    { name: "ესპანეთი", css: "neutral", top: 70, left: 15 },
+                    { name: "შვეიცარია", css: "neutral", top: 55, left: 35 }
+                ]
+            },
+            ww2: {
+                cause: "გერმანიის თავდასხმა პოლონეთზე (1939)", deaths: "70-85 მილიონი",
+                desc: "მეორე მსოფლიო ომი (WWII) იყო ყველაზე მასშტაბური და სისხლისმღვრელი კონფლიქტი კაცობრიობის ისტორიაში. გამოირჩეოდა მობილური სატანკო ბრძოლებით (ბლიცკრიგი), მასიური დაბომბვებით, ჰოლოკოსტითა და პირველი/ერთადერთი ატომური ბომბის გამოყენებით იაპონიაში.",
+                legend: [ { color: "linear-gradient(135deg, #15803d, #16a34a)", text: "მოკავშირეები (Allies)" }, { color: "linear-gradient(135deg, #991b1b, #dc2626)", text: "ღერძის ქვეყნები (Axis)" }, { color: "linear-gradient(135deg, #52525b, #71717a)", text: "ნეიტრალური" } ],
+                countries: [
+                    { name: "დიდი ბრიტანეთი", css: "allies-ww2", top: 30, left: 20 },
+                    { name: "საფრანგეთი(ოკუპ.)", css: "allies-ww2", top: 50, left: 25 },
+                    { name: "სსრკ (USSR)", css: "allies-ww2", top: 25, left: 75 },
+                    { name: "აშშ", css: "allies-ww2", top: 40, left: 5 },
+                    { name: "ნაცისტური გერმანია", css: "axis-ww2", top: 45, left: 45 },
+                    { name: "ფაშისტური იტალია", css: "axis-ww2", top: 65, left: 40 },
+                    { name: "იმპ. იაპონია", css: "axis-ww2", top: 40, left: 90 },
+                    { name: "შვეიცარია", css: "neutral", top: 55, left: 35 },
+                    { name: "შვედეთი", css: "neutral", top: 20, left: 45 }
+                ]
+            }
+        };
+
+        function switchWar(wId) {
+            document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + wId).classList.add('active');
+
+            const data = geoData[wId];
+            
+            // Stats & Desc
+            document.getElementById('s-val-cause').textContent = data.cause;
+            document.getElementById('s-val-deaths').textContent = data.deaths;
+            document.getElementById('desc-box').textContent = data.desc;
+
+            // Legend
+            const legContainer = document.getElementById('legend');
+            legContainer.innerHTML = '';
+            data.legend.forEach(l => {
+                legContainer.innerHTML += `
+                    <div class="l-item">
+                        <div class="l-box" style="background:${l.color};"></div>
+                        <span>${l.text}</span>
+                    </div>
+                `;
+            });
+
+            // Map
+            const mapArea = document.getElementById('map-area');
+            mapArea.innerHTML = '';
+            data.countries.forEach(c => {
+                let div = document.createElement('div');
+                div.className = `c-block ${c.css}`;
+                div.style.top = c.top + '%';
+                div.style.left = c.left + '%';
+                div.textContent = c.name;
+                // random slight delay for animation
+                div.style.animation = `pop 0.4s ease-out ${Math.random()*0.2}s forwards`;
+                div.style.opacity = 0;
+                mapArea.appendChild(div);
+            });
+        }
+
+        // Init
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }`;
+        document.head.appendChild(style);
+
+        switchWar('ww1');
+    </script>
+</body>
+</html>

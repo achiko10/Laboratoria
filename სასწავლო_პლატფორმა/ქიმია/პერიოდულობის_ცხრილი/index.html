@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — პერიოდულობის ცხრილი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: flex; gap: 20px; width: 100%; max-width: 1200px; flex-wrap: wrap; justify-content: center; }
+
+        .ptable {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 4px;
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .element {
+            position: relative;
+            background: #334155;
+            border-radius: 4px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            border: 1px solid rgba(255,255,255,0.05);
+            min-width: 40px;
+        }
+
+        .element:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .element.active { transform: scale(1.15); z-index: 15; border: 2px solid #fff; }
+
+        .el-num { position: absolute; top: 2px; left: 3px; font-size: 0.55rem; color: rgba(255,255,255,0.6); }
+        .el-sym { font-size: 1rem; font-weight: bold; color: #fff; }
+        .el-mass { position: absolute; bottom: 2px; font-size: 0.45rem; color: rgba(255,255,255,0.5); }
+
+        /* Categorical Colors */
+        .cat-nonmetal { background: linear-gradient(135deg, #10b981, #059669); }
+        .cat-noble { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .cat-alkali { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .cat-alkaline { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .cat-metalloid { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+        .cat-halogen { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+        .cat-metal { background: linear-gradient(135deg, #cbd5e1, #94a3b8); }
+        .cat-transition { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .info-card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 300px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .ic-header { display: flex; align-items: center; gap: 20px; }
+        .ic-square {
+            width: 90px; height: 90px;
+            background: #334155; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+        .ic-square .n { position: absolute; top: 5px; left: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7); }
+        .ic-square .s { font-size: 2.2rem; font-weight: bold; font-family: Arial; }
+        .ic-square .m { position: absolute; bottom: 5px; font-size: 0.75rem; color: rgba(255,255,255,0.6); }
+
+        .ic-title h2 { font-size: 1.4rem; color: #fff; margin-bottom: 4px; }
+        .ic-title p { color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        .ic-details { display: grid; grid-template-columns: 1fr; gap: 10px; background: #0f172a; padding: 15px; border-radius: 10px; font-size: 0.85rem; }
+        .ic-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; }
+        .ic-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .ic-label { color: #64748b; }
+        .ic-val { color: #e2e8f0; font-weight: 600; text-align: right; }
+
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; font-size: 0.75rem; max-width: 800px; }
+        .leg-item { display: flex; align-items: center; gap: 5px; background: #1e293b; padding: 4px 10px; border-radius: 20px; }
+        .leg-color { width: 12px; height: 12px; border-radius: 50%; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🧪 პერიოდულობის ცხრილი</h1>
+    <p class="subtitle">დააკლიკე ელემენტს დეტალური ინფორმაციის მისაღებად</p>
+
+    <div class="container">
+        <div class="ptable" id="ptable"></div>
+        
+        <div class="info-card" id="info-card">
+            <div style="text-align:center; color:#64748b; padding:40px 10px;">აირჩიეთ ელემენტი ცხრილიდან</div>
+        </div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        const categories = {
+            'nonmetal': { name: 'არამეტალი', class: 'cat-nonmetal' },
+            'noble': { name: 'ინერტული აირი', class: 'cat-noble' },
+            'alkali': { name: 'ტუტე ლითონი', class: 'cat-alkali' },
+            'alkaline': { name: 'ტუტემიწა ლითონი', class: 'cat-alkaline' },
+            'metalloid': { name: 'მეტალოიდი', class: 'cat-metalloid' },
+            'halogen': { name: 'ჰალოგენი', class: 'cat-halogen' },
+            'metal': { name: 'სხვა ლითონი', class: 'cat-metal' },
+            'transition': { name: 'გარდამავალი ლითონი', class: 'cat-transition' }
+        };
+
+        const elements = [
+            { n: 1, s: 'H', name: 'წყალბადი', m: 1.008, c: 'nonmetal', g: 1, p: 1, e: '1s¹' },
+            { n: 2, s: 'He', name: 'ჰელიუმი', m: 4.002, c: 'noble', g: 18, p: 1, e: '1s²' },
+            { n: 3, s: 'Li', name: 'ლითიუმი', m: 6.94, c: 'alkali', g: 1, p: 2, e: '[He] 2s¹' },
+            { n: 4, s: 'Be', name: 'ბერილიუმი', m: 9.012, c: 'alkaline', g: 2, p: 2, e: '[He] 2s²' },
+            { n: 5, s: 'B', name: 'ბორი', m: 10.81, c: 'metalloid', g: 13, p: 2, e: '[He] 2s² 2p¹' },
+            { n: 6, s: 'C', name: 'ნახშირბადი', m: 12.011, c: 'nonmetal', g: 14, p: 2, e: '[He] 2s² 2p²' },
+            { n: 7, s: 'N', name: 'აზოტი', m: 14.007, c: 'nonmetal', g: 15, p: 2, e: '[He] 2s² 2p³' },
+            { n: 8, s: 'O', name: 'ჟანგბადი', m: 15.999, c: 'nonmetal', g: 16, p: 2, e: '[He] 2s² 2p⁴' },
+            { n: 9, s: 'F', name: 'ფთორი', m: 18.998, c: 'halogen', g: 17, p: 2, e: '[He] 2s² 2p⁵' },
+            { n: 10, s: 'Ne', name: 'ნეონი', m: 20.180, c: 'noble', g: 18, p: 2, e: '[He] 2s² 2p⁶' },
+            { n: 11, s: 'Na', name: 'ნატრიუმი', m: 22.990, c: 'alkali', g: 1, p: 3, e: '[Ne] 3s¹' },
+            { n: 12, s: 'Mg', name: 'მაგნიუმი', m: 24.305, c: 'alkaline', g: 2, p: 3, e: '[Ne] 3s²' },
+            { n: 13, s: 'Al', name: 'ალუმინი', m: 26.982, c: 'metal', g: 13, p: 3, e: '[Ne] 3s² 3p¹' },
+            { n: 14, s: 'Si', name: 'სილიციუმი', m: 28.085, c: 'metalloid', g: 14, p: 3, e: '[Ne] 3s² 3p²' },
+            { n: 15, s: 'P', name: 'ფოსფორი', m: 30.974, c: 'nonmetal', g: 15, p: 3, e: '[Ne] 3s² 3p³' },
+            { n: 16, s: 'S', name: 'გოგირდი', m: 32.06, c: 'nonmetal', g: 16, p: 3, e: '[Ne] 3s² 3p⁴' },
+            { n: 17, s: 'Cl', name: 'ქლორი', m: 35.45, c: 'halogen', g: 17, p: 3, e: '[Ne] 3s² 3p⁵' },
+            { n: 18, s: 'Ar', name: 'არგონი', m: 39.948, c: 'noble', g: 18, p: 3, e: '[Ne] 3s² 3p⁶' },
+            { n: 19, s: 'K', name: 'კალიუმი', m: 39.098, c: 'alkali', g: 1, p: 4, e: '[Ar] 4s¹' },
+            { n: 20, s: 'Ca', name: 'კალციუმი', m: 40.078, c: 'alkaline', g: 2, p: 4, e: '[Ar] 4s²' },
+            { n: 21, s: 'Sc', name: 'სკანდიუმი', m: 44.956, c: 'transition', g: 3, p: 4, e: '[Ar] 3d¹ 4s²' },
+            { n: 22, s: 'Ti', name: 'ტიტანი', m: 47.867, c: 'transition', g: 4, p: 4, e: '[Ar] 3d² 4s²' },
+            { n: 23, s: 'V', name: 'ვანადიუმი', m: 50.942, c: 'transition', g: 5, p: 4, e: '[Ar] 3d³ 4s²' },
+            { n: 24, s: 'Cr', name: 'ქრომი', m: 51.996, c: 'transition', g: 6, p: 4, e: '[Ar] 3d⁵ 4s¹' },
+            { n: 25, s: 'Mn', name: 'მანგანუმი', m: 54.938, c: 'transition', g: 7, p: 4, e: '[Ar] 3d⁵ 4s²' },
+            { n: 26, s: 'Fe', name: 'რკინა', m: 55.845, c: 'transition', g: 8, p: 4, e: '[Ar] 3d⁶ 4s²' },
+            { n: 27, s: 'Co', name: 'კობალტი', m: 58.933, c: 'transition', g: 9, p: 4, e: '[Ar] 3d⁷ 4s²' },
+            { n: 28, s: 'Ni', name: 'ნიკელი', m: 58.693, c: 'transition', g: 10, p: 4, e: '[Ar] 3d⁸ 4s²' },
+            { n: 29, s: 'Cu', name: 'სპილენძი', m: 63.546, c: 'transition', g: 11, p: 4, e: '[Ar] 3d¹⁰ 4s¹' },
+            { n: 30, s: 'Zn', name: 'თუთია', m: 65.38, c: 'transition', g: 12, p: 4, e: '[Ar] 3d¹⁰ 4s²' },
+            { n: 31, s: 'Ga', name: 'გალიუმი', m: 69.723, c: 'metal', g: 13, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p¹' },
+            { n: 32, s: 'Ge', name: 'გერმანიუმი', m: 72.630, c: 'metalloid', g: 14, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p²' },
+            { n: 33, s: 'As', name: 'დარიშხანი', m: 74.922, c: 'metalloid', g: 15, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p³' },
+            { n: 34, s: 'Se', name: 'სელენიუმი', m: 78.971, c: 'nonmetal', g: 16, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p⁴' },
+            { n: 35, s: 'Br', name: 'ბრომი', m: 79.904, c: 'halogen', g: 17, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p⁵' },
+            { n: 36, s: 'Kr', name: 'კრიპტონი', m: 83.798, c: 'noble', g: 18, p: 4, e: '[Ar] 3d¹⁰ 4s² 4p⁶' }
+        ];
+
+        const ptable = document.getElementById('ptable');
+        let activeEl = null;
+
+        // Build Legend
+        const legend = document.getElementById('legend');
+        for (const key in categories) {
+            const legItem = document.createElement('div');
+            legItem.className = 'leg-item';
+            legItem.innerHTML = `<div class="leg-color ${categories[key].class}"></div><span>${categories[key].name}</span>`;
+            legend.appendChild(legItem);
+        }
+
+        // Build Table (Grid 18 columns x 7 rows)
+        // Initialize empty cells
+        const maxPeriod = 4;
+        for (let p = 1; p <= maxPeriod; p++) {
+            for (let g = 1; g <= 18; g++) {
+                const el = elements.find(e => e.p === p && e.g === g);
+                const cell = document.createElement('div');
+                
+                if (el) {
+                    cell.className = `element ${categories[el.c].class}`;
+                    cell.innerHTML = `
+                        <div class="el-num">${el.n}</div>
+                        <div class="el-sym">${el.s}</div>
+                        <div class="el-mass">${Math.round(el.m)}</div>
+                    `;
+                    cell.onclick = () => showInfo(el, cell);
+                    // Default active to Hydrogen
+                    if (el.n === 1) setTimeout(() => showInfo(el, cell), 100);
+                }
+                
+                ptable.appendChild(cell);
+            }
+        }
+
+        function showInfo(el, cellNode) {
+            if (activeEl) activeEl.classList.remove('active');
+            cellNode.classList.add('active');
+            activeEl = cellNode;
+
+            const card = document.getElementById('info-card');
+            const cat = categories[el.c];
+
+            card.innerHTML = `
+                <div class="ic-header">
+                    <div class="ic-square ${cat.class}">
+                        <span class="n">${el.n}</span>
+                        <span class="s">${el.s}</span>
+                        <span class="m">${el.m}</span>
+                    </div>
+                    <div class="ic-title">
+                        <h2>${el.name}</h2>
+                        <p>${cat.name}</p>
+                    </div>
+                </div>
+                <div class="ic-details">
+                    <div class="ic-row"><span class="ic-label">ატომური ნომერი:</span><span class="ic-val">${el.n}</span></div>
+                    <div class="ic-row"><span class="ic-label">სიმბოლო:</span><span class="ic-val">${el.s}</span></div>
+                    <div class="ic-row"><span class="ic-label">ატომური მასა:</span><span class="ic-val">${el.m} u</span></div>
+                    <div class="ic-row"><span class="ic-label">ჯგუფი / პერიოდი:</span><span class="ic-val">${el.g} / ${el.p}</span></div>
+                    <div class="ic-row"><span class="ic-label">ელ. კონფიგურაცია:</span><span class="ic-val">${el.e}</span></div>
+                    <div class="ic-row"><span class="ic-label">აგრეგატული მდგ.:</span><span class="ic-val">${el.c === 'noble' || el.s === 'H' || el.s === 'N' || el.s === 'O' || el.s === 'F' || el.s === 'Cl' ? 'აირი' : (el.s === 'Br' ? 'სითხე' : 'მყარი')}</span></div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

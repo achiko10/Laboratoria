@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — ქიმიური კინეტიკა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; position: relative; }
+        canvas { display: block; width: 100%; height: 400px; background: #0b1120; }
+        
+        .hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); }
+        .hud-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .hud-color { width: 12px; height: 12px; border-radius: 50%; }
+
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 20px; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-group label { font-size: 0.85rem; color: #94a3b8; display: flex; justify-content: space-between; }
+        .control-group label b { color: #f8fafc; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; border: 1px solid rgba(255,255,255,0.1); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ef4444); cursor: pointer; }
+
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; transition: 0.2s; background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; width: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3); }
+
+        .progress-bar { width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; margin-top: 5px; border: 1px solid rgba(255,255,255,0.05); }
+        .progress-fill { height: 100%; background: #10b981; width: 0%; transition: 0.3s; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #f59e0b; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>⏱️ ქიმიური კინეტიკა</h1>
+    <p class="subtitle">შეცვალე ტემპერატურა და კონცენტრაცია რეაქციის სიჩქარის დასაჩქარებლად (A + B → C)</p>
+
+    <div class="container">
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="hud">
+                <div class="hud-row"><div class="hud-color" style="background:#3b82f6;"></div><span>რეაგენტი A (<span id="count-a">0</span>)</span></div>
+                <div class="hud-row"><div class="hud-color" style="background:#f43f5e;"></div><span>რეაგენტი B (<span id="count-b">0</span>)</span></div>
+                <div class="hud-row"><div class="hud-color" style="background:#10b981;"></div><span>პროდუქტი C (<span id="count-c">0</span>)</span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="control-group">
+                <label>ტემპერატურა: <b><span id="temp-val">25</span> °C</b></label>
+                <input type="range" id="temp" min="0" max="100" value="25">
+            </div>
+            
+            <div class="control-group">
+                <label>კონცენტრაცია (A და B): <b><span id="conc-val">50</span>%</b></label>
+                <input type="range" id="conc" min="20" max="150" value="50">
+            </div>
+            
+            <div class="control-group">
+                <label>პროგრესი:</label>
+                <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+            </div>
+
+            <button class="btn" onclick="startReaction()">რეაქციის დაწყება</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 შეჯახების თეორია (Collision Theory):</strong> რეაქცია რომ მოხდეს, ნაწილაკები უნდა შეეჯახონ ერთმანეთს საკმარისი ენერგიით (აქტივაციის ენერგია).<br>
+            • <strong>ტემპერატურის გაზრდა:</strong> ნაწილაკები მოძრაობენ სწრაფად, შეჯახებები უფრო ხშირი და ძლიერია.<br>
+            • <strong>კონცენტრაციის გაზრდა:</strong> მეტი ნაწილაკია სივრცეში, ამიტომ შეჯახების ალბათობა იზრდება.
+        </div>
+    </div>
+    
+    <div style="text-align:center;">
+        <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio; canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const tempSlider = document.getElementById('temp');
+        const concSlider = document.getElementById('conc');
+        tempSlider.oninput = () => document.getElementById('temp-val').textContent = tempSlider.value;
+        concSlider.oninput = () => document.getElementById('conc-val').textContent = concSlider.value;
+
+        let particles = [];
+        let running = false;
+        let totalStartCount = 0;
+
+        function startReaction() {
+            const numA = +concSlider.value;
+            const numB = +concSlider.value;
+            totalStartCount = Math.min(numA, numB);
+            particles = [];
+            document.getElementById('progress').style.width = '0%';
+
+            for(let i=0; i<numA; i++) addParticle('A', '#3b82f6');
+            for(let i=0; i<numB; i++) addParticle('B', '#f43f5e');
+
+            running = true;
+        }
+
+        function addParticle(type, color) {
+            const angle = Math.random() * Math.PI * 2;
+            particles.push({
+                type, color,
+                x: 20 + Math.random() * (W - 40),
+                y: 20 + Math.random() * (H - 40),
+                vx: Math.cos(angle),
+                vy: Math.sin(angle),
+                r: 6
+            });
+        }
+
+        function updateParticles() {
+            if(!running) return;
+
+            const temp = +tempSlider.value;
+            const speedMultiplier = 1 + (temp / 25); // 1x to 5x speed
+            const reactionChance = 0.05 + (temp / 100) * 0.5; // low temp = bounces, high temp = reactions
+
+            let countA = 0, countB = 0, countC = 0;
+
+            // Move and bounce walls
+            particles.forEach(p => {
+                p.x += p.vx * speedMultiplier;
+                p.y += p.vy * speedMultiplier;
+
+                if (p.x < p.r) { p.x = p.r; p.vx *= -1; }
+                if (p.x > W - p.r) { p.x = W - p.r; p.vx *= -1; }
+                if (p.y < p.r) { p.y = p.r; p.vy *= -1; }
+                if (p.y > H - p.r) { p.y = H - p.r; p.vy *= -1; }
+
+                if (p.type === 'A') countA++;
+                else if (p.type === 'B') countB++;
+                else if (p.type === 'C') countC++;
+            });
+
+            // Collisions (A + B -> C)
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p1 = particles[i];
+                    const p2 = particles[j];
+                    
+                    if ((p1.type === 'A' && p2.type === 'B') || (p1.type === 'B' && p2.type === 'A')) {
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (dist < p1.r + p2.r) {
+                            if (Math.random() < reactionChance) {
+                                // Reaction successful
+                                p1.type = 'C';
+                                p1.color = '#10b981';
+                                p1.r = 8; // Larger product
+                                p1.vx = (p1.vx + p2.vx) / 2;
+                                p1.vy = (p1.vy + p2.vy) / 2;
+                                
+                                // Remove p2
+                                particles.splice(j, 1);
+                                j--; // Adjust index since we removed
+                            } else {
+                                // Bounce
+                                p1.vx *= -1; p1.vy *= -1;
+                                p2.vx *= -1; p2.vy *= -1;
+                                p1.x += p1.vx * speedMultiplier; p1.y += p1.vy * speedMultiplier;
+                                p2.x += p2.vx * speedMultiplier; p2.y += p2.vy * speedMultiplier;
+                            }
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('count-a').textContent = countA;
+            document.getElementById('count-b').textContent = countB;
+            document.getElementById('count-c').textContent = countC;
+
+            if (totalStartCount > 0) {
+                const progress = (countC / totalStartCount) * 100;
+                document.getElementById('progress').style.width = progress + '%';
+                if (countC === totalStartCount) running = false; // Stop when done
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            
+            // Draw temperature background glow
+            const temp = +tempSlider.value;
+            const r = Math.round((temp/100) * 150);
+            const b = Math.round((1 - temp/100) * 50);
+            ctx.fillStyle = `rgba(${r}, 10, ${b}, 0.2)`;
+            ctx.fillRect(0,0,W,H);
+
+            particles.forEach(p => {
+                // Glow
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI*2);
+                ctx.fillStyle = p.color.replace(')', ', 0.3)').replace('rgb', 'rgba');
+                ctx.fill();
+
+                // Core
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+
+            updateParticles();
+            requestAnimationFrame(draw);
+        }
+
+        // Init values
+        tempSlider.oninput();
+        concSlider.oninput();
+        startReaction();
+        draw();
+    </script>
+</body>
+</html>

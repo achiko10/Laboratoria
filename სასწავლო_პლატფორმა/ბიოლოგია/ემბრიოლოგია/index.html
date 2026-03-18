@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — ემბრიოლოგია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #f43f5e, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .timeline { display: flex; gap: 10px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; }
+        .stage-card { min-width: 250px; background: #1e293b; border-radius: 16px; padding: 20px; border: 2px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; scroll-snap-align: center; flex-shrink: 0; }
+        .stage-card:hover { border-color: #ec4899; transform: translateY(-5px); }
+        .stage-card.active { border-color: #ec4899; background: linear-gradient(135deg, rgba(244,63,94,0.1), rgba(236,72,153,0.1)); }
+        .stage-num { font-size: 0.75rem; color: #ec4899; font-weight: bold; margin-bottom: 5px; }
+        .stage-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+        .stage-time { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        .viewer { background: #1e293b; border-radius: 16px; height: 350px; margin-top: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+        canvas { width: 100%; height: 100%; }
+        .detail-panel { background: #1e293b; border-radius: 12px; padding: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .detail-panel h3 { color: #ec4899; margin-bottom: 10px; }
+        .detail-panel p { color: #94a3b8; font-size: 0.85rem; line-height: 1.6; }
+        .info-panel { background: #111827; border-left: 3px solid #ec4899; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin-top: 20px; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🧫 ემბრიოლოგია</h1>
+    <p class="subtitle">ემბრიონის განვითარების ეტაპები — ზიგოტადან ნაყოფამდე</p>
+    <div class="container">
+        <div class="timeline" id="timeline"></div>
+        <div class="viewer"><canvas id="canvas"></canvas></div>
+        <div class="detail-panel"><h3 id="d-title">აირჩიე ეტაპი</h3><p id="d-text">დააკლიკე ზემოთ ეტაპების ბარათებს.</p></div>
+        <div class="info-panel">
+            <strong>🔬 ემბრიოლოგია:</strong> შეისწავლის ორგანიზმის ადრეულ განვითარებას განაყოფიერებიდან დაბადებამდე. მსგავსი ეტაპები ყველა ხერხემლიანში — ევოლუციური კავშირის მტკიცებულება.
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const viewer = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = viewer.offsetWidth * devicePixelRatio; canvas.height = viewer.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = viewer.offsetWidth; H = viewer.offsetHeight; drawStage(); }
+        resize(); window.addEventListener('resize', resize);
+
+        const stages = [
+            { num:1, title:'განაყოფიერება', time:'0 დღე', desc:'სპერმატოზოიდი შეაღწევს კვერცხუჯრედში. იქმნება ზიგოტა — პირველი ერთუჯრედიანი ორგანიზმი 46 ქრომოსომით.',
+              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=3; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,r*0.2,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); const sx=cx-r-20+Math.sin(t*3)*5; ctx.beginPath(); ctx.ellipse(sx,cy,8,4,0,0,Math.PI*2); ctx.fillStyle='#e2e8f0'; ctx.fill(); ctx.beginPath(); ctx.moveTo(sx-8,cy); ctx.quadraticCurveTo(sx-20,cy-8,sx-25,cy); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1.5; ctx.stroke(); }
+            },
+            { num:2, title:'გაყოფა (მორულა)', time:'1-4 დღე', desc:'ზიგოტა იყოფა მიტოზით: 2→4→8→16 უჯრედი. ფორმირდება მორულა — მცირე უჯრედთა ჯგუფი.',
+              draw: (cx,cy,r,t) => { const cells = [ [0,0], [-0.4,-0.3], [0.4,-0.3], [-0.3,0.4], [0.3,0.4], [-0.5,0.1], [0.5,0.1], [0,0.5] ]; cells.forEach(([dx,dy],i) => { const pulse = 1 + Math.sin(t*2 + i)*0.05; ctx.beginPath(); ctx.arc(cx+dx*r*0.6,cy+dy*r*0.6,r*0.28*pulse,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(cx+dx*r*0.6,cy+dy*r*0.6,r*0.08,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); }); }
+            },
+            { num:3, title:'ბლასტულა', time:'5-7 დღე', desc:'უჯრედები წარმოქმნიან ღრუ ბურთს (ბლასტოციტი). შიდა უჯრედთა მასა (ემბრიობლასტი) გარე გარსშია (ტროფობლასტი).',
+              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='rgba(253,230,138,0.2)'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=3; ctx.stroke(); for(let a=0;a<Math.PI*2;a+=Math.PI/10) { const px=cx+Math.cos(a+t*0.5)*r*0.92; const py=cy+Math.sin(a+t*0.5)*r*0.92; ctx.beginPath(); ctx.arc(px,py,r*0.1,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); } ctx.beginPath(); ctx.arc(cx+r*0.3,cy+r*0.1,r*0.35,0,Math.PI*2); ctx.fillStyle='#ec4899'; ctx.globalAlpha=0.5; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText('ემბრიობლასტი',cx+r*0.3,cy+r*0.1+4); }
+            },
+            { num:4, title:'გასტრულაცია', time:'2-3 კვირა', desc:'სამი ჩანასახოვანი ფურცელი ფორმირდება: ექტოდერმა (კანი, ნერვები), მეზოდერმა (კუნთები, ძვლები), ენდოდერმა (ორგანოები).',
+              draw: (cx,cy,r,t) => { const layers = [{color:'#60a5fa',label:'ექტოდერმა',ro:1},{color:'#f97316',label:'მეზოდერმა',ro:0.75},{color:'#22c55e',label:'ენდოდერმა',ro:0.5}]; layers.forEach(l => { ctx.beginPath(); ctx.ellipse(cx,cy,r*l.ro,r*l.ro*0.6,0,0,Math.PI*2); ctx.fillStyle=l.color; ctx.globalAlpha=0.4; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=l.color; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#fff'; ctx.font='10px Arial'; ctx.textAlign='center'; ctx.fillText(l.label,cx,cy-r*l.ro*0.6-8); }); }
+            },
+            { num:5, title:'ორგანოგენეზი', time:'4-8 კვირა', desc:'ორგანოები იწყებს ფორმირებას: გული ცემას იწყებს (22 დღე), ნერვული მილი იკეტება, კიდურების კვირტები ჩნდება.',
+              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.ellipse(cx,cy-r*0.1,r*0.5,r*0.8,0.1,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.stroke(); const heartBeat = 1 + Math.sin(t*6)*0.15; ctx.beginPath(); ctx.arc(cx-r*0.1,cy-r*0.2,r*0.1*heartBeat,0,Math.PI*2); ctx.fillStyle='#ef4444'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='8px Arial'; ctx.textAlign='center'; ctx.fillText('❤',cx-r*0.1,cy-r*0.18); ctx.strokeStyle='#60a5fa'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy-r*0.7); ctx.quadraticCurveTo(cx+r*0.1,cy-r*0.4,cx,cy+r*0.3); ctx.stroke(); ctx.fillStyle='#fff'; ctx.font='8px Arial'; ctx.fillText('ნერვული მილი',cx+r*0.25,cy-r*0.5); ctx.fillStyle='#fde68a'; ctx.beginPath(); ctx.ellipse(cx-r*0.5,cy,r*0.12,r*0.05,0.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx+r*0.5,cy,r*0.12,r*0.05,-0.5,0,Math.PI*2); ctx.fill(); }
+            },
+            { num:6, title:'ნაყოფი', time:'9-40 კვირა', desc:'ყველა ორგანო აქვს. ნაყოფი იზრდება, იწონით, მატურირდება. რეაგირებს ხმაზე, სინათლეზე. 40 კვირის ბოლოს — დაბადება.',
+              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.ellipse(cx,cy,r*0.9,r,0,0,Math.PI*2); ctx.fillStyle='rgba(236,72,153,0.1)'; ctx.fill(); ctx.strokeStyle='rgba(236,72,153,0.3)'; ctx.lineWidth=3; ctx.stroke(); const b = Math.sin(t*0.5)*0.02; ctx.save(); ctx.translate(cx,cy); ctx.rotate(b); ctx.beginPath(); ctx.ellipse(0,-r*0.25,r*0.25,r*0.3,0,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.beginPath(); ctx.ellipse(0,r*0.15,r*0.35,r*0.35,-0.1,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(-r*0.4,r*0.0,r*0.08,r*0.25,0.3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(r*0.35,r*0.1,r*0.08,r*0.25,-0.2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(-r*0.15,r*0.5,r*0.08,r*0.2,0.2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(r*0.1,r*0.5,r*0.08,r*0.2,-0.1,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(-r*0.1,-r*0.3,2,0,Math.PI*2); ctx.arc(r*0.05,-r*0.3,2,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+            }
+        ];
+
+        let currentStage = 0;
+        const tl = document.getElementById('timeline');
+        stages.forEach((s, i) => {
+            const card = document.createElement('div');
+            card.className = 'stage-card' + (i===0?' active':'');
+            card.id = 'card-'+i;
+            card.innerHTML = `<div class="stage-num">ეტაპი ${s.num}</div><div class="stage-title">${s.title}</div><div class="stage-time">⏱ ${s.time}</div>`;
+            card.onclick = () => { currentStage = i; document.querySelectorAll('.stage-card').forEach(c=>c.classList.remove('active')); card.classList.add('active'); document.getElementById('d-title').textContent = s.title; document.getElementById('d-text').textContent = s.desc; };
+            tl.appendChild(card);
+        });
+        document.getElementById('d-title').textContent = stages[0].title;
+        document.getElementById('d-text').textContent = stages[0].desc;
+
+        function drawStage() {
+            ctx.clearRect(0,0,W,H);
+            const cx = W/2, cy = H/2, r = Math.min(W,H)*0.3;
+            const t = Date.now() * 0.001;
+            stages[currentStage].draw(cx, cy, r, t);
+            requestAnimationFrame(drawStage);
+        }
+        drawStage();
+    </script>
+</body>
+</html>

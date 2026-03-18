@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ინფორმატიკა — ხელოვნური ინტელექტი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #06b6d4, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
+        .app { max-width: 850px; margin: auto; }
+        .card { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; }
+        .tab.active { background: linear-gradient(135deg, #06b6d4, #a855f7); color: white; border-color: #06b6d4; }
+        .canvas-wrap { background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 350px; }
+        .draw-canvas { height: 200px; cursor: crosshair; background: #fff; border-radius: 8px; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; transition: 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-train { background: linear-gradient(135deg, #06b6d4, #a855f7); }
+        .btn-sec { background: #334155; }
+        .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .slider-row label { font-size: 0.8rem; color: #94a3b8; white-space: nowrap; }
+        input[type="range"] { -webkit-appearance: none; flex: 1; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
+        .info-box { background: #0f172a; border-left: 3px solid #06b6d4; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #94a3b8; line-height: 1.6; }
+        .info-box b { color: #67e8f9; }
+        .grid-3x3 { display: grid; grid-template-columns: repeat(3, 60px); gap: 3px; justify-content: center; margin: 15px 0; }
+        .ttt-cell { width: 60px; height: 60px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; user-select: none; }
+        .ttt-cell:hover { border-color: #06b6d4; background: rgba(6,182,212,0.1); }
+        .ttt-msg { text-align: center; font-size: 0.9rem; margin-top: 10px; }
+        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>🤖 ხელოვნური ინტელექტი</h1>
+    <p class="subtitle">ნეირონული ქსელის ვიზუალიზაცია, AI-თან თამაში, მანქანური სწავლება</p>
+    <div class="app">
+        <div class="tabs">
+            <button class="tab active" onclick="setView('nn')">🧠 ნეირონული ქსელი</button>
+            <button class="tab" onclick="setView('ttt')">❌⭕ AI-თან თამაში</button>
+        </div>
+
+        <!-- Neural Network -->
+        <div class="card" id="view-nn">
+            <div class="canvas-wrap"><canvas id="nnCanvas"></canvas></div>
+            <div class="slider-row">
+                <label>შეყვანა 1: <b id="in1-val">0.5</b></label>
+                <input type="range" id="in1" min="0" max="100" value="50" oninput="updateNN()">
+            </div>
+            <div class="slider-row">
+                <label>შეყვანა 2: <b id="in2-val">0.5</b></label>
+                <input type="range" id="in2" min="0" max="100" value="50" oninput="updateNN()">
+            </div>
+            <div class="controls">
+                <button class="btn btn-train" onclick="randomizeWeights()">🔀 წონების შეცვლა</button>
+            </div>
+            <div class="info-box" style="margin-top:10px;">
+                <b>ნეირონული ქსელი:</b> ტვინის მოდელი — ნეირონები კავშირებით (წონები). შეყვანის სიგნალი გადის ფენებში, ყოველ კავშირს წონა აქვს. გამოსავალი = Σ(შეყვანა × წონა). <b>აქტივაციის ფუნქცია</b> (sigmoid) განსაზღვრავს, ნეირონი „ანთებს" თუ არა.
+            </div>
+        </div>
+
+        <!-- Tic-Tac-Toe -->
+        <div class="card" id="view-ttt" style="display:none;">
+            <div style="text-align:center; font-weight:bold; color:#06b6d4; margin-bottom:10px;">❌⭕ ტიკ-ტაკ-თოუ (AI Minimax)</div>
+            <div class="grid-3x3" id="ttt-board"></div>
+            <div class="ttt-msg" id="ttt-msg">შენი სვლაა (❌). დააკლიკე ბადეზე!</div>
+            <div class="controls" style="justify-content:center;">
+                <button class="btn btn-train" onclick="resetTTT()">🔄 ახალი თამაში</button>
+            </div>
+            <div class="info-box" style="margin-top:10px;">
+                <b>Minimax ალგორითმი:</b> AI ყველა შესაძლო სვლას ათვალიერებს, ირჩევს საუკეთესოს. „დამარცხება" = -10, „მოგება" = +10, „ფრე" = 0. AI ყოველთვის ირჩევს მაქსიმალურ ქულას, მოთამაშე — მინიმალურს.
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        // === VIEW ===
+        function setView(v) {
+            document.getElementById('view-nn').style.display = v==='nn' ? 'block' : 'none';
+            document.getElementById('view-ttt').style.display = v==='ttt' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // === NEURAL NETWORK ===
+        const nc = document.getElementById('nnCanvas');
+        const nCtx = nc.getContext('2d');
+        let NW, NH;
+        function resizeNN() {
+            const wrap = nc.parentElement;
+            nc.width = wrap.offsetWidth * devicePixelRatio;
+            nc.height = 350 * devicePixelRatio;
+            nCtx.scale(devicePixelRatio, devicePixelRatio);
+            NW = wrap.offsetWidth; NH = 350;
+            updateNN();
+        }
+        resizeNN(); window.addEventListener('resize', resizeNN);
+
+        const layers = [2, 4, 3, 1]; // Network architecture
+        let weights = [];
+
+        function initWeights() {
+            weights = [];
+            for (let l = 0; l < layers.length - 1; l++) {
+                const layerW = [];
+                for (let i = 0; i < layers[l]; i++) {
+                    const neuronW = [];
+                    for (let j = 0; j < layers[l + 1]; j++) {
+                        neuronW.push(Math.random() * 2 - 1);
+                    }
+                    layerW.push(neuronW);
+                }
+                weights.push(layerW);
+            }
+        }
+        initWeights();
+
+        function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+        function randomizeWeights() { initWeights(); updateNN(); }
+
+        function updateNN() {
+            const in1 = +document.getElementById('in1').value / 100;
+            const in2 = +document.getElementById('in2').value / 100;
+            document.getElementById('in1-val').textContent = in1.toFixed(2);
+            document.getElementById('in2-val').textContent = in2.toFixed(2);
+
+            // Forward pass
+            let activations = [[in1, in2]];
+            for (let l = 0; l < weights.length; l++) {
+                const prev = activations[l];
+                const next = [];
+                for (let j = 0; j < layers[l + 1]; j++) {
+                    let sum = 0;
+                    for (let i = 0; i < prev.length; i++) {
+                        sum += prev[i] * weights[l][i][j];
+                    }
+                    next.push(sigmoid(sum));
+                }
+                activations.push(next);
+            }
+
+            drawNN(activations);
+        }
+
+        function drawNN(activations) {
+            nCtx.clearRect(0, 0, NW, NH);
+            const pad = 60;
+            const layerGap = (NW - pad * 2) / (layers.length - 1);
+
+            // Calculate node positions
+            const positions = [];
+            for (let l = 0; l < layers.length; l++) {
+                const x = pad + l * layerGap;
+                const nodes = [];
+                const totalH = layers[l] * 50;
+                const startY = NH / 2 - totalH / 2 + 25;
+                for (let i = 0; i < layers[l]; i++) {
+                    nodes.push({ x, y: startY + i * 50 });
+                }
+                positions.push(nodes);
+            }
+
+            // Draw connections
+            for (let l = 0; l < weights.length; l++) {
+                for (let i = 0; i < weights[l].length; i++) {
+                    for (let j = 0; j < weights[l][i].length; j++) {
+                        const w = weights[l][i][j];
+                        const from = positions[l][i];
+                        const to = positions[l + 1][j];
+                        nCtx.beginPath(); nCtx.moveTo(from.x, from.y); nCtx.lineTo(to.x, to.y);
+                        const absW = Math.abs(w);
+                        nCtx.strokeStyle = w > 0 ? `rgba(34,197,94,${absW * 0.7})` : `rgba(239,68,68,${absW * 0.7})`;
+                        nCtx.lineWidth = absW * 3 + 0.5;
+                        nCtx.stroke();
+                        // Weight label
+                        const mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2;
+                        nCtx.fillStyle = 'rgba(255,255,255,0.3)'; nCtx.font = '8px Courier New'; nCtx.textAlign = 'center';
+                        nCtx.fillText(w.toFixed(2), mx, my - 3);
+                    }
+                }
+            }
+
+            // Draw nodes
+            const layerNames = ['შეყვანა', 'ფარული 1', 'ფარული 2', 'გამოსავალი'];
+            for (let l = 0; l < positions.length; l++) {
+                // Layer label
+                nCtx.fillStyle = '#64748b'; nCtx.font = '10px Noto Sans Georgian'; nCtx.textAlign = 'center';
+                nCtx.fillText(layerNames[l], positions[l][0].x, 18);
+
+                for (let i = 0; i < positions[l].length; i++) {
+                    const {x, y} = positions[l][i];
+                    const val = activations[l][i];
+                    const brightness = Math.floor(val * 255);
+
+                    nCtx.beginPath(); nCtx.arc(x, y, 18, 0, Math.PI * 2);
+                    nCtx.fillStyle = `rgb(${brightness * 0.1}, ${brightness * 0.8}, ${brightness})`;
+                    nCtx.fill();
+                    nCtx.strokeStyle = 'rgba(255,255,255,0.3)'; nCtx.lineWidth = 2; nCtx.stroke();
+
+                    nCtx.fillStyle = '#fff'; nCtx.font = 'bold 11px Courier New'; nCtx.textAlign = 'center';
+                    nCtx.fillText(val.toFixed(2), x, y + 4);
+                }
+            }
+        }
+
+        // === TIC-TAC-TOE with Minimax ===
+        let board = Array(9).fill(null);
+        let gameOver = false;
+
+        function resetTTT() {
+            board = Array(9).fill(null);
+            gameOver = false;
+            document.getElementById('ttt-msg').textContent = 'შენი სვლაა (❌). დააკლიკე ბადეზე!';
+            document.getElementById('ttt-msg').style.color = '#e2e8f0';
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const el = document.getElementById('ttt-board');
+            el.innerHTML = board.map((cell, i) =>
+                `<div class="ttt-cell" onclick="playerMove(${i})" style="${cell?'cursor:default;':''}">${cell || ''}</div>`
+            ).join('');
+        }
+
+        function playerMove(i) {
+            if (board[i] || gameOver) return;
+            board[i] = '❌';
+            renderBoard();
+            if (checkWin('❌')) { endGame('🎉 შენ მოიგე!', '#22c55e'); return; }
+            if (board.every(c => c)) { endGame('🤝 ფრე!', '#f59e0b'); return; }
+            // AI move
+            setTimeout(() => {
+                const move = bestMove();
+                board[move] = '⭕';
+                renderBoard();
+                if (checkWin('⭕')) { endGame('🤖 AI მოიგო!', '#ef4444'); return; }
+                if (board.every(c => c)) { endGame('🤝 ფრე!', '#f59e0b'); return; }
+            }, 300);
+        }
+
+        function checkWin(player) {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return wins.some(([a,b,c]) => board[a] === player && board[b] === player && board[c] === player);
+        }
+
+        function endGame(msg, color) {
+            gameOver = true;
+            document.getElementById('ttt-msg').textContent = msg;
+            document.getElementById('ttt-msg').style.color = color;
+        }
+
+        function bestMove() {
+            let best = -Infinity, bestIdx = 0;
+            for (let i = 0; i < 9; i++) {
+                if (board[i]) continue;
+                board[i] = '⭕';
+                let score = minimax(false, 0);
+                board[i] = null;
+                if (score > best) { best = score; bestIdx = i; }
+            }
+            return bestIdx;
+        }
+
+        function minimax(isMax, depth) {
+            if (checkWin('⭕')) return 10 - depth;
+            if (checkWin('❌')) return depth - 10;
+            if (board.every(c => c)) return 0;
+
+            if (isMax) {
+                let best = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i]) continue;
+                    board[i] = '⭕';
+                    best = Math.max(best, minimax(false, depth + 1));
+                    board[i] = null;
+                }
+                return best;
+            } else {
+                let best = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i]) continue;
+                    board[i] = '❌';
+                    best = Math.min(best, minimax(true, depth + 1));
+                    board[i] = null;
+                }
+                return best;
+            }
+        }
+
+        resetTTT();
+        updateNN();
+    </script>
+</body>
+</html>

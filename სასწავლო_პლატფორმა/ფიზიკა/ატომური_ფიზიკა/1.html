@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სასწავლო პლატფორმა - ფიზიკა</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px; color: #2c3e50; }
+        .container { max-width: 1000px; margin: auto; }
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { font-size: 32px; color: #1a365d; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .სექცია-სათაური { border-left: 5px solid #3498db; padding-left: 15px; margin: 30px 0 20px; font-size: 22px; }
+
+        .კატალოგი { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; 
+        }
+
+        .ბარათი { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
+            transition: 0.3s; 
+            text-decoration: none; 
+            color: inherit; 
+            display: flex; 
+            flex-direction: column;
+            border: 1px solid #eee;
+        }
+
+        .ბარათი:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: #3498db; }
+        
+        .ბარათი h3 { margin: 0 0 10px 0; color: #2980b9; }
+        .ბარათი p { font-size: 14px; color: #7f8c8d; line-height: 1.5; flex-grow: 1; }
+        
+        .ხატულა { font-size: 40px; margin-bottom: 15px; }
+        
+        /* ფერები თემების მიხედვით */
+        .physics { border-top: 4px solid #3498db; }
+        .nuclear { border-top: 4px solid #e74c3c; }
+        .astro { border-top: 4px solid #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>ინტერაქტიული ლაბორატორია</h1>
+            <p>აირჩიე თემა და დაიწყე ექსპერიმენტი</p>
+        </header>
+
+        <div class="სექცია-სათაური">ფიზიკის კურსი</div>
+        
+        <div class="კატალოგი">
+            <a href="ფიზიკა/თერმოდინამიკა/index.html" class="ბარათი physics">
+                <div class="ხატულა">🌡️</div>
+                <h3>თერმოდინამიკა</h3>
+                <p>იდეალური აირის კანონები, წნევისა და ტემპერატურის კავშირი მოძრავ დგუშში.</p>
+            </a>
+
+            <a href="ფიზიკა/ოპტიკა/index.html" class="ბარათი physics">
+                <div class="ხატულა">🔦</div>
+                <h3>ოპტიკა</h3>
+                <p>სინათლის გარდატეხა ლინზებში. შემკრები და გამბნევი ოპტიკური სისტემები.</p>
+            </a>
+
+            <a href="ფიზიკა/ელექტროობა/index.html" class="ბარათი physics">
+                <div class="ხატულა">⚡</div>
+                <h3>ელექტროობა</h3>
+                <p>ომის კანონის ვიზუალიზაცია. დენის ძალის, ძაბვისა და წინაღობის კავშირი.</p>
+            </a>
+
+            <a href="ფიზიკა/მაგნეტიზმი/index.html" class="ბარათი physics">
+                <div class="ხატულა">ენ</div>
+                <h3>მაგნეტიზმი</h3>
+                <p>მაგნიტური ველის ძალწირების ინტერაქტიული რუკა და კომპასების რეაქცია.</p>
+            </a>
+
+            <a href="ფიზიკა/ასტროფიზიკა/index.html" class="ბარათი astro">
+                <div class="ხატულა">🪐</div>
+                <h3>ასტროფიზიკა</h3>
+                <p>გრავიტაციული ურთიერთქმედება და ორბიტალური მექანიკა. შექმენი შენი მზის სისტემა.</p>
+            </a>
+
+            <a href="ფიზიკა/ბირთვული_ფიზიკა/index.html" class="ბარათი nuclear">
+                <div class="ხატულა">☢️</div>
+                <h3>ბირთვული ფიზიკა</h3>
+                <p>ჯაჭვური რეაქციის სიმულაცია, ურანის დაშლა და ენერგიის გამოთავისუფლება.</p>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ხელოვნება და მუსიკა — თეატრალური განათება</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #000; color: #f8fafc; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #fcd34d; text-align: center;}
+        .subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 30px; text-align: center;}
+
+        .app-grid { display: grid; grid-template-columns: 1fr 350px; gap: 30px; width: 100%; max-width: 900px;}
+        @media (max-width: 800px) { .app-grid { grid-template-columns: 1fr; } }
+        
+        .panel { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;}
+
+        /* Stage */
+        .stage-container { position: relative; width: 100%; height: 400px; background: #111; border-radius: 8px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; border: 2px solid #0f172a;}
+        
+        /* Subject (The Actor) */
+        .subject { width: 100px; height: 160px; background: #94a3b8; border-radius: 50% 50% 10px 10px; position: relative; z-index: 10; font-size: 3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; filter: drop-shadow(0 20px 20px #000);}
+
+        /* Lights */
+        .light-beam { position: absolute; pointer-events: none; mix-blend-mode: screen; transition: opacity 0.2s, background 0.2s;}
+        
+        /* 1. Key Light (Main light, usually 45deg from front left) */
+        .key-beam { top: -20%; left: -30%; width: 200%; height: 150%; background: radial-gradient(ellipse at top left, rgba(255,255,255,0.8) 10%, transparent 60%); z-index: 11;}
+        
+        /* 2. Fill Light (Softer light, opposite key to fill shadows, front right) */
+        .fill-beam { top: -10%; right: -30%; width: 200%; height: 150%; background: radial-gradient(ellipse at top right, rgba(147,197,253,0.4) 10%, transparent 50%); z-index: 11;}
+        
+        /* 3. Back Light (Behind subject, outlines silhouette) */
+        .back-beam { top: -30%; left: 0%; width: 100%; height: 100%; background: radial-gradient(circle at top center, rgba(253,164,175,0.6) 0%, transparent 50%); z-index: 5;}
+
+
+        /* Controls */
+        .control-group { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid;}
+        .cg-key { border-color: #fcd34d; }
+        .cg-fill { border-color: #60a5fa; }
+        .cg-back { border-color: #f43f5e; }
+
+        .cg-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; font-size: 0.95rem; align-items: center;}
+        
+        .toggle-switch { display: flex; align-items: center; gap: 8px; cursor: pointer;}
+        .toggle-switch input { appearance: none; width: 36px; height: 20px; background: #475569; border-radius: 10px; position: relative; outline: none; transition: 0.3s; cursor: pointer;}
+        .toggle-switch input::after { content:''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s;}
+        .toggle-switch input:checked { background: #10b981;}
+        .toggle-switch input:checked::after { left: 18px;}
+
+        .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px;}
+        .slider-row label { width: 80px; font-size: 0.85rem; color: #94a3b8;}
+        
+        input[type="range"] { -webkit-appearance: none; flex: 1; height: 6px; border-radius: 3px; background: #334155; outline: none;}
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #e2e8f0; cursor: pointer;}
+        
+        input[type="color"] { width: 30px; height: 30px; border: none; padding: 0; background: none; cursor: pointer; border-radius: 4px;}
+
+        .info { background: #1e293b; padding: 15px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; color: #cbd5e1; margin-top: 20px; max-width: 900px; text-align: center; border: 1px dashed #475569;}
+
+        .back-btn { display: inline-block; margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: bold; border: 1px solid #334155; transition: 0.2s;}
+        .back-btn:hover { background: #334155; color: #fff;}
+    </style>
+</head>
+<body>
+    <h1>🎭 თეატრალური განათება</h1>
+    <p class="subtitle">3-წერტილიანი განათების ოსტატობა (Key, Fill, Back Light)</p>
+    
+    <div class="app-grid">
+        
+        <div class="stage-container">
+            <div class="subject" id="actor">👤</div>
+            
+            <div class="light-beam key-beam" id="light-key"></div>
+            <div class="light-beam fill-beam" id="light-fill"></div>
+            <div class="light-beam back-beam" id="light-back"></div>
+        </div>
+
+        <div class="panel">
+            
+            <!-- Key Light -->
+            <div class="control-group cg-key">
+                <div class="cg-header">
+                    <span style="color:#fcd34d;">Key Light (მთავარი)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="t-key" checked onchange="updateLights()">
+                        <span style="font-size:0.8rem;">ჩართვა</span>
+                    </label>
+                </div>
+                <div class="slider-row">
+                    <label>სიმძლავრე</label>
+                    <input type="range" id="i-key" min="0" max="100" value="80" oninput="updateLights()">
+                </div>
+                <div class="slider-row">
+                    <label>ფერი</label>
+                    <input type="color" id="c-key" value="#ffffff" onchange="updateLights()">
+                </div>
+            </div>
+
+            <!-- Fill Light -->
+            <div class="control-group cg-fill">
+                <div class="cg-header">
+                    <span style="color:#60a5fa;">Fill Light (შემავსებელი)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="t-fill" checked onchange="updateLights()">
+                        <span style="font-size:0.8rem;">ჩართვა</span>
+                    </label>
+                </div>
+                <div class="slider-row">
+                    <label>სიმძლავრე</label>
+                    <input type="range" id="i-fill" min="0" max="100" value="40" oninput="updateLights()">
+                </div>
+                <div class="slider-row">
+                    <label>ფერი</label>
+                    <input type="color" id="c-fill" value="#60a5fa" onchange="updateLights()">
+                </div>
+            </div>
+
+            <!-- Back Light -->
+            <div class="control-group cg-back">
+                <div class="cg-header">
+                    <span style="color:#f43f5e;">Back Light (კონტურის)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="t-back" checked onchange="updateLights()">
+                        <span style="font-size:0.8rem;">ჩართვა</span>
+                    </label>
+                </div>
+                <div class="slider-row">
+                    <label>სიმძლავრე</label>
+                    <input type="range" id="i-back" min="0" max="100" value="60" oninput="updateLights()">
+                </div>
+                <div class="slider-row">
+                    <label>ფერი</label>
+                    <input type="color" id="c-back" value="#f43f5e" onchange="updateLights()">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="info">
+        <b>3-წერტილიანი განათება (3-Point Lighting)</b> სტანდარტია კინოსა და თეატრში.<br>
+        1. <b>Key Light (მთავარი შუქი):</b> ყველაზე ძლიერი სინათლის წყარო. ქმნის ძირითად განათებას და ჩრდილებს.<br>
+        2. <b>Fill Light (შემავსებელი):</b> თავსდება მთავარი შუქის საპირისპირო მხარეს, არის უფრო რბილი და აქრობს მძიმე ჩრდილებს, რომ სახე უკეთ გამოჩნდეს.<br>
+        3. <b>Back/Hair Light (კონტურის):</b> ანათებს ობიექტს უკნიდან, გამოყოფს მას ფონისგან და ქმნის სამგანზომილებიან (3D) ეფექტს.
+    </div>
+
+    <a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
+    <script>
+        // Convert Hex to RGBA str for gradients
+        function hexToRgba(hex, alpha) {
+            let r = parseInt(hex.slice(1, 3), 16),
+                g = parseInt(hex.slice(3, 5), 16),
+                b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        function updateLights() {
+            // Key
+            const tKey = document.getElementById('t-key').checked;
+            const iKey = document.getElementById('i-key').value / 100;
+            const cKey = document.getElementById('c-key').value;
+            const bKey = document.getElementById('light-key');
+            
+            if(tKey) {
+                bKey.style.background = `radial-gradient(ellipse at top left, ${hexToRgba(cKey, iKey)} 10%, transparent 60%)`;
+                bKey.style.opacity = 1;
+            } else { bKey.style.opacity = 0; }
+
+            // Fill
+            const tFill = document.getElementById('t-fill').checked;
+            const iFill = document.getElementById('i-fill').value / 100;
+            const cFill = document.getElementById('c-fill').value;
+            const bFill = document.getElementById('light-fill');
+            
+            if(tFill) {
+                bFill.style.background = `radial-gradient(ellipse at top right, ${hexToRgba(cFill, iFill)} 10%, transparent 50%)`;
+                bFill.style.opacity = 1;
+            } else { bFill.style.opacity = 0; }
+
+            // Back
+            const tBack = document.getElementById('t-back').checked;
+            const iBack = document.getElementById('i-back').value / 100;
+            const cBack = document.getElementById('c-back').value;
+            const bBack = document.getElementById('light-back');
+            const actor = document.getElementById('actor');
+            
+            if(tBack) {
+                bBack.style.background = `radial-gradient(circle at top center, ${hexToRgba(cBack, iBack)} 0%, transparent 50%)`;
+                bBack.style.opacity = 1;
+                // Add a glowing rim to the subject to simulate backlighting
+                actor.style.boxShadow = `0 -5px 20px ${hexToRgba(cBack, iBack*0.8)}`;
+            } else { 
+                bBack.style.opacity = 0; 
+                actor.style.boxShadow = `none`;
+            }
+
+            // Calculate overall subject brightness based on Key & Fill
+            const overallBrightness = (tKey ? iKey : 0) * 0.7 + (tFill ? iFill : 0) * 0.3;
+            const lightness = Math.max(10, Math.min(100, overallBrightness * 100));
+            // Apply slight tint of Key light to the generic gray body color
+            actor.style.backgroundColor = `hsl(215, 20%, ${lightness}%)`;
+        }
+
+        // Init
+        updateLights();
+    </script>
+</body>
+</html>

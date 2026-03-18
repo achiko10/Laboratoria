@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სამოქალაქო განათლება — კონფლიქტების მართვა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #faf5ff; color: #4c1d95; min-height: 100vh; padding: 15px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; color: #6d28d9; font-weight: bold;}
+        .subtitle { text-align: center; color: #8b5cf6; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .app { max-width: 800px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e9d5ff; box-shadow: 0 4px 15px rgba(109, 40, 217, 0.1); }
+
+        /* Temperature Meter */
+        .temp-meter { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e1;}
+        .tm-title { font-weight: bold; color: #475569; font-size: 0.9rem;}
+        .tm-bar-bg { flex: 1; height: 12px; background: linear-gradient(90deg, #3b82f6, #facc15, #ef4444); border-radius: 6px; position: relative; }
+        .tm-marker { position: absolute; top: -3px; height: 18px; width: 4px; background: #0f172a; border-radius: 2px; transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); left: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3);}
+
+        /* Dialogue Box */
+        .chat-area { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; max-height: 350px; overflow-y: auto; padding-right: 10px;}
+        .chat-area::-webkit-scrollbar { width: 6px; }
+        .chat-area::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 3px; }
+
+        .msg-bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; position: relative; animation: slideIn 0.3s ease-out;}
+        @keyframes slideIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+        
+        .msg-guy1 { background: #e0f2fe; color: #0c4a6e; align-self: flex-start; border-bottom-left-radius: 2px;}
+        .msg-guy2 { background: #ffedd5; color: #7c2d12; align-self: flex-start; border-bottom-left-radius: 2px;}
+        .msg-mediator { background: #ede9fe; color: #4c1d95; align-self: flex-end; border-bottom-right-radius: 2px; border: 1px solid #c4b5fd; font-weight: bold;}
+
+        /* Options */
+        .options-box { background: #f5f3ff; border: 2px dashed #c4b5fd; border-radius: 10px; padding: 20px;}
+        .opt-title { font-weight: bold; color: #6d28d9; margin-bottom: 15px; text-align: center; font-size: 1.1rem;}
+        
+        .opt-btn { width: 100%; display: block; text-align: left; padding: 12px 15px; margin-bottom: 10px; background: #fff; border: 1px solid #a78bfa; border-radius: 8px; cursor: pointer; transition: 0.2s; font-family: sans-serif; font-size: 0.9rem; color: #4c1d95;}
+        .opt-btn:hover { background: #ede9fe; transform: translateX(5px); box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .opt-btn:last-child { margin-bottom: 0;}
+
+        /* Tooltip style explanation for End */
+        .end-panel { text-align: center; padding: 20px; display: none; background: #ecfdf5; border: 2px solid #34d399; border-radius: 10px; margin-top: 20px; color: #065f46;}
+        
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e0e7ff; color: #4338ca; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid #c7d2fe; text-align: center;}
+        .back-btn:hover { background: #c7d2fe; color: #3730a3; }
+    </style>
+</head>
+<body>
+    <h1>🤝 კონფლიქტების მართვა</h1>
+    <p class="subtitle">მოირგეთ მედიატორის (შუამავლის) როლი და დაეხმარეთ მეზობლებს დავის მოგვარებაში (Win-Win სტრატეგია)</p>
+    
+    <div class="app">
+        <div class="card">
+            
+            <div class="temp-meter">
+                <div class="tm-title">🌡️ დაძაბულობის დონე:</div>
+                <div class="tm-bar-bg">
+                    <div class="tm-marker" id="temp-marker" style="left: 80%;"></div>
+                </div>
+            </div>
+
+            <div class="chat-area" id="chat-area">
+                <!-- Messages injected here -->
+            </div>
+
+            <div class="options-box" id="options-box">
+                <div class="opt-title">მედიატორის განცხადება / მოქმედება:</div>
+                <div id="btn-container">
+                    <!-- Buttons injected here -->
+                </div>
+            </div>
+
+            <div class="end-panel" id="end-panel">
+                <h2 style="margin-bottom:10px;">🎉 კონფლიქტი მოგვარებულია!</h2>
+                <p>თქვენ გამოიყენეთ ეფექტური მედიაციის ტექნიკები: აქტიური მოსმენა, ბრალდებებისგან თავის შეკავება და საერთო ინტერესების მოძიება. ეს არის <b>Win-Win</b> (მოგება-მოგება) სტრატეგია.</p>
+                <button onclick="resetSim()" style="margin-top:15px; padding:8px 15px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">თავიდან დაწყება</button>
+            </div>
+            
+            <div class="end-panel" id="fail-panel" style="background:#fef2f2; border-color:#f87171; color:#991b1b;">
+                <h2 style="margin-bottom:10px;">💥 კონფლიქტი გამწვავდა!</h2>
+                <p>თქვენი მიდგომა მიკერძოებული ან აგრესიული იყო. მედიატორი არ უნდა ემხრობოდეს არცერთ მხარეს და არ უნდა ზრდიდეს დაძაბულობას. ეს არის <b>Lose-Lose</b> შედეგი.</p>
+                <button onclick="resetSim()" style="margin-top:15px; padding:8px 15px; background:#ef4444; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">თავიდან დაწყება</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <div style="text-align:center;"><a href="../../მთავარი_გვერდი.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <script>
+        // Story Nodes
+        const story = {
+            start: {
+                temp: 80,
+                msgs: [
+                    { t: 'guy1', msg: 'მეზობელო გიორგი! შენი ძაღლი მთელი ღამე ყეფდა და დავიღალე! თუ არ გააჩერებ, პოლიციას გამოვიძახებ!' },
+                    { t: 'guy2', msg: 'რა ჩემი ბრალია, დავით! ძაღლია და ყეფს. თან შენი გარე განათება პირდაპირ თვალებში მაჭერს ღამე და მეც ვერ ვიძინებ!' }
+                ],
+                options: [
+                    { text: 'ამშვიდებთ: "მოდით, ორივემ ვისაუბროთ მშვიდად. მე აქ ვარ, რომ დაგეხმაროთ საერთო ენის გამოძებნაში."', next: 'deescalate1', tempDiff: -20 },
+                    { text: 'იჭერთ მხარეს: "გიორგი, მართალია დავითი, ძაღლს უნდა მიხედო, თორემ ჯარიმას აგკიდებენ."', next: 'escalate1', tempDiff: +20 }
+                ]
+            },
+            deescalate1: {
+                temp: 60,
+                msgs: [
+                    { t: 'mediator', msg: 'მოდით, ორივემ ვისაუბროთ მშვიდად. მე აქ ვარ, რომ დაგეხმაროთ საერთო ენის გამოძებნაში.' },
+                    { t: 'guy1', msg: 'კარგი, მაგრამ დილით სამსახურში მივდივარ და უძილო ვარ.' },
+                    { t: 'guy2', msg: 'მეც მინდა დავისვენო, მაგრამ ეგ შუქი მაწუხებს.' }
+                ],
+                options: [
+                    { text: 'ეძებთ ფაქტებს: "ანუ, ორივეს მთავარი პრობლემა ძილის ნაკლებობაა. დავით, შეგიძლია განათება ცოტა ქვევით მიმართო?"', next: 'solve1', tempDiff: -30 },
+                    { text: 'აყალიბებთ წესებს: "დავით, შენ გათიშე შუქი და გიორგი, შენ ძაღლი სახლში შეიყვანე."', next: 'forced', tempDiff: -5 }
+                ]
+            },
+            escalate1: {
+                temp: 100,
+                msgs: [
+                    { t: 'mediator', msg: 'გიორგი, მართალია დავითი, ძაღლს უნდა მიხედო, თორემ ჯარიმას აგკიდებენ.' },
+                    { t: 'guy2', msg: 'შენ საერთოდ ვინ გეკითხება?! ჩემს ეზოში რასაც მინდა იმას ვიზამ. ახლავე ვუჩივლებ ამას განათების გამო!' },
+                    { t: 'guy1', msg: 'მიდი უჩივლე! ვნახოთ ვინ მოიგებს.' }
+                ],
+                options: [] // End Fail
+            },
+            solve1: {
+                temp: 30,
+                msgs: [
+                    { t: 'mediator', msg: 'ანუ, ორივეს მთავარი პრობლემა ძილის ნაკლებობაა. დავით, შეგიძლია განათება ცოტა ქვევით მიმართო?' },
+                    { t: 'guy1', msg: 'ალბათ შემიძლია, არ ვიცოდი თუ ასე გაწუხებდა.' },
+                    { t: 'guy2', msg: 'მადლობა. შუქი რომ აღარ იქნება, ჩემს ძაღლსაც შევიყვან სახლში ღამით და აღარ იყეფებს.' }
+                ],
+                options: [
+                    { text: 'აჯამებთ: "შესანიშნავია! ორივე მხარემ დათმო რაღაც საერთო სიმშვიდისთვის. შევთანხმდით?"', next: 'success', tempDiff: -20 }
+                ]
+            },
+            forced: {
+                temp: 55,
+                msgs: [
+                    { t: 'mediator', msg: 'დავით, შენ გათიშე შუქი და გიორგი, შენ ძაღლი სახლში შეიყვანე.' },
+                    { t: 'guy1', msg: 'მე რატომ უნდა გავთიშო, ჩემს ეზოშია!' },
+                    { t: 'guy2', msg: 'მეც არ ვაპირებ ძაღლის სახლში შეყვანას. შენ ვინ ხარ, რომ გვიბრძანებ?' }
+                ],
+                options: [
+                    { text: 'იბოდიშებთ: "უკაცრავად, მე უბრალოდ შემოგთავაზეთ. მოდით, თქვენვე თქვით, რა იქნება გამოსავალი."', next: 'deescalate1', tempDiff: -10 },
+                    { text: 'გაბრაზებული მიდიხართ: "თუ არ გინდათ, იყავით ასე!"', next: 'escalate1', tempDiff: +45 }
+                ]
+            },
+            success: {
+                temp: 10,
+                msgs: [
+                    { t: 'mediator', msg: 'შესანიშნავია! ორივე მხარემ დათმო რაღაც საერთო სიმშვიდისთვის. შევთანხმდით?' },
+                    { t: 'guy1', msg: 'შევთანხმდით. ბოდიში, რომ უხეშად დავიწყე.' },
+                    { t: 'guy2', msg: 'არაფერს. მეც ბოდიში.' }
+                ],
+                options: [] // End Win
+            }
+        };
+
+        let currentTemp = 80;
+        const chat = document.getElementById('chat-area');
+        const opts = document.getElementById('btn-container');
+        const marker = document.getElementById('temp-marker');
+
+        function renderNode(nodeId) {
+            const data = story[nodeId];
+            
+            // Set temp
+            currentTemp = data.temp;
+            marker.style.left = Math.max(0, Math.min(100, currentTemp)) + '%';
+
+            // Print messages with slight delay
+            chat.innerHTML = '';
+            
+            let delay = 0;
+            data.msgs.forEach(m => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = `msg-bubble msg-${m.t}`;
+                    
+                    let prefix = '';
+                    if(m.t === 'guy1') prefix = '👨 დავითი: ';
+                    if(m.t === 'guy2') prefix = '🧔 გიორგი: ';
+                    if(m.t === 'mediator') prefix = 'თქვენ: ';
+
+                    div.textContent = prefix + m.msg;
+                    chat.appendChild(div);
+                    chat.scrollTop = chat.scrollHeight; // auto scroll
+                }, delay);
+                delay += 600; // 0.6s per message
+            });
+
+            // Handle options
+            setTimeout(() => {
+                opts.innerHTML = '';
+                if(data.options.length > 0) {
+                    data.options.forEach(o => {
+                        const btn = document.createElement('button');
+                        btn.className = 'opt-btn';
+                        btn.textContent = o.text;
+                        btn.onclick = () => renderNode(o.next);
+                        opts.appendChild(btn);
+                    });
+                } else {
+                    // It's an end state
+                    document.getElementById('options-box').style.display = 'none';
+                    if(currentTemp >= 80) {
+                        document.getElementById('fail-panel').style.display = 'block';
+                    } else {
+                        document.getElementById('end-panel').style.display = 'block';
+                    }
+                }
+            }, delay + 200);
+        }
+
+        function resetSim() {
+            document.getElementById('options-box').style.display = 'block';
+            document.getElementById('end-panel').style.display = 'none';
+            document.getElementById('fail-panel').style.display = 'none';
+            renderNode('start');
+        }
+
+        // Init
+        renderNode('start');
+    </script>
+</body>
+</html>
