@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>უჯრედის სტრუქტურა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+GO:wght@400;600;800&display=swap');
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Fira GO', sans-serif;
+            background: radial-gradient(circle at 30% 70%, #064e3b 0%, #022c22 100%);
+            color: #f8fafc; min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem 2rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+        .back-btn {
+            color: #cbd5e1; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        h1 {
+            font-size: 2rem; background: linear-gradient(90deg, #34d399, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;
+        }
+
+        main {
+            display: grid; grid-template-columns: 1fr 450px; gap: 2rem; padding: 2rem; flex: 1; align-items: center;
+        }
+
+        /* SVG Cell Visuals */
+        .cell-container {
+            display: flex; justify-content: center; align-items: center; position: relative; height: 80vh; max-height: 700px;
+        }
+        
+        svg.cell-map {
+            width: 90%; max-width: 600px; filter: drop-shadow(0 0 40px rgba(52, 211, 153, 0.15));
+            animation: float 6s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+        }
+
+        /* Organelles */
+        .membrane { fill: rgba(16, 185, 129, 0.1); stroke: #34d399; stroke-width: 4; stroke-dasharray: 10 5; }
+        .cytoplasm { fill: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0.15) 100%); }
+        
+        .part { cursor: pointer; transition: 0.3s ease; transform-origin: center; stroke-width: 2; }
+        
+        .part#nucleus { fill: rgba(139, 92, 246, 0.4); stroke: #c084fc; stroke-width: 3; }
+        .part#nucleus:hover, .part.active#nucleus { fill: rgba(139, 92, 246, 0.8); filter: drop-shadow(0 0 20px #c084fc); }
+        .nucleolus { fill: #c084fc; }
+
+        .part#mitochondria1, .part#mitochondria2 { fill: rgba(245, 158, 11, 0.4); stroke: #fbbf24; }
+        .part#mitochondria1:hover, .part.active#mitochondria1, .part#mitochondria2:hover, .part.active#mitochondria2 { 
+            fill: rgba(245, 158, 11, 0.8); filter: drop-shadow(0 0 15px #fbbf24); 
+        }
+
+        .part#golgi { fill: rgba(236, 72, 153, 0.4); stroke: #f472b6; }
+        .part#golgi:hover, .part.active#golgi { fill: rgba(236, 72, 153, 0.8); filter: drop-shadow(0 0 15px #f472b6); }
+
+        .part#er { fill: rgba(56, 189, 248, 0.3); stroke: #7dd3fc; }
+        .part#er:hover, .part.active#er { fill: rgba(56, 189, 248, 0.7); filter: drop-shadow(0 0 15px #7dd3fc); }
+
+        .part#lysosome1, .part#lysosome2 { fill: rgba(239, 68, 68, 0.4); stroke: #f87171; }
+        .part#lysosome1:hover, .part.active#lysosome1, .part#lysosome2:hover, .part.active#lysosome2 { 
+            fill: rgba(239, 68, 68, 0.8); filter: drop-shadow(0 0 10px #f87171); 
+        }
+
+        /* Panel */
+        .info-panel {
+            background: rgba(4, 47, 46, 0.6); border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 20px; padding: 2rem; backdrop-filter: blur(20px); height: fit-content;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); border-top: 4px solid #34d399;
+        }
+        
+        .placeholder { text-align: center; color: #a7f3d0; font-size: 1.1rem; line-height: 1.6; }
+        
+        .details { display: none; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .o-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; color: #f8fafc; }
+        .o-subtitle { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; color: #a7f3d0; }
+        
+        .desc-text { color: #cbd5e1; line-height: 1.7; font-size: 1rem; margin-bottom: 1.5rem; }
+
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .tag { background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .stat-card { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
+        .s-label { font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 0.3rem; }
+        .s-val { font-size: 1rem; font-weight: 600; color: #34d399; }
+
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } svg.cell-map { height: 50vh; } }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../index.html" class="back-btn"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> მთავარზე დაბრუნება</a>
+        <h1>ეუკარიოტული უჯრედი (ცხოველური)</h1>
+        <div style="width:150px"></div>
+    </header>
+
+    <main>
+        <section class="cell-container">
+            <svg class="cell-map" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- Cell Membrane / Cytoplasm -->
+                <circle cx="250" cy="250" r="230" class="membrane"></circle>
+                <circle cx="250" cy="250" r="226" fill="rgba(6, 78, 59, 0.4)"></circle>
+                
+                <!-- Nucleus -->
+                <g class="part" id="nucleus" onclick="selectOrganelle('nucleus')">
+                    <circle cx="250" cy="200" r="70"></circle>
+                    <circle cx="230" cy="180" r="20" class="nucleolus"></circle>
+                    <!-- Chromatin squiggles -->
+                    <path d="M210 220 Q230 200 250 230 T280 210" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"></path>
+                    <path d="M220 190 Q240 160 270 180" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"></path>
+                </g>
+
+                <!-- Endoplasmic Reticulum (Around Nucleus) -->
+                <g class="part" id="er" onclick="selectOrganelle('er')">
+                    <path d="M160 170 C140 150 120 200 150 220 C130 240 160 280 190 260 C210 280 260 290 280 270 C310 280 340 240 320 210 C340 180 320 140 290 150 C260 120 200 130 180 150" fill="none"></path>
+                    <!-- Folds -->
+                    <path d="M170 160 C130 130 100 250 170 270 M180 270 C240 310 320 280 340 220 M330 200 C360 150 280 110 240 130" stroke-width="12" stroke-linecap="round"></path>
+                    <path d="M160 170 C110 160 120 230 160 250 M200 260 C240 290 290 270 310 230" stroke-width="12" stroke-linecap="round"></path>
+                </g>
+
+                <!-- Mitochondria -->
+                <g class="part" id="mitochondria1" onclick="selectOrganelle('mitochondria1')">
+                    <ellipse cx="120" cy="300" rx="40" ry="20" transform="rotate(-30 120 300)"></ellipse>
+                    <path d="M95 305 Q115 285 105 310 Q125 290 120 315 Q140 295 135 320 M120 290" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"></path>
+                </g>
+                <g class="part" id="mitochondria2" onclick="selectOrganelle('mitochondria1')">
+                    <ellipse cx="380" cy="280" rx="35" ry="18" transform="rotate(45 380 280)"></ellipse>
+                    <path d="M365 265 Q375 295 380 275 Q390 305 395 285" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"></path>
+                </g>
+
+                <!-- Golgi Apparatus -->
+                <g class="part" id="golgi" onclick="selectOrganelle('golgi')">
+                    <path d="M320 350 Q360 320 400 360 M330 370 Q365 345 390 375 M345 390 Q370 375 385 395" fill="none" stroke-width="12" stroke-linecap="round"></path>
+                    <!-- Vesicles -->
+                    <circle cx="310" cy="340" r="8"></circle>
+                    <circle cx="410" cy="380" r="10"></circle>
+                    <circle cx="390" cy="330" r="6"></circle>
+                </g>
+
+                <!-- Lysosomes -->
+                <circle cx="150" cy="110" r="15" class="part" id="lysosome1" onclick="selectOrganelle('lysosome1')"></circle>
+                <circle cx="300" cy="90" r="12" class="part" id="lysosome2" onclick="selectOrganelle('lysosome1')"></circle>
+                <circle cx="220" cy="360" r="18" class="part" id="lysosome3" onclick="selectOrganelle('lysosome1')"></circle>
+
+            </svg>
+        </section>
+
+        <aside class="info-panel">
+            <div id="placeholder" class="placeholder">
+                <p>დააკლიკეთ უჯრედის ორგანელებს მარცხენა პანელში, რათა იხილოთ მათი ფუნქციები, სტრუქტურა და მნიშვნელობა ცოცხალ ორგანიზმში.</p>
+            </div>
+
+            <div id="details" class="details">
+                <h2 class="o-title" id="o-title">ბირთვი</h2>
+                <div class="o-subtitle" id="o-func">უჯრედის მართვის ცენტრი</div>
+                
+                <p class="desc-text" id="o-desc">...</p>
+
+                <div class="tags" id="o-tags">
+                    <div class="tag">#დნმ</div><div class="tag">#ქრომოსომები</div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <span class="s-label">მდებარეობა</span>
+                        <span class="s-val" id="s-loc">ციტოპლაზმის ცენტრი</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="s-label">ზომა</span>
+                        <span class="s-val" id="s-size">~6 მიკრომეტრი</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="s-label">მთავარი მოლეკულა</span>
+                        <span class="s-val" id="s-mol">DNA / RNA</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="s-label">შედეგი დაზიანებისას</span>
+                        <span class="s-val" style="color: #ef4444;" id="s-danger">მუტაცია, კიბო</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const db = {
+            "nucleus": {
+                t: "ბირთვი (Nucleus)", f: "უჯრედის კონტროლის ცენტრი",
+                desc: "ბირთვი ინახავს ორგანიზმის გენეტიკურ ინფორმაციას (დნმ/DNA) ქრომოსომების სახით. ის აკონტროლებს უჯრედის ზრდას, გამრავლებას (მიტოზი/მეიოზი) და ცილების სინთეზს. შიგნით მდებარეობს ბირთვაკი, სადაც წარმოიქმნება რიბოსომები.",
+                tags: ["დნმ (DNA)", "ქრომოსომები", "ბირთვაკი", "გენეტიკა"],
+                loc: "ცენტრალური / მემბრანით შემოფარგლული", size: "~6 μm (ყველაზე დიდი)", mol: "DNA, RNA, ჰისტონები", danger: "გენური მუტაცია, აპოპტოზი"
+            },
+            "mitochondria1": {
+                t: "მიტოქონდრია (Mitochondria)", f: "უჯრედის ენერგეტიკული სადგური",
+                desc: "მიტოქონდრია უჯრედს ამარაგებს ენერგიით (ATP) უჯრედული სუნთქვის პროცესით. იგი გლუკოზასა და ჟანგბადს გარდაქმნის ენერგიად. საინტერესოა, რომ მიტოქონდრიებს აქვთ საკუთარი, დამოუკიდებელი დნმ მასალა.",
+                tags: ["ATP ენერგია", "უჯრედული სუნთქვა", "კრისტები", "ჟანგვა"],
+                loc: "გაფანტული ციტოპლაზმაში", size: "~1-10 μm", mol: "ATP, ფერმენტები", danger: "ენერგიის კრიზისი, მიოპათია"
+            },
+            "golgi": {
+                t: "გოლჯის აპარატი (Golgi)", f: "უჯრედის „ფოსტა“ და შემფუთველი",
+                desc: "გოლჯის კომპლექსი იღებს წარმოქმნილ ცილებსა და ლიპიდებს ენდოპლაზმური ბადისაგან, ამუშავებს მათ, აძლევს საბოლოო ფორმას და ფუთავს ვეზიკულებში, რათა გაგზავნოს უჯრედის შიგნით ან მის გარეთ.",
+                tags: ["ვეზიკულები", "ცილების მოდიფიკაცია", "სეკრეცია"],
+                loc: "ბირთვთან და ციტოპლაზმის კიდესთან", size: "~2-5 μm", mol: "ფერმენტები, ლიპიდები", danger: "სეკრეტორული დარღვევები"
+            },
+            "er": {
+                t: "ენდოპლაზმური ბადე (ER)", f: "სინთეზი და ტრანსპორტი",
+                desc: "მარცვლოვანი ენდოპლაზმური ბადე (დაფარული რიბოსომებით) ასინთეზებს ცილებს. გლუვი ენდოპლაზმური ბადე კი მონაწილეობს ლიპიდების მეტაბოლიზმსა და დეტოქსიკაციაში (შხამების გაუვნებელყოფაში).",
+                tags: ["ცილის სინთეზი", "დეტოქსიკაცია", "რიბოსომები"],
+                loc: "უშუალოდ ბირთვის მემბრანის გარშემო", size: "უჯრედის 10%", mol: "ცილები, ლიპიდები", danger: "ცილოვანი სტრესი (UPr)"
+            },
+            "lysosome1": {
+                t: "ლიზოსომა (Lysosome)", f: "უჯრედის დამსუფთავებელი (კუჭი)",
+                desc: "ლიზოსომები შეიცავს ძლიერ საჭმლის მომნელებელ ფერმენტებს, რომლებიც შლიან მაკრომოლეკულებს, ძველ ჩამოშლილ ორგანელებსა და უჯრედში შემოჭრილ ვირუსებს ან ბაქტერიებს ფაგოციტოზის გზით.",
+                tags: ["ფერმენტები", "ფაგოციტოზი", "ნაგვის გადამუშავება"],
+                loc: "მოხეტიალე ციტოპლაზმაში", size: "~0.1-1.2 μm", mol: "ჰიდროლიზური ფერმენტები", danger: "ლიზოსომური დაგროვების დაავ."
+            }
+        };
+
+        const parts = document.querySelectorAll('.part');
+        
+        parts.forEach(p => {
+            p.addEventListener('mouseenter', () => selectOrganelle(p.id));
+        });
+
+        function selectOrganelle(id) {
+            if(!db[id]) return;
+            const data = db[id];
+            
+            // UI States
+            parts.forEach(o => o.classList.remove('active'));
+            document.querySelectorAll('#' + id).forEach(el => el.classList.add('active'));
+
+            document.getElementById('placeholder').style.display = 'none';
+            const details = document.getElementById('details');
+            details.style.display = 'block';
+
+            // Animation Reset
+            details.style.animation = 'none';
+            details.offsetHeight; 
+            details.style.animation = 'fadeIn 0.4s ease';
+
+            // Data Fill
+            document.getElementById('o-title').innerText = data.t;
+            document.getElementById('o-func').innerText = data.f;
+            document.getElementById('o-desc').innerText = data.desc;
+            
+            document.getElementById('o-tags').innerHTML = data.tags.map(t => `<div class="tag">#${t}</div>`).join('');
+            
+            document.getElementById('s-loc').innerText = data.loc;
+            document.getElementById('s-size').innerText = data.size;
+            document.getElementById('s-mol').innerText = data.mol;
+            document.getElementById('s-danger').innerText = data.danger;
+        }
+
+        setTimeout(() => selectOrganelle('nucleus'), 500);
+
+    </script>
+</body>
+</html>
