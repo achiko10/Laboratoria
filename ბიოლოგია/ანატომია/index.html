@@ -1,288 +1,155 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ka">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ადამიანის ანატომია</title>
-<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-html{height:100%}
-body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;height:100vh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-.u-header{display:flex;align-items:center;gap:10px;padding:0 15px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;height:34px}
-.u-back{color:#7a84a0;text-decoration:none;font-size:.75rem;padding:3px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;transition:.2s;white-space:nowrap}
-.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
-.u-header h1{font-size:.95rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
-.u-body{flex:1;display:flex;justify-content:center;padding:5px;overflow:hidden;min-height:0}
-.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;width:100%;max-width:1100px;box-shadow:0 4px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;min-height:0}
-.u-card>.container,.u-card>.app{max-width:none;margin:0;padding:0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
-.u-card>main{flex:1;min-height:0;overflow:hidden}
-.u-card canvas{display:block;max-height:calc(100vh - 160px)}
-.u-card .sim-area,.u-card .simulation-area{flex-shrink:1;min-height:0;overflow:hidden;border-radius:8px}
-.u-card .controls,.u-card .controls-panel{max-height:150px;overflow-y:auto;padding:6px;font-size:.8rem}
-.u-card .control-group{gap:2px;margin-bottom:2px}
-.u-card .control-group label{font-size:.73rem}
-.u-card input[type="range"]{height:4px}
-.u-card .btn,.u-card button{padding:4px 8px;font-size:.76rem}
-.u-card .btn-row{gap:4px}
-.u-card .info-panel{max-height:70px;overflow-y:auto;font-size:.72rem;padding:5px 8px;margin-top:3px;line-height:1.3}
-.u-card .formula-bar{padding:4px 8px;font-size:.95rem;margin:3px 0}
-.u-card .subtitle{font-size:.72rem;margin-bottom:3px}
-.u-card h2{font-size:.9rem;margin-bottom:3px}
-.u-card h3{font-size:.82rem}
-.u-card .card{padding:8px;margin-bottom:4px}
-.u-card .tabs{margin-bottom:5px}
-.u-card .tab{padding:5px;font-size:.72rem}
-.u-card .eq-display{padding:8px;font-size:1.2rem;min-height:40px;margin-bottom:6px}
-.u-card .score-bar{padding:4px 8px;font-size:.72rem;margin-bottom:4px}
-.u-card .feedback{padding:5px;font-size:.75rem;margin-top:4px}
-.u-card .steps{padding:5px;font-size:.7rem;line-height:1.4;margin-top:3px}
-.u-card .graph-area{height:110px;margin-top:3px}
-.u-card .input-row{margin-bottom:4px}
-.u-card .stats-grid{gap:4px;margin-top:3px;padding-top:3px}
-.u-card .stat-box{padding:4px}
-.u-card .stat-value{font-size:.9rem}
-.u-card .stat-label{font-size:.6rem}
-.u-card .hud{font-size:.65rem;padding:4px 6px}
-.u-card .tags{margin-bottom:4px;gap:3px}
-.u-card .tag{padding:2px 6px;font-size:.68rem}
-.u-card .stat-grid{gap:4px}
-.u-card .stat-card{padding:6px}
-.u-card .s-label{font-size:.68rem}
-.u-card .s-val{font-size:.8rem}
-.u-card .stat-row{padding:.4rem 0}
-.u-card .fact-box{padding:6px;font-size:.78rem;margin-bottom:6px}
-.u-card .organ-title{font-size:1.3rem}
-.u-card .o-title{font-size:1.3rem}
-.u-card .desc-text{font-size:.8rem;margin-bottom:6px}
-.u-card .dashboard{margin-top:5px;padding-top:5px}
-.u-card .temp-display{font-size:1.8rem}
-.u-card .visual{height:200px;padding-bottom:20px}
-.u-card .graph{height:120px}
-.u-card select{padding:5px;font-size:.8rem}
-.u-card .panel{padding:8px}
-.u-card .beaker-container{width:150px;height:220px}
-.u-card .result-panel{padding:8px;margin-top:5px}
-.u-card .bond-type{font-size:1rem}
-.u-card .bond-desc{font-size:.78rem}
-.u-card .overlay-instruction{font-size:.85rem;top:10px}
-.u-card .selector-box{gap:3px}
-.u-card .selector-box label{font-size:.75rem}
-.u-card .btn-bond{padding:6px;font-size:.85rem}
-.u-card .btn-primary{padding:6px;font-size:.85rem;margin-top:4px}
-.u-card .btn-secondary{padding:5px;font-size:.78rem}
-.u-card main{gap:6px}
-.u-card .controls-panel{padding:8px;gap:6px}
-.u-card aside{overflow-y:auto}
-@media(max-width:768px){body{height:auto!important;overflow:auto!important}.u-body{overflow:auto}.u-card{overflow:auto;height:auto}.u-card canvas{max-height:300px}.u-card .controls,.u-card .controls-panel{max-height:none}.u-card .info-panel{max-height:none}}</style>
-<style>* { margin:0; padding:0; box-sizing:border-box; }
-        
-
-        
-        
-        
-
-        
-
-        main {
-            display: grid; grid-template-columns: 1fr 400px; gap: 2rem; padding: 2rem; flex: 1; align-items: center;
-        }
-
-        /* SVG Anatomy Visuals */
-        .anatomy-container {
-            display: flex; justify-content: center; align-items: center; position: relative; height: 80vh; max-height: 700px;
-        }
-        
-        svg.human-body {
-            height: 100%; max-width: 100%; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.2));
-            animation: breathe 4s infinite ease-in-out;
-        }
-        
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        .organ {
-            fill: rgba(255,255,255,0.1); stroke: rgba(255,255,255,0.5); stroke-width: 2;
-            cursor: pointer; transition: 0.3s ease; transform-origin: center;
-        }
-        /* Specific organ hover colors */
-        .organ#brain:hover, .organ.active#brain { fill: rgba(168, 85, 247, 0.6); stroke: #a855f7; filter: drop-shadow(0 0 10px #a855f7); }
-        .organ#lungs:hover, .organ.active#lungs { fill: rgba(56, 189, 248, 0.6); stroke: #38bdf8; filter: drop-shadow(0 0 10px #38bdf8); }
-        .organ#heart:hover, .organ.active#heart { fill: rgba(244, 63, 94, 0.6); stroke: #f43f5e; filter: drop-shadow(0 0 15px #f43f5e); transform: scale(1.05); }
-        .organ#liver:hover, .organ.active#liver { fill: rgba(180, 83, 9, 0.6); stroke: #d97706; filter: drop-shadow(0 0 10px #d97706); }
-        .organ#stomach:hover, .organ.active#stomach { fill: rgba(16, 185, 129, 0.6); stroke: #10b981; filter: drop-shadow(0 0 10px #10b981); }
-        .organ#intestines:hover, .organ.active#intestines { fill: rgba(234, 179, 8, 0.6); stroke: #eab308; filter: drop-shadow(0 0 10px #eab308); }
-
-        /* Panel */
-        .info-panel {
-            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px; padding: 2rem; backdrop-filter: blur(20px); height: fit-content;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        
-        .placeholder { text-align: center; color: #64748b; font-size: 1.1rem; line-height: 1.6; }
-        
-        .details { display: none; animation: slideIn 0.4s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
-        .organ-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
-        .organ-system { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; }
-        
-        .fact-box {
-            background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 3px solid;
-            font-size: 0.95rem; color: #cbd5e1; line-height: 1.6;
-        }
-
-        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0.8rem 0; }
-        .stat-label { color: #94a3b8; font-size: 0.9rem; }
-        .stat-val { font-weight: 600; }
-
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } svg.human-body { height: 50vh; } }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — ანატომია</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .sim-area { background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 550px; border: 1px solid rgba(255,255,255,0.05); }
+        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .organ-btn { padding: 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .organ-btn:hover { background: #334155; }
+        .organ-btn.active { background: linear-gradient(135deg, #ef4444, #ec4899); border-color: #ef4444; }
+        .organ-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .info-box { background: #0f172a; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); max-height: 200px; overflow-y: auto; }
+        .info-box h4 { color: #f8fafc; margin-bottom: 5px; }
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #ef4444; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .info-panel strong { color: #e2e8f0; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+    </style>
 </head>
 <body>
-<div class="u-header">
-<a href="../../index.html" class="u-back">← მთავარზე</a>
-<h1>ადამიანის ანატომია</h1>
-</div>
-<div class="u-body">
-<div class="u-card">
-<main>
-        <section class="anatomy-container">
-            <!-- Simplified abstract high-quality geometric body map for clean medical UI -->
-            <svg class="human-body" viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
-                <!-- Body outline glow and base contour -->
-                <path d="M150,50 C150,20 250,20 250,50 C250,80 230,100 220,120 C280,130 320,160 330,220 C340,300 320,400 320,400 L280,420 C280,420 300,600 280,750 C270,780 240,780 230,750 C220,600 210,480 200,480 C190,480 180,600 170,750 C160,780 130,780 120,750 C100,600 120,420 120,420 L80,400 C80,400 60,300 70,220 C80,160 120,130 180,120 C170,100 150,80 150,50 Z" 
-                      fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-dasharray="5 5"></path>
-                
-                <!-- Brain -->
-                <path class="organ" id="brain" d="M170,60 C170,40 230,40 230,60 C240,80 220,95 200,95 C180,95 160,80 170,60 Z" onclick="selectOrgan('brain')"></path>
-                
-                <!-- Lungs (Left & Right) -->
-                <path class="organ" id="lungs" d="M150,170 C140,220 130,260 160,270 C180,275 185,240 185,200 C185,170 160,160 150,170 Z M250,170 C260,220 270,260 240,270 C220,275 215,240 215,200 C215,170 240,160 250,170 Z" onclick="selectOrgan('lungs')"></path>
-                
-                <!-- Heart -->
-                <path class="organ" id="heart" d="M190,200 C190,190 200,190 205,195 C210,190 220,190 220,200 C220,215 205,230 200,235 C195,230 190,215 190,200 Z" onclick="selectOrgan('heart')"></path>
-                
-                <!-- Liver -->
-                <path class="organ" id="liver" d="M150,280 C150,270 230,270 250,290 C250,310 210,320 190,320 C160,320 150,300 150,280 Z" onclick="selectOrgan('liver')"></path>
-                
-                <!-- Stomach -->
-                <path class="organ" id="stomach" d="M210,290 C230,285 240,295 245,310 C250,330 210,340 190,330 C180,320 190,295 210,290 Z" onclick="selectOrgan('stomach')"></path>
-                
-                <!-- Intestines -->
-                <path class="organ" id="intestines" d="M160,330 C200,320 240,330 250,360 C260,400 240,430 200,430 C160,430 140,400 150,360 C160,340 180,350 170,370 C160,390 180,410 200,410 C220,410 230,390 220,370 C210,350 190,360 200,380 Z" onclick="selectOrgan('intestines')"></path>
-            </svg>
-        </section>
+    <h1>🫀 ადამიანის ანატომია</h1>
+    <p class="subtitle">დააკლიკე ორგანოებს მათი ფუნქციების გასაცნობად</p>
+    <div class="container">
+        <div class="sim-area"><canvas id="canvas"></canvas></div>
+        <div class="panel">
+            <div style="font-weight:bold; color:#ec4899; margin-bottom:5px;">ორგანოები</div>
+            <div id="organ-list"></div>
+            <div class="info-box" id="info-box"><h4>აირჩიე ორგანო</h4>დააკლიკე სხეულზე ან აირჩიე სიიდან.</div>
+        </div>
+        <div class="info-panel">
+            <strong>🔬 ანატომია:</strong> შეისწავლის ადამიანის სხეულის აგებულებას. ორგანოთა სისტემები ერთმანეთთან კოორდინირებულად მუშაობენ სხეულის სიცოცხლისუნარიანობის შესანარჩუნებლად.
+        </div>
+    </div>
+    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const simArea = canvas.parentElement;
+        let W, H;
+        function resize() { canvas.width = simArea.offsetWidth * devicePixelRatio; canvas.height = simArea.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = simArea.offsetWidth; H = simArea.offsetHeight; draw(); }
+        resize(); window.addEventListener('resize', resize);
 
-        <aside class="info-panel">
-            <div id="placeholder" class="placeholder">
-                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:1rem; color:#8b5cf6;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"></path></svg>
-                <p>დააკლიკეთ ან მიიტანეთ მაუსი ადამიანის ორგანოებზე მარცხენა პანელში, რათა იხილოთ დეტალური ფიზიოლოგიური და ანატომიური მონაცემები.</p>
-            </div>
+        const organs = [
+            { id:'brain', name:'ტვინი', color:'#a78bfa', x:0.5, y:0.08, w:0.12, h:0.06, emoji:'🧠',
+              info:'ცენტრალური ნერვული სისტემის ორგანო. აკონტროლებს ყველა სხეულისეულ ფუნქციას: მოძრაობას, აზროვნებას, მეხსიერებას, ემოციებს. შეიცავს ~86 მილიარდ ნეირონს.' },
+            { id:'lungs', name:'ფილტვები', color:'#60a5fa', x:0.5, y:0.27, w:0.22, h:0.12, emoji:'🫁',
+              info:'სუნთქვის ორგანო. ჰაერიდან ჟანგბადს გადასცემს სისხლს, ხოლო ნახშირორჟანგს გარეთ გამოყოფს. საშუალოდ 12-20 სუნთქვა/წთ.' },
+            { id:'heart', name:'გული', color:'#f43f5e', x:0.45, y:0.30, w:0.08, h:0.08, emoji:'❤️',
+              info:'კუნოვანი ორგანო, რომელიც სისხლს მთელ სხეულში ავრცელებს. ცემს საშუალოდ 100,000-ჯერ დღეში. აქვს 4 პალატა (2 წინაგული + 2 პარკუჭი).' },
+            { id:'liver', name:'ღვიძლი', color:'#b45309', x:0.42, y:0.40, w:0.14, h:0.07, emoji:'🟤',
+              info:'ყველაზე დიდი შიდა ორგანო (~1.5 კგ). ფილტრავს სისხლს, გამოყოფს ნაღველს, ინახავს გლიკოგენს, ანეიტრალებს ტოქსინებს.' },
+            { id:'stomach', name:'კუჭი', color:'#f97316', x:0.52, y:0.42, w:0.10, h:0.08, emoji:'🟠',
+              info:'საჭმლის მომნელებელი ორგანო. მარილმჟავა (HCl) და ფერმენტები საკვებს შლის. pH ≈ 1.5-3.5. ტევადობა ~1 ლიტრი.' },
+            { id:'kidneys', name:'თირკმელები', color:'#dc2626', x:0.5, y:0.50, w:0.18, h:0.06, emoji:'🫘',
+              info:'ფილტრავს სისხლს, გამოყოფს შარდს (1.5-2L/დღე). არეგულირებს წყლის ბალანსს, ელექტროლიტებს და არტერიულ წნევას.' },
+            { id:'intestines', name:'ნაწლავები', color:'#ec4899', x:0.5, y:0.58, w:0.16, h:0.10, emoji:'🌀',
+              info:'წვრილი ნაწლავი (~6მ) — საკვები ნივთიერებების შეწოვა. მსხვილი ნაწლავი (~1.5მ) — წყლის შეწოვა, ნარჩენების ფორმირება.' },
+            { id:'bones', name:'ჩონჩხი', color:'#e2e8f0', x:0.5, y:0.75, w:0.14, h:0.15, emoji:'🦴',
+              info:'206 ძვლისგან შედგება. იცავს ორგანოებს, უზრუნველყოფს მოძრაობას, წარმოქმნის სისხლის უჯრედებს (ძვლის ტვინში).' },
+        ];
 
-            <div id="details" class="details">
-                <h2 class="organ-title" id="o-title">ტვინი</h2>
-                <div class="organ-system" id="o-system" style="color:#a855f7;">ცენტრალური ნერვული სისტემა</div>
-                
-                <div class="fact-box" id="o-desc" style="border-color:#a855f7;">
-                    თავის ტვინი არის ადამიანის ნერვული სისტემის მთავარი საკონტროლო ცენტრი...
-                </div>
+        let selectedOrgan = null;
 
-                <div class="stat-row">
-                    <span class="stat-label">საშუალო წონა</span>
-                    <span class="stat-val" id="s-weight">1.3 - 1.4 კგ</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">ძირითადი ფუნქცია</span>
-                    <span class="stat-val" id="s-func" style="text-align:right; max-width:60%;">აზროვნება, მოტორული კონტროლი</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">სისხლის მოხმარება</span>
-                    <span class="stat-val" id="s-blood">სხეულის 20%</span>
-                </div>
-                <div class="stat-row" style="border:none;">
-                    <span class="stat-label">გავრცელებული დაავადება</span>
-                    <span class="stat-val" id="s-disease" style="color:#ef4444;">ალცჰაიმერი</span>
-                </div>
-            </div>
-        </aside>
-    </main>
-</div>
-</div>
-<script>
-        const organsDB = {
-            "brain": {
-                title: "თავის ტვინი", sys: "ცენტრალური ნერვული სისტემა", color: "#a855f7",
-                desc: "თავის ტვინი აკონტროლებს ადამიანის აზროვნებას, მეხსიერებას, ემოციებს, შეხებას, მოტორულ უნარებს, მხედველობას, სუნთქვას, ტემპერატურასა და შიმშილს. იგი შედგება დაახლოებით 86 მილიარდი ნეირონისგან.",
-                weight: "1.3 - 1.4 კგ", func: "კოგნიტური და სასიცოცხლო კონტროლი", blood: "გულის მიერ გადაქაჩული სისხლის 20%", disease: "ალცჰაიმერი, ინსულტი"
-            },
-            "lungs": {
-                title: "ფილტვები", sys: "სასუნთქი სისტემა", color: "#38bdf8",
-                desc: "ფილტვები პასუხისმგებელნი არიან ორგანიზმში ჟანგბადის შემოტანაზე და ნახშირორჟანგის გამოდევნაზე (აირთა ცვლა ალვეოლებში). მარჯვენა ფილტვი ოდნავ დიდია მარცხენაზე გულის მდებარეობის გამო.",
-                weight: "0.8 - 1.3 კგ", func: "აირთა ცვლა (O₂ / CO₂)", blood: "გადის 100% (მცირე წრე)", disease: "პნევმონია, ასთმა"
-            },
-            "heart": {
-                title: "გული", sys: "Გულ-სისხლძარღვთა სისტემა", color: "#f43f5e",
-                desc: "გული არის კუნთოვანი ორგანო, რომელიც მთელ სხეულში სისხლს ტუმბავს. იგი შედგება 4 საკნისგან (2 წინაგული და 2 პარკუჭი) და დღეში დაახლოებით 100,000-ჯერ იკუმშება.",
-                weight: "250 - 350 გრამი", func: "სისხლის მიმოქცევის უზრუნველყოფა", blood: "ტუმბავს 5 ლიტრს წუთში", disease: "მიოკარდიუმის ინფარქტი"
-            },
-            "liver": {
-                title: "ღვიძლი", sys: "საჭმლის მომნელებელი სპ. ორგანო", color: "#d97706",
-                desc: "ღვიძლი ყველაზე დიდი შინაგანი ორგანოა. იგი ფილტრავს სისხლს, გამოიმუშავებს ნაღველს (ცხიმების გადასამუშავებლად) და ინახავს გლიკოგენს ენერგიისთვის. მას შეუძლია საკუთარი ქსოვილის რეგენერაცია.",
-                weight: "1.4 - 1.6 კგ", func: "დეტოქსიკაცია და ნივთიერებათა ცვლა", blood: "იფილტრება 1.4 ლიტრი წთ-ში", disease: "ციროზი, ჰეპატიტი"
-            },
-            "stomach": {
-                title: "კუჭი", sys: "საჭმლის მომნელებელი სისტემა", color: "#10b981",
-                desc: "კუჭი არის კუნთოვანი პარკი, რომელიც გამოყოფს მჟავებსა და ენზიმებს (მაგ. პეფსინი) საკვების მოსანელებლად. კუჭის მჟავა იმდენად ძლიერია, რომ მეტალის დაშლაც კი შეუძლია, თუმცა ლორწოვანი გარსი იცავს ორგანოს.",
-                weight: "150 გრ (ცარიელი)", func: "საკვების მექანიკური და ქიმიური დაშლა", blood: "გაძლიერებული კვების შემდეგ", disease: "წყლული, გასტრიტი"
-            },
-            "intestines": {
-                title: "ნაწლავები", sys: "საჭმლის მომნელებელი სისტემა", color: "#eab308",
-                desc: "წვრილი ნაწლავი საკვები ნივთიერებების ძირითადი შემწოვი ორგანოა (სიგრძე 6-7 მ), ხოლო მსხვილი ნაწლავი შთანთქავს წყალს და აყალიბებს ნარჩენებს. აქ ბინადრობს ტრილიონობით სასარგებლო ბაქტერია (მიკრობიომი).",
-                weight: "1.5 - 2 კგ", func: "შეწოვა და წყლის რეაბსორბცია", blood: "საჭმლის მომნელებელი ტრაქტი", disease: "აპენდიციტი, კრონის დაავადება"
-            }
-        };
-
-        const organs = document.querySelectorAll('.organ');
-        
-        // Add hover and click listeners
-        organs.forEach(org => {
-            org.addEventListener('mouseenter', () => selectOrgan(org.id));
+        // Build button list
+        const listEl = document.getElementById('organ-list');
+        organs.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = 'organ-btn';
+            btn.id = 'btn-' + o.id;
+            btn.innerHTML = `<span class="organ-dot" style="background:${o.color}"></span>${o.emoji} ${o.name}`;
+            btn.onclick = () => selectOrgan(o.id);
+            listEl.appendChild(btn);
         });
 
         function selectOrgan(id) {
-            // Remove active class from all
-            organs.forEach(o => o.classList.remove('active'));
-            // Add to current
-            document.getElementById(id).classList.add('active');
-
-            const data = organsDB[id];
-            
-            document.getElementById('placeholder').style.display = 'none';
-            const details = document.getElementById('details');
-            details.style.display = 'block';
-
-            // Reset animation
-            details.style.animation = 'none';
-            details.offsetHeight; 
-            details.style.animation = 'slideIn 0.4s ease';
-
-            document.getElementById('o-title').innerText = data.title;
-            document.getElementById('o-system').innerText = data.sys;
-            document.getElementById('o-system').style.color = data.color;
-            
-            document.getElementById('o-desc').innerText = data.desc;
-            document.getElementById('o-desc').style.borderColor = data.color;
-
-            document.getElementById('s-weight').innerText = data.weight;
-            document.getElementById('s-func').innerText = data.func;
-            document.getElementById('s-blood').innerText = data.blood;
-            document.getElementById('s-disease').innerText = data.disease;
+            selectedOrgan = id;
+            document.querySelectorAll('.organ-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('btn-' + id);
+            if(btn) btn.classList.add('active');
+            const o = organs.find(x => x.id === id);
+            if(o) document.getElementById('info-box').innerHTML = `<h4>${o.emoji} ${o.name}</h4>${o.info}`;
+            draw();
         }
 
-        // Initially select heart
-        setTimeout(() => selectOrgan('heart'), 500);
+        canvas.addEventListener('click', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) / rect.width;
+            const my = (e.clientY - rect.top) / rect.height;
+            for(const o of organs) {
+                if(mx > o.x - o.w/2 && mx < o.x + o.w/2 && my > o.y - o.h/2 && my < o.y + o.h/2) {
+                    selectOrgan(o.id); return;
+                }
+            }
+        });
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+            // Body silhouette
+            ctx.fillStyle = '#1a2744';
+            ctx.beginPath();
+            ctx.ellipse(W*0.5, W*0.08, W*0.06, W*0.06, 0, 0, Math.PI*2); ctx.fill(); // Head
+            ctx.fillRect(W*0.44, H*0.13, W*0.12, H*0.05); // Neck
+            ctx.beginPath(); ctx.moveTo(W*0.32, H*0.18); ctx.lineTo(W*0.68, H*0.18); ctx.lineTo(W*0.64, H*0.55); ctx.lineTo(W*0.36, H*0.55); ctx.closePath(); ctx.fill(); // Torso
+            ctx.fillRect(W*0.38, H*0.55, W*0.10, H*0.35); // Left leg
+            ctx.fillRect(W*0.52, H*0.55, W*0.10, H*0.35); // Right leg
+            ctx.fillRect(W*0.22, H*0.18, W*0.12, H*0.25); // Left arm
+            ctx.fillRect(W*0.66, H*0.18, W*0.12, H*0.25); // Right arm
+
+            // Organs
+            const t = Date.now() * 0.003;
+            organs.forEach(o => {
+                const ox = o.x * W, oy = o.y * H;
+                const ow = o.w * W, oh = o.h * H;
+                const isSel = selectedOrgan === o.id;
+                const pulse = isSel ? 1 + Math.sin(t * 2) * 0.08 : 1;
+
+                ctx.save();
+                ctx.translate(ox, oy);
+                ctx.scale(pulse, pulse);
+
+                // Glow
+                if(isSel) {
+                    ctx.shadowColor = o.color; ctx.shadowBlur = 20;
+                }
+                ctx.fillStyle = o.color + (isSel ? 'cc' : '88');
+                ctx.beginPath();
+                ctx.ellipse(0, 0, ow/2, oh/2, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = `${isSel ? 'bold ' : ''}${Math.max(11, W*0.02)}px 'Noto Sans Georgian', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(o.name, 0, oh/2 + 15);
+
+                ctx.restore();
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
     </script>
 </body>
 </html>

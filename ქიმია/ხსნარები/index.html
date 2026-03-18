@@ -1,357 +1,223 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ka">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ხსნარები და კონცენტრაცია</title>
-<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-html{height:100%}
-body{font-family:'Noto Sans Georgian',sans-serif!important;background:#0a0e17!important;color:#e0e6f0;height:100vh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-.u-header{display:flex;align-items:center;gap:10px;padding:0 15px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;height:34px}
-.u-back{color:#7a84a0;text-decoration:none;font-size:.75rem;padding:3px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;transition:.2s;white-space:nowrap}
-.u-back:hover{background:rgba(255,255,255,.12);color:#e0e6f0}
-.u-header h1{font-size:.95rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0}
-.u-body{flex:1;display:flex;justify-content:center;padding:5px;overflow:hidden;min-height:0}
-.u-card{background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;width:100%;max-width:1100px;box-shadow:0 4px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;min-height:0}
-.u-card>.container,.u-card>.app{max-width:none;margin:0;padding:0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
-.u-card>main{flex:1;min-height:0;overflow:hidden}
-.u-card canvas{display:block;max-height:calc(100vh - 160px)}
-.u-card .sim-area,.u-card .simulation-area{flex-shrink:1;min-height:0;overflow:hidden;border-radius:8px}
-.u-card .controls,.u-card .controls-panel{max-height:150px;overflow-y:auto;padding:6px;font-size:.8rem}
-.u-card .control-group{gap:2px;margin-bottom:2px}
-.u-card .control-group label{font-size:.73rem}
-.u-card input[type="range"]{height:4px}
-.u-card .btn,.u-card button{padding:4px 8px;font-size:.76rem}
-.u-card .btn-row{gap:4px}
-.u-card .info-panel{max-height:70px;overflow-y:auto;font-size:.72rem;padding:5px 8px;margin-top:3px;line-height:1.3}
-.u-card .formula-bar{padding:4px 8px;font-size:.95rem;margin:3px 0}
-.u-card .subtitle{font-size:.72rem;margin-bottom:3px}
-.u-card h2{font-size:.9rem;margin-bottom:3px}
-.u-card h3{font-size:.82rem}
-.u-card .card{padding:8px;margin-bottom:4px}
-.u-card .tabs{margin-bottom:5px}
-.u-card .tab{padding:5px;font-size:.72rem}
-.u-card .eq-display{padding:8px;font-size:1.2rem;min-height:40px;margin-bottom:6px}
-.u-card .score-bar{padding:4px 8px;font-size:.72rem;margin-bottom:4px}
-.u-card .feedback{padding:5px;font-size:.75rem;margin-top:4px}
-.u-card .steps{padding:5px;font-size:.7rem;line-height:1.4;margin-top:3px}
-.u-card .graph-area{height:110px;margin-top:3px}
-.u-card .input-row{margin-bottom:4px}
-.u-card .stats-grid{gap:4px;margin-top:3px;padding-top:3px}
-.u-card .stat-box{padding:4px}
-.u-card .stat-value{font-size:.9rem}
-.u-card .stat-label{font-size:.6rem}
-.u-card .hud{font-size:.65rem;padding:4px 6px}
-.u-card .tags{margin-bottom:4px;gap:3px}
-.u-card .tag{padding:2px 6px;font-size:.68rem}
-.u-card .stat-grid{gap:4px}
-.u-card .stat-card{padding:6px}
-.u-card .s-label{font-size:.68rem}
-.u-card .s-val{font-size:.8rem}
-.u-card .stat-row{padding:.4rem 0}
-.u-card .fact-box{padding:6px;font-size:.78rem;margin-bottom:6px}
-.u-card .organ-title{font-size:1.3rem}
-.u-card .o-title{font-size:1.3rem}
-.u-card .desc-text{font-size:.8rem;margin-bottom:6px}
-.u-card .dashboard{margin-top:5px;padding-top:5px}
-.u-card .temp-display{font-size:1.8rem}
-.u-card .visual{height:200px;padding-bottom:20px}
-.u-card .graph{height:120px}
-.u-card select{padding:5px;font-size:.8rem}
-.u-card .panel{padding:8px}
-.u-card .beaker-container{width:150px;height:220px}
-.u-card .result-panel{padding:8px;margin-top:5px}
-.u-card .bond-type{font-size:1rem}
-.u-card .bond-desc{font-size:.78rem}
-.u-card .overlay-instruction{font-size:.85rem;top:10px}
-.u-card .selector-box{gap:3px}
-.u-card .selector-box label{font-size:.75rem}
-.u-card .btn-bond{padding:6px;font-size:.85rem}
-.u-card .btn-primary{padding:6px;font-size:.85rem;margin-top:4px}
-.u-card .btn-secondary{padding:5px;font-size:.78rem}
-.u-card main{gap:6px}
-.u-card .controls-panel{padding:8px;gap:6px}
-.u-card aside{overflow-y:auto}
-@media(max-width:768px){body{height:auto!important;overflow:auto!important}.u-body{overflow:auto}.u-card{overflow:auto;height:auto}.u-card canvas{max-height:300px}.u-card .controls,.u-card .controls-panel{max-height:none}.u-card .info-panel{max-height:none}}</style>
-<style>* { margin:0; padding:0; box-sizing:border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ქიმია — ხსნარები და ხსნადობა</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
         
+        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
 
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 450px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .beaker { position: relative; width: 220px; height: 260px; border: 8px solid rgba(255,255,255,0.2); border-top: none; border-radius: 0 0 25px 25px; z-index: 5; margin-top: 50px; background: rgba(59, 130, 246, 0.1); }
+        .water { position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.5)); border-radius: 0 0 17px 17px; }
+        .water::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 12px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translateY(-50%); }
+
+        .precipitate { position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: #f8fafc; border-radius: 0 0 17px 17px; transition: height 0.3s; opacity: 0.9; box-shadow: inset 0 5px 10px rgba(0,0,0,0.1); }
+
+        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
         
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; width: 100%; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
+
+        .meter-box { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;}
+        .m-title { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        .m-val { font-size: 2rem; font-weight: bold; color: #38bdf8; font-family: 'Courier New', monospace; }
         
-        
+        .alert-box { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 10px; font-size: 0.8rem; color: #e2e8f0; display: none; }
+        .alert-box.show { display: block; }
 
-        
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #0ea5e9; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
 
-        main {
-            display: grid; grid-template-columns: 350px 1fr; gap: 2rem; padding: 2rem; flex: 1;
-        }
+        .salt-shaker { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); transition: top 0.3s, transform 0.3s; z-index: 10; font-size: 3rem; }
+        .salt-shaker.shake { top: 20px; transform: translateX(-50%) rotate(20deg); animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(-50%) rotate(20deg); } 25% { transform: translateX(-50%) rotate(15deg); } 75% { transform: translateX(-50%) rotate(25deg); } }
 
-        .controls {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px; padding: 2rem; backdrop-filter: blur(20px);
-            display: flex; flex-direction: column; gap: 1.5rem;
-        }
-
-        .control-group label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem; }
-        
-        input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            border-radius: 5px; outline: none; margin-bottom: 0.5rem;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
-            background: #38bdf8; cursor: pointer; box-shadow: 0 0 10px #38bdf8;
-        }
-
-        .btn-action {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px;
-            color: #f8fafc; padding: 0.8rem; cursor: pointer; transition: 0.3s; font-family: 'Fira GO', sans-serif;
-            font-weight: 600; font-size: 1rem; width: 100%;
-        }
-        .btn-action:hover { background: rgba(255,255,255,0.2); }
-        .btn-primary { background: linear-gradient(135deg, #38bdf8, #3b82f6); border: none; font-weight: 800; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
-
-        select {
-            width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; border-radius: 8px; font-size: 1rem; outline: none; margin-bottom: 1rem;
-        }
-
-        .stats-box {
-            background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 12px; margin-top: auto;
-            border-left: 4px solid #38bdf8;
-        }
-
-        .sim-area {
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px; display: flex; justify-content: center; align-items: center;
-            position: relative; overflow: hidden; perspective: 1000px;
-        }
-
-        /* 3D-like Beaker */
-        .beaker-container {
-            width: 250px; height: 350px; position: relative; z-index: 10;
-        }
-        .beaker-glass {
-            position: absolute; width: 100%; height: 100%; border: 6px solid rgba(255,255,255,0.4);
-            border-top: none; border-radius: 0 0 20px 20px; box-shadow: inset 0 0 30px rgba(255,255,255,0.1), 0 0 20px rgba(255,255,255,0.05);
-            z-index: 5; background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 20%, rgba(255,255,255,0) 80%, rgba(255,255,255,0.1) 100%);
-        }
-        .beaker-lip {
-            position: absolute; top: -10px; left: -10px; width: calc(100% + 20px); height: 20px;
-            border: 6px solid rgba(255,255,255,0.4); border-radius: 50%; z-index: 6;
-        }
-        
-        .liquid {
-            position: absolute; bottom: 6px; left: 6px; width: calc(100% - 12px); 
-            background: rgba(56, 189, 248, 0.2); border-radius: 0 0 14px 14px;
-            transition: height 0.5s ease-out, background-color 0.5s ease;
-            z-index: 2; overflow: hidden;
-            height: 150px; /* Default */
-        }
-        .liquid::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 200%; height: 20px;
-            background: rgba(255,255,255,0.2); border-radius: 50%; top: -10px;
-        }
-
-        /* Crystals (Precipitate) */
-        .crystals {
-            position: absolute; bottom: 6px; left: 6px; width: calc(100% - 12px); height: 0px;
-            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 L20 10 L10 20 L0 10 Z" fill="rgba(255,255,255,0.6)"/></svg>');
-            background-size: 15px; border-radius: 0 0 14px 14px; z-index: 3; transition: height 0.3s;
-        }
-
-        /* Floating particles */
-        .particle {
-            position: absolute; border-radius: 50%; background: #fff; opacity: 0;
-            pointer-events: none; z-index: 4;
-        }
-        @keyframes fallAndDissolve {
-            0% { transform: translateY(-50px) scale(1); opacity: 1; }
-            70% { transform: translateY(100px) scale(0.8); opacity: 0.8; }
-            100% { transform: translateY(150px) scale(0.1); opacity: 0; }
-        }
-
-        /* Measurement markings */
-        .markings {
-            position: absolute; right: 20px; bottom: 20px; height: 300px; width: 20px;
-            border-right: 2px solid rgba(255,255,255,0.3); z-index: 1; display: flex; flex-direction: column-reverse; justify-content: space-between;
-        }
-        .mark { width: 10px; border-bottom: 2px solid rgba(255,255,255,0.3); }
-
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } .sim-area { height: 500px; } }</style>
+    </style>
 </head>
 <body>
-<div class="u-header">
-<a href="../../index.html" class="u-back">← მთავარზე</a>
-<h1>ხსნარები და კონცენტრაცია</h1>
-</div>
-<div class="u-body">
-<div class="u-card">
-<main>
-        <aside class="controls">
-            <div>
-                <label style="color:#cbd5e1; font-size:1rem; margin-bottom:0.5rem; display:block;">გახსნილი ნივთიერება (Solute)</label>
-                <select id="solute-type">
-                    <option value="salt">სუფრის მარილი (NaCl) - თეთრი</option>
-                    <option value="kmn">კალიუმის პერმანგანატი (KMnO₄) - იასამნისფერი</option>
-                    <option value="cu">სპილენძის სულფატი (CuSO₄) - ლურჯი</option>
-                </select>
-                <button class="btn-action btn-primary" onclick="addSolute()">+ 10გ ნივთიერების დამატება</button>
+    <h1>💧 ხსნარები და ხსნადობა</h1>
+    <p class="subtitle">დაამატე მარილი, დააკვირდი იონებად დაშლას და გაჯერებული ხსნარის წარმოქმნას</p>
+
+    <div class="container">
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            <div class="salt-shaker" id="shaker">🧂</div>
+            <div class="beaker">
+                <div class="water"></div>
+                <div class="precipitate" id="precipitate"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <button onclick="addSalt()">➕ მარილის წაყრა (NaCl)</button>
+            <button onclick="resetSim()" style="background: #334155;">↺ სუფთა წყალი</button>
+
+            <div class="meter-box">
+                <div class="m-title">კონცენტრაცია (მოლარობა)</div>
+                <div class="m-val"><span id="conc-val">0.00</span> <span style="font-size:1rem; color:#94a3b8;">M</span></div>
             </div>
 
-            <div class="control-group" style="margin-top:1rem;">
-                <label><span>გამხსნელის მოცულობა (წყალი)</span> <span id="vol-val">0.5 ლ</span></label>
-                <input type="range" id="volume" min="0.1" max="1.0" value="0.5" step="0.1" oninput="updateSim()">
+            <div class="meter-box">
+                <div class="m-title">მდგომარეობა</div>
+                <div style="font-weight:bold; color:#10b981;" id="state-val">უჯერი ხსნარი</div>
             </div>
 
-            <div class="control-group">
-                <label><span>ტემპერატურა</span> <span id="temp-val">25 °C</span></label>
-                <input type="range" id="temp" min="0" max="100" value="25" step="1" oninput="updateSim()">
+            <div class="alert-box" id="alert">
+                ⚠️ ხსნარი გაჯერებულია! მეტი მარილი აღარ გაიხსნება და ილექება ფსკერზე.
             </div>
+        </div>
 
-            <button class="btn-action" onclick="evaporate()">აორთქლება (წყლის შემცირება)</button>
-            <button class="btn-action" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239,68,68,0.5);" onclick="resetSim()">წყლის გადაღვრა / გასუფთავება</button>
+        <div class="info-panel">
+            <strong>🔬 ხსნადობა და გაჯერება:</strong><br>
+            • <strong>გახსნა:</strong> მყარი კრისტალი წყალში იშლება იონებად (მაგ. $NaCl \rightarrow Na^+ + Cl^-$). რასაც წყლის პოლარული მოლეკულები ანხორციელებენ.<br>
+            • <strong>უჯერი ხსნარი:</strong> ჯერ კიდევ შეუძლია დამატებითი ნივთიერების გახსნა.<br>
+            • <strong>გაჯერებული ხსნარი (Saturated):</strong> მიღწეულია მაქსიმალური კონცენტრაცია დროის მოცემულ პირობებში. ზედმეტი ნივთიერება ილექება (Precipitate).
+        </div>
+    </div>
+    
+    <div style="text-align:center;">
+        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+    </div>
 
-            <div class="stats-box">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span style="color:#94a3b8">ნივთიერების მასა:</span>
-                    <strong id="stat-mass">0 გ</strong>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span style="color:#94a3b8">კონცენტრაცია (C):</span>
-                    <strong id="stat-conc" style="color:#38bdf8; font-size:1.2rem;">0 გ/ლ</strong>
-                </div>
-                <div id="status-msg" style="font-size:0.85rem; color:#4ade80; margin-top:10px; font-weight:600;">უჯერი ხსნარი</div>
-            </div>
-        </aside>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() { canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio; canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight; }
+        resize(); window.addEventListener('resize', resize);
 
-        <section class="sim-area" id="sim-area">
-            <div class="beaker-container">
-                <div class="beaker-lip"></div>
-                <div class="beaker-glass"></div>
-                <div class="markings">
-                    <div class="mark"></div><div class="mark"></div><div class="mark"></div><div class="mark"></div><div class="mark"></div>
-                </div>
-                
-                <div class="liquid" id="liquid"></div>
-                <div class="crystals" id="crystals"></div>
-            </div>
-        </section>
-    </main>
-</div>
-</div>
-<script>
-        const soluteDict = {
-            "salt": { color: "255,255,255", baseSolubility: 350 }, // g/L at 25C
-            "kmn": { color: "168,85,247", baseSolubility: 76 },    // g/L at 25C
-            "cu": { color: "56,189,248", baseSolubility: 320 }     // g/L at 25C
-        };
-
-        let mass = 0; // grams
-        
-        const uiVolume = document.getElementById('volume');
-        const uiTemp = document.getElementById('temp');
-        const simArea = document.getElementById('sim-area');
-        const liquid = document.getElementById('liquid');
-        const crystals = document.getElementById('crystals');
-        
-        function updateSim() {
-            let v = parseFloat(uiVolume.value); // Liters
-            let t = parseFloat(uiTemp.value); // Celsius
-            let sType = document.getElementById('solute-type').value;
-            
-            document.getElementById('vol-val').innerText = v.toFixed(1) + " ლ";
-            document.getElementById('temp-val').innerText = t.toFixed(0) + " °C";
-
-            // Visual height for liquid (Max height is 330px inside beaker)
-            let h = (v / 1.0) * 310; 
-            liquid.style.height = h + "px";
-
-            // Calculate solubility limit (increases with temp)
-            let limitConc = soluteDict[sType].baseSolubility + (t - 25) * 1.5; // Simple linear model
-            let limitMass = limitConc * v; // Max grams that can dissolve in this volume
-
-            let dissolvedMass = Math.min(mass, limitMass);
-            let solidMass = mass - dissolvedMass;
-
-            let concentration = dissolvedMass / v; // g/L
-            
-            // Visual Color calculation based on concentration vs limit
-            let intensity = Math.min(1.0, concentration / limitConc);
-            // Default water color + solute color
-            let rWater = 200, gWater = 240, bWater = 255;
-            let cSplit = soluteDict[sType].color.split(',');
-            
-            let R = rWater + (parseInt(cSplit[0]) - rWater) * intensity;
-            let G = gWater + (parseInt(cSplit[1]) - gWater) * intensity;
-            let B = bWater + (parseInt(cSplit[2]) - bWater) * intensity;
-            
-            liquid.style.backgroundColor = `rgba(${R}, ${G}, ${B}, ${0.2 + intensity*0.6})`;
-
-            // Updates crystals on bottom
-            if(solidMass > 0) {
-                crystals.style.height = Math.min(50, (solidMass / 20) * 10) + "px";
-                document.getElementById('status-msg').innerText = "ნაჯერი ხსნარი (სპონტანური კრისტალიზაცია)";
-                document.getElementById('status-msg').style.color = "#f43f5e";
-            } else {
-                crystals.style.height = "0px";
-                document.getElementById('status-msg').innerText = concentration === 0 ? "სუფთა გამხსნელი" : "უჯერი ხსნარი";
-                document.getElementById('status-msg').style.color = "#4ade80";
-            }
-
-            // Stats update
-            document.getElementById('stat-mass').innerText = mass.toFixed(0) + " გ";
-            document.getElementById('stat-conc').innerText = concentration.toFixed(1) + " გ/ლ";
-        }
-
-        function addSolute() {
-            mass += 10;
-            updateSim();
-
-            // Particle Animation effect
-            let sType = document.getElementById('solute-type').value;
-            let rgb = soluteDict[sType].color;
-            for(let i=0; i<15; i++) {
-                let p = document.createElement('div');
-                p.className = 'particle';
-                p.style.left = (simArea.clientWidth/2 - 50 + Math.random()*100) + 'px';
-                p.style.top = '100px';
-                let ptSize = Math.random()*4 + 2;
-                p.style.width = ptSize + 'px';
-                p.style.height = ptSize + 'px';
-                p.style.background = `rgb(${rgb})`;
-                p.style.animation = `fallAndDissolve ${1 + Math.random()*1}s linear forwards`;
-                simArea.appendChild(p);
-                setTimeout(() => p.remove(), 2000);
-            }
-        }
-
-        function evaporate() {
-            let v = parseFloat(uiVolume.value);
-            if(v > 0.1) {
-                uiVolume.value = (v - 0.1).toFixed(1);
-                updateSim();
-            }
-        }
+        let ions = [];
+        let saltGrains = [];
+        let concentration = 0;
+        const maxConc = 5.0; // Molarity limit
+        let precipHeight = 0;
 
         function resetSim() {
-            mass = 0;
-            uiVolume.value = 0.5;
-            uiTemp.value = 25;
-            updateSim();
+            ions = [];
+            saltGrains = [];
+            concentration = 0;
+            precipHeight = 0;
+            document.getElementById('precipitate').style.height = '0px';
+            document.getElementById('conc-val').textContent = '0.00';
+            document.getElementById('state-val').textContent = 'უჯერი ხსნარი';
+            document.getElementById('state-val').style.color = '#10b981';
+            document.getElementById('alert').classList.remove('show');
         }
 
-        // Event listener for type change to recalulcate color immediately
-        document.getElementById('solute-type').addEventListener('change', () => {
-            // Usually changing solute means a new experiment, let's reset mass
-            mass = 0;
-            updateSim();
-        });
+        function addSalt() {
+            const shaker = document.getElementById('shaker');
+            shaker.classList.add('shake');
+            setTimeout(() => shaker.classList.remove('shake'), 500);
 
-        // Init
-        updateSim();
+            // Add falling grains
+            for(let i=0; i<15; i++) {
+                saltGrains.push({
+                    x: W/2 + (Math.random()*40 - 20),
+                    y: 100 + Math.random()*20,
+                    vx: (Math.random()-0.5)*2,
+                    vy: 2 + Math.random()*3
+                });
+            }
+
+            if(concentration < maxConc) {
+                concentration += 1.25;
+                document.getElementById('conc-val').textContent = concentration.toFixed(2);
+                
+                if (concentration >= maxConc) {
+                    concentration = maxConc;
+                    document.getElementById('state-val').textContent = 'გაჯერებული ხსნარი';
+                    document.getElementById('state-val').style.color = '#ef4444';
+                    document.getElementById('alert').classList.add('show');
+                }
+            } else {
+                // Add to precipitate
+                precipHeight += 10;
+                if(precipHeight > 50) precipHeight = 50;
+                document.getElementById('precipitate').style.height = precipHeight + 'px';
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,W,H);
+
+            // Process grains
+            saltGrains = saltGrains.filter(g => {
+                g.x += g.vx; g.y += g.vy;
+                
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(g.x, g.y, 4, 4);
+
+                let waterTop = H - 260 + 260*0.25; // approx
+                if (g.y > waterTop) {
+                    // Dissolve
+                    if (concentration < maxConc || Math.random() < 0.2) {
+                        // Create ions Na+ and Cl-
+                        let bLeft = W/2 - 100;
+                        let bRight = W/2 + 100;
+                        let bBot = H - 50 - precipHeight;
+                        
+                        // Only add ions up to a visual limit
+                        if(ions.length < 150) {
+                            // Na+
+                            ions.push({ type: 'Na+', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
+                            // Cl-
+                            ions.push({ type: 'Cl-', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
+                        }
+                        return false; // remove grain
+                    } else {
+                        // Keep falling to precip
+                        if(g.y > H - 60 - precipHeight) return false;
+                        return true;
+                    }
+                }
+                return true;
+            });
+
+            // Draw and move ions inside beaker bounds
+            let bLeft = W/2 - 90;
+            let bRight = W/2 + 90;
+            let bTop = H - 260 + 260*0.25 + 10;
+            let bBot = H - 55 - precipHeight;
+
+            ions.forEach(ion => {
+                ion.x += ion.vx; ion.y += ion.vy;
+                
+                // Bounds keeping
+                if(ion.x < bLeft || ion.x > bRight) ion.vx *= -1;
+                if(ion.y < bTop || ion.y > bBot) ion.vy *= -1;
+
+                // Restrict firmly
+                if(ion.x < bLeft) ion.x = bLeft; if(ion.x > bRight) ion.x = bRight;
+                if(ion.y < bTop) ion.y = bTop; if(ion.y > bBot) ion.y = bBot;
+
+                ctx.beginPath();
+                ctx.arc(ion.x, ion.y, 5, 0, Math.PI*2);
+                if(ion.type === 'Na+') {
+                    ctx.fillStyle = '#f87171'; // Reddish for Na+
+                    ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = '7px Arial'; ctx.textAlign = 'center'; ctx.fillText('+', ion.x, ion.y+2);
+                } else {
+                    ctx.fillStyle = '#a3e635'; // Greenish for Cl-
+                    ctx.fill();
+                    ctx.fillStyle = '#111'; ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.fillText('-', ion.x, ion.y+2);
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
     </script>
 </body>
 </html>
