@@ -1,241 +1,355 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — ფუნქციური ანალიზი</title>
+    <title>მათემატიკა — ფუნქციის ტრანსფორმაცია (თამაში)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 500px; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .func-input { display: flex; align-items: center; gap: 5px; }
-        .func-input span { color: #94a3b8; font-size: 0.9rem; }
-        .func-input input { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; outline: none; }
-        .func-input input:focus { border-color: #22c55e; }
-        .func-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0f172a; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
-        .func-color { width: 12px; height: 12px; border-radius: 3px; }
-        .func-expr { flex: 1; font-family: 'Courier New'; font-size: 0.8rem; }
-        .func-del { cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 5px; }
-        .preset-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .preset-btn { padding: 8px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: 'Courier New'; font-size: 0.75rem; transition: 0.2s; }
-        .preset-btn:hover { background: #334155; color: #f8fafc; }
-        .btn { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.85rem; color: white; width: 100%; transition: 0.2s; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn-add { background: linear-gradient(135deg, #22c55e, #16a34a); }
-        .btn-clear { background: #ef4444; }
-        .control label { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .control label b { color: #f8fafc; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #3b82f6); cursor: pointer; }
-        .info { background: #0f172a; border-left: 3px solid #22c55e; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.5; }
-        .info b { color: #86efac; }
-        .result-card { background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: #94a3b8; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #22c55e, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (max-width: 800px) { .container { grid-template-columns: 1fr; } }
+
+        .game-area {
+            background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 500px; 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .floating-ui {
+            position: absolute; top: 15px; left: 15px; z-index: 5; background: rgba(15,23,42,0.85);
+            border: 1px solid #3b82f6; padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(59,130,246,0.2);
+        }
+        .floating-ui .lvl { font-size: 0.8rem; color: #93c5fd; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .floating-ui .target { font-size: 1.1rem; font-weight: bold; color: #fff;}
+        .target-func { font-size: 1.3rem; color: #f43f5e; font-family: 'Courier New', monospace; font-weight:bold; margin-top:5px; text-shadow: 0 0 10px rgba(244,63,94,0.3);}
+
+        .result-overlay {
+            position: absolute; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);
+            z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .result-overlay h2 { font-size: 2.5rem; margin-bottom: 15px; color: #10b981; text-shadow: 0 0 15px rgba(16,185,129,0.5);}
+        .fail-reason { color: #cbd5e1; font-size: 1.1rem; margin-bottom: 15px;}
+        
+        .btn-large {
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 10px;
+            box-shadow: 0 0 20px rgba(16,185,129,0.4);
+        }
+        .btn-large:hover { transform: scale(1.05); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 5;}
+        
+        .control-group { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;}
+        .control-group label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; font-weight: bold; }
+        .val-span { color: #22c55e; font-family: 'Courier New', monospace; font-size: 1.1rem;}
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; margin-bottom: 12px;}
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #22c55e; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(34,197,94,0.5);}
+
+        .math-box { background: #111827; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 1.1rem; line-height: 1.5; border-left: 3px solid #22c55e; text-align: center;}
+        .vol-val { font-size: 1.6rem; font-weight: bold; color: #22c55e; margin-top: 5px; text-shadow: 0 0 10px rgba(34,197,94,0.3); }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
+        
+        /* Highlight specific parameter colors */
+        .p-a { color: #f59e0b; font-weight: bold;}
+        .p-h { color: #06b6d4; font-weight: bold;}
+        .p-k { color: #a855f7; font-weight: bold;}
     </style>
 </head>
 <body>
-    <h1>📈 ფუნქციის გრაფიკი y = f(x)</h1>
-    <p class="subtitle">ჩაწერე ფუნქცია, დაამატე რამდენიმე, შეადარე — ნახე გრაფიკი რეალ-ტაიმში</p>
-    <div class="app">
-        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+    <h1>📈 ფუნქციის შიფტერი (Graph Matcher)</h1>
+    <p class="subtitle">შეცვალეთ პარამეტრები, რათა თქვენი გრაფიკი ზუსტად დაემთხვეს ჰოლოგრამის მიზანს!</p>
+
+    <div class="container">
+        <!-- Game Canvas -->
+        <div class="game-area" id="game-area">
+            <div class="floating-ui">
+                <div class="lvl" id="lvl-display">დონე 1</div>
+                <div class="target">სამიზნე გრაფიკის ფორმა:</div>
+                <div class="target-func" id="target-func">y = ...</div>
+            </div>
+
+            <div class="result-overlay" id="result-screen">
+                <h2>ზუსტი თანხვედრა! 🎢</h2>
+                <div class="fail-reason">თქვენ ისწავლეთ როგორ ცვლის პარამეტრები ფუნქციის გრაფიკს!</div>
+                <button class="btn-large" onclick="nextLevel()">შემდეგი დონე ➞</button>
+            </div>
+
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Engine Controls -->
         <div class="panel">
-            <div style="font-weight:bold; color:#22c55e; font-size:0.9rem;">ფუნქცია</div>
-            <div class="func-input">
-                <span>y =</span>
-                <input type="text" id="func-input" value="x^2" placeholder="მაგ: sin(x), x^2+1">
+            <div style="font-size:0.85rem; color:#94a3b8; font-weight:bold; margin-bottom:-5px;">თქვენი გრაფიკის მართვა:</div>
+            
+            <div id="controls-container">
+                <!-- Sliders injected here -->
             </div>
-            <button class="btn btn-add" onclick="addFunction()">+ დამატება</button>
-            <div id="func-list"></div>
-            <div style="font-size:0.75rem; color:#64748b;">სწრაფი ფუნქციები:</div>
-            <div class="preset-btns">
-                <button class="preset-btn" onclick="quick('x^2')">x²</button>
-                <button class="preset-btn" onclick="quick('sin(x)')">sin(x)</button>
-                <button class="preset-btn" onclick="quick('cos(x)')">cos(x)</button>
-                <button class="preset-btn" onclick="quick('tan(x)')">tan(x)</button>
-                <button class="preset-btn" onclick="quick('1/x')">1/x</button>
-                <button class="preset-btn" onclick="quick('sqrt(x)')">√x</button>
-                <button class="preset-btn" onclick="quick('abs(x)')">|x|</button>
-                <button class="preset-btn" onclick="quick('x^3')">x³</button>
-                <button class="preset-btn" onclick="quick('2^x')">2ˣ</button>
-                <button class="preset-btn" onclick="quick('log(x)')">ln(x)</button>
+
+            <div class="math-box">
+                <div style="font-size:0.8rem; color:#94a3b8; font-family:'Noto Sans Georgian'; text-transform:uppercase; margin-bottom:5px;">თქვენი მიმდინარე ფუნქცია</div>
+                <div class="vol-val" id="current-formula">y = x²</div>
             </div>
-            <div class="control">
-                <label>X დიაპაზონი: <b>±<span id="xr-val">10</span></b></label>
-                <input type="range" id="x-range" min="2" max="50" value="10" oninput="document.getElementById('xr-val').textContent=this.value; draw();">
-            </div>
-            <button class="btn btn-clear" onclick="clearFuncs()">🗑️ ყველა წაშლა</button>
-            <div class="result-card" id="hover-info">მაუსი გადაატარე გრაფიკზე x, y მნიშვნელობების სანახავად</div>
-            <div class="info">
-                <b>რჩევა:</b> ჩაწერე ფუნქცია JS სინტაქსით:<br>
-                <b>x^2</b> = x², <b>sin(x)</b>, <b>cos(x)</b>, <b>tan(x)</b><br>
-                <b>sqrt(x)</b> = √x, <b>abs(x)</b> = |x|<br>
-                <b>PI</b> = π, <b>E</b> = e ≈ 2.718<br>
-                <b>log(x)</b> = ln(x), <b>2^x</b> = 2ˣ
-            </div>
+            
+            <button onclick="checkMatch()" style="padding:12px; background:#1e293b; border:2px solid #22c55e; border-radius:8px; color:#22c55e; font-weight:bold; font-family:inherit; cursor:pointer; margin-top:auto; transition:0.2s;" onmouseover="this.style.background='#22c55e'; this.style.color='#fff';" onmouseout="this.style.background='#1e293b'; this.style.color='#22c55e';">🔍 გადამოწმება</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 როგორ მოქმედებს ტრანსფორმაცია?</strong><br>
+            • <span class="p-k">k (თავისუფალი წევრი)</span> ცვლის გრაფიკს ვერტიკალურად (ზევით/ქვევით). <em>ფუნქცია: y = f(x) + k</em><br>
+            • <span class="p-h">h (არგუმენტის ძვრა)</span> ცვლის გრაფიკს ჰორიზონტალურად (მარჯვნივ/მარცხნივ). <em>ფუნქცია: y = f(x - h)</em><br>
+            • <span class="p-a">a (კოეფიციენტი)</span> ასქელებს ან ავიწროებს გრაფიკს (თუ ნეგატიურია, ატრიალებს კიდეც). <em>ფუნქცია: y = a · f(x)</em>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const wrap = canvas.parentElement;
+        const gameArea = document.getElementById('game-area');
         let W, H;
+        
         function resize() {
-            canvas.width = wrap.offsetWidth * devicePixelRatio;
-            canvas.height = 500 * devicePixelRatio;
+            canvas.width = gameArea.offsetWidth * devicePixelRatio;
+            canvas.height = gameArea.offsetHeight * devicePixelRatio;
             ctx.scale(devicePixelRatio, devicePixelRatio);
-            W = wrap.offsetWidth; H = 500;
+            W = gameArea.offsetWidth; H = gameArea.offsetHeight;
             draw();
         }
-        resize(); window.addEventListener('resize', resize);
+        window.addEventListener('resize', resize);
 
-        const colors = ['#22c55e','#3b82f6','#ef4444','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#f97316'];
-        let funcs = [{expr:'x^2', color:colors[0]}];
+        // --- Game State ---
+        let level = 1;
+        let isComplete = false;
+        
+        // Allowed functions and their standard form: y = a*f(x - h) + k
+        const levelsInfo = [
+            { type: 'linear', f: (x) => x, name: 'წრფივი', targetParams: {a: 2, h: 0, k: -3}, 
+              sliders: [{id: 'a', name: 'დახრა (a)', min: -5, max: 5}, {id: 'k', name: 'ვერტიკალური (k)', min: -8, max: 8}] },
+            
+            { type: 'quad', f: (x) => x*x, name: 'პარაბოლა', targetParams: {a: 1, h: 3, k: -4}, 
+              sliders: [{id: 'h', name: 'ჰორიზონტალური (h)', min: -8, max: 8}, {id: 'k', name: 'ვერტიკალური (k)', min: -8, max: 8}] },
 
-        document.getElementById('func-input').addEventListener('keydown', e => { if(e.key==='Enter') addFunction(); });
+            { type: 'quad', f: (x) => x*x, name: 'პარაბოლა (სრული)', targetParams: {a: -0.5, h: -2, k: 5}, 
+              sliders: [{id: 'a', name: 'კოეფიციენტი (a)', min: -3, max: 3, step: 0.5}, {id: 'h', name: 'ჰორიზ. (h)', min: -8, max: 8}, {id: 'k', name: 'ვერტ. (k)', min: -8, max: 8}] },
 
-        function evalExpr(expr, x) {
-            try {
-                const sanitized = expr
-                    .replace(/\^/g, '**')
-                    .replace(/sin/g, 'Math.sin')
-                    .replace(/cos/g, 'Math.cos')
-                    .replace(/tan/g, 'Math.tan')
-                    .replace(/sqrt/g, 'Math.sqrt')
-                    .replace(/abs/g, 'Math.abs')
-                    .replace(/log/g, 'Math.log')
-                    .replace(/PI/g, 'Math.PI')
-                    .replace(/E(?![a-z])/g, 'Math.E');
-                return new Function('x', `return ${sanitized}`)(x);
-            } catch(e) { return NaN; }
+            { type: 'sin', f: (x) => Math.sin(x), name: 'სინუსოიდა', targetParams: {a: 3, h: 0, k: 2}, 
+              sliders: [{id: 'a', name: 'ამპლიტუდა (a)', min: 1, max: 5}, {id: 'k', name: 'ვერტიკალური (k)', min: -5, max: 5}] },
+
+            { type: 'abs', f: (x) => Math.abs(x), name: 'მოდული', targetParams: {a: -2, h: 4, k: 3}, 
+              sliders: [{id: 'a', name: 'კოეფიციენტი (a)', min: -4, max: 4}, {id: 'h', name: 'ჰორიზ. (h)', min: -8, max: 8}, {id: 'k', name: 'ვერტიკალური (k)', min: -8, max: 8}] }
+        ];
+
+        let currentLvlObj;
+        let p = { a: 1, h: 0, k: 0 }; // player params
+        let t = { a: 1, h: 0, k: 0 }; // target params
+        let particles = [];
+
+        function initLevel() {
+            isComplete = false;
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('lvl-display').innerText = `დონე ${level}`;
+            
+            // Loop levels if exceeded
+            currentLvlObj = levelsInfo[(level - 1) % levelsInfo.length];
+            t = { a: 1, h: 0, k: 0, ...currentLvlObj.targetParams };
+            p = { a: 1, h: 0, k: 0 }; // Reset player
+
+            // Randomize starting player positions slightly so it's not solved
+            if(currentLvlObj.sliders.find(s=>s.id==='a')) p.a = t.a === 1 ? -1 : 1;
+            if(currentLvlObj.sliders.find(s=>s.id==='h')) p.h = t.h === 0 ? 3 : 0;
+            if(currentLvlObj.sliders.find(s=>s.id==='k')) p.k = t.k === 0 ? 3 : 0;
+
+            buildUI();
+            updateMathUI();
+            particles = [];
+            requestAnimationFrame(renderLoop);
         }
 
-        function addFunction() {
-            const input = document.getElementById('func-input');
-            const expr = input.value.trim();
-            if(!expr) return;
-            // Test
-            const test = evalExpr(expr, 1);
-            if(isNaN(test) && test !== Infinity && test !== -Infinity) { input.style.borderColor='#ef4444'; return; }
-            input.style.borderColor = 'rgba(255,255,255,0.1)';
-            funcs.push({expr, color: colors[funcs.length % colors.length]});
-            input.value = '';
-            renderList();
-            draw();
+        function formatMath(type, a, h, k) {
+            let eq = "";
+            let aStr = (a === 1 && type !== 'linear') ? "" : (a === -1 && type !== 'linear' ? "-" : `<span class="p-a">${a}</span>`);
+            let hStr = h === 0 ? "x" : (h > 0 ? `(x - <span class="p-h">${h}</span>)` : `(x + <span class="p-h">${Math.abs(h)}</span>)`);
+            let kStr = k === 0 ? "" : (k > 0 ? ` + <span class="p-k">${k}</span>` : ` - <span class="p-k">${Math.abs(k)}</span>`);
+
+            if (type === 'linear') {
+                aStr = `<span class="p-a">${a}</span>x`; hStr = ""; // Special case
+                eq = yEq(aStr + kStr);
+            } else if (type === 'quad') {
+                if(h===0) eq = yEq(aStr + "x²" + kStr);
+                else eq = yEq(aStr + hStr + "²" + kStr);
+            } else if (type === 'sin') {
+                eq = yEq(aStr + "sin(" + hStr + ")" + kStr);
+            } else if (type === 'abs') {
+                hStr = h === 0 ? "x" : (h > 0 ? `x - <span class="p-h">${h}</span>` : `x + <span class="p-h">${Math.abs(h)}</span>`);
+                eq = yEq(aStr + "|" + hStr + "|" + kStr);
+            }
+            return eq;
         }
 
-        function quick(expr) {
-            document.getElementById('func-input').value = expr;
-            addFunction();
-        }
+        function yEq(inner) { return `y = ${inner.replace(/^\s*\+\s*/, '')}`; }
 
-        function removeFunc(i) { funcs.splice(i, 1); renderList(); draw(); }
-        function clearFuncs() { funcs = []; renderList(); draw(); }
+        function buildUI() {
+            const cont = document.getElementById('controls-container');
+            cont.innerHTML = '';
+            
+            document.getElementById('target-func').innerHTML = formatMath(currentLvlObj.type, t.a, t.h, t.k);
 
-        function renderList() {
-            const list = document.getElementById('func-list');
-            list.innerHTML = funcs.map((f, i) =>
-                `<div class="func-item"><div class="func-color" style="background:${f.color}"></div><span class="func-expr">y = ${f.expr}</span><span class="func-del" onclick="removeFunc(${i})">×</span></div>`
-            ).join('');
-        }
-
-        // Mouse hover
-        canvas.addEventListener('mousemove', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            const xRange = +document.getElementById('x-range').value;
-            const yRange = xRange * (H/W);
-            const x = (mx / W - 0.5) * 2 * xRange;
-            const y = -(my / H - 0.5) * 2 * yRange;
-
-            let html = `<b>x = ${x.toFixed(3)}</b><br>`;
-            funcs.forEach(f => {
-                const val = evalExpr(f.expr, x);
-                html += `<span style="color:${f.color}">y = ${f.expr} → <b>${isFinite(val)?val.toFixed(4):'∞'}</b></span><br>`;
+            currentLvlObj.sliders.forEach(s => {
+                let step = s.step || 1;
+                let val = p[s.id];
+                cont.innerHTML += `
+                    <div class="control-group">
+                        <label><span>${s.name}:</span> <span class="val-span" id="val-${s.id}">${val}</span></label>
+                        <input type="range" id="sl-${s.id}" min="${s.min}" max="${s.max}" step="${step}" value="${val}" oninput="updateParam('${s.id}', this.value)">
+                    </div>
+                `;
             });
-            document.getElementById('hover-info').innerHTML = html;
+        }
 
-            draw();
-            // Crosshair
-            ctx.setLineDash([4,4]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(mx,0); ctx.lineTo(mx,H); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0,my); ctx.lineTo(W,my); ctx.stroke();
-            ctx.setLineDash([]);
-            // Point markers
-            funcs.forEach(f => {
-                const val = evalExpr(f.expr, x);
-                if(isFinite(val)) {
-                    const py = H/2 - (val/(2*yRange))*H;
-                    ctx.beginPath(); ctx.arc(mx, py, 5, 0, Math.PI*2);
-                    ctx.fillStyle = f.color; ctx.fill();
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        function updateParam(id, val) {
+            if(isComplete) return;
+            p[id] = parseFloat(val);
+            document.getElementById(`val-${id}`).innerText = val;
+            updateMathUI();
+        }
+
+        function updateMathUI() {
+            document.getElementById('current-formula').innerHTML = formatMath(currentLvlObj.type, p.a, p.h, p.k);
+        }
+
+        function checkMatch() {
+            if (p.a === t.a && p.h === t.h && p.k === t.k) {
+                isComplete = true;
+                
+                // Explode particles!
+                for(let i=0; i<80; i++) {
+                    particles.push({
+                        x: W/2, y: H/2,
+                        vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25,
+                        life: 1, c: (Math.random()>0.5)? '#10b981' : '#f97316'
+                    });
                 }
-            });
-        });
+                
+                setTimeout(() => { document.getElementById('result-screen').style.display = 'flex'; }, 1000);
+            } else {
+                // Shake button
+                let btn = document.querySelector('button[onclick="checkMatch()"]');
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#ef4444';
+                btn.innerText = "❌ არ ემთხვევა";
+                setTimeout(() => {
+                    btn.style.borderColor = '#22c55e';
+                    btn.style.color = '#22c55e';
+                    btn.innerText = "🔍 გადამოწმება";
+                }, 1000);
+            }
+        }
+
+        function nextLevel() { level++; initLevel(); }
+
+        let lastTime = 0;
+        function renderLoop(time) {
+            let dt = (time - lastTime)/1000 || 0;
+            lastTime = time;
+
+            draw();
+
+            if (particles.length > 0) {
+                for(let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.5; // Gravity
+                    p.life -= dt;
+                    
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.c;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+                    
+                    if(p.life <= 0) particles.splice(i,1);
+                }
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(renderLoop);
+            } else if (!isComplete) {
+                requestAnimationFrame(renderLoop);
+            }
+        }
 
         function draw() {
             ctx.clearRect(0,0,W,H);
-            const xRange = +document.getElementById('x-range').value;
-            const yRange = xRange * (H/W);
+            
+            const xRange = 10; // Fixed view range
             const cx = W/2, cy = H/2;
-            const scaleX = W / (2*xRange), scaleY = H / (2*yRange);
+            const xPixPerUnit = W / (2*xRange);
+            const yPixPerUnit = xPixPerUnit; // Keep aspect ratio 1:1
+            const yRange = H / (2*yPixPerUnit);
 
-            // Grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
-            for(let i = -xRange; i <= xRange; i++) {
-                const px = cx + i*scaleX;
-                ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,H); ctx.stroke();
+            // 1. Grid & Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+            for(let i = -15; i <= 15; i++) {
+                ctx.beginPath(); ctx.moveTo(cx + i*xPixPerUnit, 0); ctx.lineTo(cx + i*xPixPerUnit, H); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, cy - i*yPixPerUnit); ctx.lineTo(W, cy - i*yPixPerUnit); ctx.stroke();
             }
-            for(let i = -Math.floor(yRange); i <= Math.floor(yRange); i++) {
-                const py = cy - i*scaleY;
-                ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W,py); ctx.stroke();
-            }
-
-            // Axes
-            ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
-
-            // Labels
-            ctx.fillStyle = '#64748b'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
-            for(let i = -xRange; i <= xRange; i++) {
-                if(i !== 0) ctx.fillText(i, cx + i*scaleX, cy + 14);
-            }
+            
+            ctx.fillStyle = '#64748b'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
+            for(let i = -10; i <= 10; i++) if(i!==0 && i%2===0) ctx.fillText(i, cx + i*xPixPerUnit, cy + 15);
             ctx.textAlign = 'right';
-            for(let i = -Math.floor(yRange); i <= Math.floor(yRange); i++) {
-                if(i !== 0) ctx.fillText(i, cx - 5, cy - i*scaleY + 4);
-            }
+            for(let i = -10; i <= 10; i++) if(i!==0 && i%2===0) ctx.fillText(i, cx - 8, cy - i*yPixPerUnit + 4);
 
-            // Draw functions
-            funcs.forEach(f => {
-                ctx.beginPath(); ctx.strokeStyle = f.color; ctx.lineWidth = 2.5;
-                let started = false;
-                for(let px = 0; px < W; px++) {
-                    const x = (px - cx) / scaleX;
-                    const y = evalExpr(f.expr, x);
-                    if(!isFinite(y) || Math.abs(y) > yRange*5) {
-                        started = false; continue;
-                    }
-                    const py = cy - y * scaleY;
-                    if(!started) { ctx.moveTo(px, py); started = true; }
-                    else ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-            });
+            // Function to eval based on params
+            const evalG = (params, x) => params.a * currentLvlObj.f(x - params.h) + params.k;
+
+            // 2. Target Graph (Dashed Red)
+            ctx.beginPath(); ctx.strokeStyle = 'rgba(244, 63, 94, 0.7)'; ctx.lineWidth = 3; ctx.setLineDash([8, 8]);
+            for(let px = 0; px <= W; px += 2) {
+                let x = (px - cx) / xPixPerUnit;
+                let y = evalG(t, x);
+                let py = cy - y * yPixPerUnit;
+                if(px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // 3. Player Graph (Solid Green/Blue based on win)
+            ctx.beginPath(); ctx.strokeStyle = isComplete ? '#10b981' : '#22c55e'; 
+            ctx.lineWidth = isComplete ? 5 : 3;
+            // Add shadow
+            ctx.shadowBlur = 10; ctx.shadowColor = isComplete ? '#10b981' : 'transparent';
+            
+            for(let px = 0; px <= W; px += 2) {
+                let x = (px - cx) / xPixPerUnit;
+                let y = evalG(p, x);
+                let py = cy - y * yPixPerUnit;
+                if(px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.shadowBlur = 0;
+
+            // 4. Highlight the Vertex / Key point
+            let vX = cx + p.h * xPixPerUnit;
+            let vY = cy - p.k * yPixPerUnit;
+            ctx.beginPath(); ctx.arc(vX, vY, 6, 0, Math.PI*2);
+            ctx.fillStyle = '#facc15'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
         }
 
-        renderList();
-        draw();
+        // INIT
+        resize();
+        initLevel();
+
     </script>
 </body>
 </html>

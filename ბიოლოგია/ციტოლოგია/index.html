@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,284 +7,472 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1050px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-        .sim-area { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; height: 500px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        canvas { display: block; width: 100%; height: 100%; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; max-height: 500px; overflow-y: auto; }
-        .org-btn { padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: crosshair;
+        }
+        
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .hud-overlay { position: absolute; top: 15px; left: 15px; z-index: 10; pointer-events: none; }
+        .mode-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); transition: 0.3s; }
+        .badge-animal { color: #ec4899; border-color: rgba(236,72,153,0.3); }
+        .badge-plant { color: #22c55e; border-color: rgba(34,197,94,0.3); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 500px; overflow-y: auto; }
+        
+        .mode-toggle { display: flex; gap: 10px; background: #0f172a; padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .mode-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; background: transparent; color: #94a3b8; transition: 0.2s;}
+        .mode-btn.animal.active { background: #ec4899; color: white; box-shadow: 0 2px 10px rgba(236,72,153,0.3); }
+        .mode-btn.plant.active { background: #22c55e; color: white; box-shadow: 0 2px 10px rgba(34,197,94,0.3); }
+
+        .btn-list { display: flex; flex-direction: column; gap: 8px; }
+        .org-btn { padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; color: #cbd5e1; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
         .org-btn:hover { background: #334155; }
-        .org-btn.active { background: linear-gradient(135deg, #a78bfa, #ec4899); border-color: #a78bfa; }
-        .o-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .info-box { background: #0f172a; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #94a3b8; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
-        .info-box h4 { color: #f8fafc; margin-bottom: 5px; }
-        .mode-btns { display: flex; gap: 5px; margin-bottom: 5px; }
-        .mode-btn { flex: 1; padding: 8px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.75rem; text-align: center; }
-        .mode-btn.active { background: #a78bfa; color: white; border-color: #a78bfa; }
-        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #a78bfa; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        .org-btn.active { background: linear-gradient(135deg, #334155, #1e293b); border-color: currentColor; font-weight: bold; color: white; box-shadow: inset 2px 0 0 currentColor; }
+        .o-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 5px currentColor; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #a78bfa; padding: 20px; border-radius: 10px; font-size: 0.9rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel h3 { color: #f8fafc; margin-bottom: 10px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
         .info-panel strong { color: #e2e8f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
+        
+        .pulse { animation: pulseAnim 2s infinite; }
+        @keyframes pulseAnim { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        /* Scrollbar styles for the panel */
+        .panel::-webkit-scrollbar { width: 6px; }
+        .panel::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
+        .panel::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <h1>🔬 უჯრედის აგებულება</h1>
-    <p class="subtitle">დააკლიკე ორგანელებს მათი ფუნქციების გასაცნობად</p>
+    <h1>🔬 ციტოლოგია (უჯრედის აგებულება)</h1>
+    <p class="subtitle">ინტერაქტიული 3D-მსგავსი მოდელი: აირჩიე უჯრედის ტიპი და შეისწავლე ორგანელები</p>
+
     <div class="container">
-        <div class="sim-area"><canvas id="canvas"></canvas></div>
-        <div class="panel">
-            <div class="mode-btns">
-                <button class="mode-btn active" id="mode-animal" onclick="setMode('animal')">ცხოველური</button>
-                <button class="mode-btn" id="mode-plant" onclick="setMode('plant')">მცენარეული</button>
+        <div class="sim-area">
+            <div class="hud-overlay">
+                <div id="modeBadge" class="mode-badge badge-animal pulse">ცხოველური უჯრედი</div>
             </div>
-            <div id="org-list"></div>
-            <div class="info-box" id="info-box"><h4>აირჩიე ორგანელა</h4>დააკლიკე უჯრედზე ან აირჩიე სიიდან.</div>
+            <canvas id="canvas"></canvas>
         </div>
-        <div class="info-panel">
-            <strong>🔬 ციტოლოგია:</strong> უჯრედი — სიცოცხლის ძირითადი ერთეული. <br>
-            • <strong>ცხოველური:</strong> ცენტრიოლი, ლიზოსომა, არანაირი უჯრედის კედელი.<br>
-            • <strong>მცენარეული:</strong> + უჯრედის კედელი, ვაკუოლა (დიდი), ქლოროპლასტი.<br>
-            ყველა ორგანელა ასრულებს უნიკალურ ფუნქციას.
+
+        <div class="panel">
+            <div class="mode-toggle">
+                <button class="mode-btn animal active" id="btnAnimal" onclick="setMode('animal')">ცხოველური</button>
+                <button class="mode-btn plant" id="btnPlant" onclick="setMode('plant')">მცენარეული</button>
+            </div>
+            
+            <label style="color:#64748b; font-size:0.75rem; text-transform:uppercase; margin-top:5px;">ორგანელების სია</label>
+            <div class="btn-list" id="org-list"></div>
+        </div>
+
+        <div class="info-panel" id="info-box">
+            <h3 style="color:#a78bfa;">🔬 საწყისი ინფორმაცია</h3>
+            <strong>ციტოლოგია</strong> არის მეცნიერება, რომელიც შეისწავლის უჯრედის აგებულებას, ფუნქციებს და გამრავლებას.<br><br>
+            უჯრედი ყველა ცოცხალი ორგანიზმის სტრუქტურული და ფუნქციური ერთეულია. ეუკარიოტულ უჯრედებს (მცენარეები, ცხოველები, სოკოები) აქვთ მკაფიოდ ჩამოყალიბებული ბირთვი და რთული შინაგანი სტრუქტურები, რომლებსაც <strong>ორგანელები</strong> ეწოდებათ. რაიმე ორგანელაზე დასაკმაყოფილებლად <strong>დააკლიკეთ უჯრედის მოდელზე ან აირჩიეთ სიიდან!</strong>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const sim = canvas.parentElement;
         let W, H, CX, CY, CR;
-        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; CX = W/2; CY = H/2; CR = Math.min(W,H)*0.4; }
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+            CX = W/2; CY = H/2; 
+            CR = Math.min(W, H) * 0.38;
+        }
         resize(); window.addEventListener('resize', resize);
 
-        let cellMode = 'animal';
+        let cellMode = 'animal'; // animal | plant
         let selected = null;
+        let hovered = null;
+        let time = 0;
 
-        const organelles = [
-            { id:'membrane', name:'უჯრედის მემბრანა', color:'#f59e0b', draw:'ring', rx:1, ry:1, both:true,
-              info:'ორშრიანი ლიპიდური ბარიერი. აკონტროლებს რა შედის და გამოდის უჯრედიდან (სელექციურად გამტარი). შეიცავს ცილებს, ქოლესტეროლს.' },
-            { id:'nucleus', name:'ბირთვი', color:'#7c3aed', draw:'circle', rx:0, ry:0, r:0.22, both:true,
-              info:'უჯრედის „ტვინი" — შეიცავს დნმ-ს (ქრომოსომებში). აკონტროლებს ყველა ფუნქციას, ცილების სინთეზს. შემოსაზღვრულია ბირთვის გარსით.' },
-            { id:'mito', name:'მიტოქონდრია', color:'#ef4444', draw:'oval', positions:[[0.3,0.25],[-.35,0.15],[-0.1,-0.35]], both:true,
-              info:'„ენერგიის ქარხანა" — უჯრედული სუნთქვა, ATP წარმოება. აქვს საკუთარი დნმ! ენდოსიმბიოზის თეორია — ოდესღაც დამოუკიდებელი ორგანიზმი იყო.' },
-            { id:'er', name:'ენდოპლაზმური ბადე', color:'#3b82f6', draw:'wavy', both:true,
-              info:'უხეში ER — რიბოსომები ზედაპირზე, ცილების სინთეზი. გლუვი ER — ლიპიდების სინთეზი, ტოქსინების განეიტრალება.' },
-            { id:'golgi', name:'გოლჯის აპარატი', color:'#f97316', draw:'stacks', both:true,
-              info:'„საფოსტო ოფისი" — ცილებს ამუშავებს, ალაგებს და ბუშტუკებით (ვეზიკულებით) გზავნის დანიშნულების ადგილას.' },
-            { id:'ribosome', name:'რიბოსომები', color:'#e2e8f0', draw:'dots', both:true,
-              info:'mRNA-ს კითხულობს და ცილას აშენებს (ტრანსლაცია). ყველაზე მრავლრიცხოვანი ორგანელა. არ აქვს მემბრანა.' },
-            { id:'lysosome', name:'ლიზოსომა', color:'#22c55e', draw:'circle', rx:-0.3, ry:-0.25, r:0.06, animal:true,
-              info:'„მონელების ბუშტუკი" — შეიცავს ფერმენტებს, რომლებიც ძველ ორგანელებს და ბაქტერიებს შლის. pH ≈ 5.' },
-            { id:'centriole', name:'ცენტრიოლი', color:'#06b6d4', draw:'cross', rx:0.15, ry:-0.3, animal:true,
-              info:'მიტოზის (უჯრედის გაყოფის) დროს ფორმირდება თითისტარის ძაფები. ცხოველურ უჯრედს აქვს, მცენარეულს — არა.' },
-            { id:'wall', name:'უჯრედის კედელი', color:'#a3e635', draw:'wall', plant:true,
-              info:'ცელულოზის მყარი გარსი მემბრანის გარეთ. იძლევა ფორმას და სიმტკიცეს. მხოლოდ მცენარეულ უჯრედს აქვს!' },
-            { id:'chloroplast', name:'ქლოროპლასტი', color:'#16a34a', draw:'oval', positions:[[0.25,-0.2],[-0.2,0.3]], plant:true,
-              info:'ფოტოსინთეზის ორგანელა — სინათლის ენერგიას გლუკოზად გარდაქმნის. შეიცავს ქლოროფილს (მწვანე პიგმენტი). აქვს საკუთარი დნმ.' },
-            { id:'vacuole', name:'ცენტრალური ვაკუოლა', color:'#93c5fd', draw:'circle', rx:0.1, ry:0.1, r:0.25, plant:true,
-              info:'დიდი ბუშტუკი (85% უჯრედის მოცულობის). ინახავს წყალს, მარილებს, პიგმენტებს. ტურგორის წნევა — მცენარის „ჩონჩხი".' },
-        ];
+        const data = {
+            'membrane': {
+                name: 'პლაზმური მემბრანა', color: '#f59e0b', both: true,
+                desc: 'პლაზმური მემბრანა არის შერჩევითად განვლადი ბარიერი, რომელიც შედგება ფოსფოლიპიდების ორმაგი შრისგან და ჩაშენებული ცილებისგან. <strong>ფუნქცია:</strong> აკონტროლებს ნივთიერებათა ცვლას უჯრედსა და გარემოს შორის, იცავს უჯრედს და მონაწილეობს უჯრედშორის კომუნიკაციაში.'
+            },
+            'wall': {
+                name: 'უჯრედის კედელი', color: '#84cc16', plant: true,
+                desc: 'მკვრივი და მყარი სტრუქტურა პლაზმური მემბრანის გარეთ. მცენარეებში ძირითადად შედგება ცელულოზისგან. <strong>ფუნქცია:</strong> უზრუნველყოფს უჯრედის ფორმის შენარჩუნებას, აძლევს მექანიკურ სიმტკიცეს და იცავს ოსმოსური დაზიანებისგან.'
+            },
+            'cytoplasm': {
+                name: 'ციტოპლაზმა', color: '#64748b', both: true,
+                desc: 'ჟელესმაგვარი სითხე (ციტოზოლი), რომელიც ავსებს უჯრედს და რომელშიც მოტივტივეა ველა ორგანელა. მდიდრია წყლით, იონებითა და ორგანული მოლეკულებით. <strong>ფუნქცია:</strong> უზრუნველყოფს გარემოს უჯრედული რეაქციებისთვის.'
+            },
+            'nucleus': {
+                name: 'ბირთვი', color: '#8b5cf6', both: true,
+                desc: 'უჯრედის "მთავარი კომპიუტერი". იგი შემოსაზღვრულია ორმაგი მემბრანით (ბირთვის გარსით), რომელშიც ფორებია. <strong>ფუნქცია:</strong> ინახავს გენეტიკურ ინფორმაციას (დნმ ქრომოსომების სახით) და აკონტროლებს უჯრედის მეტაბოლიზმს, ზრდას და გამრავლებას.'
+            },
+            'nucleolus': {
+                name: 'ბირთვაკი', color: '#d946ef', both: true,
+                desc: 'ბირთვის შიგნით არსებული მჭიდრო სტრუქტურა. <strong>ფუნქცია:</strong> აქ ხდება რიბოსომული რნმ-ის (rRNA) სინთეზი და რიბოსომების ქვეერთეულების აწყობა.'
+            },
+            'mitochondria': {
+                name: 'მიტოქონდრია', color: '#ef4444', both: true,
+                desc: 'უჯრედის "ენერგეტიკული სადგური". აქვს ორი მემბრანა, შიდა მემბრანა ქმნის ნაოჭებს (კრისტებს). აქვს საკუთარი დნმ და რიბოსომები (ენდოსიმბიოზური თეორია). <strong>ფუნქცია:</strong> ჟანგბადის მონაწილეობით შლის გლუკოზას და წარმოქმნის ენერგიას ATP-ის სახით (უჯრედული სუნთქვა).'
+            },
+            'chloroplast': {
+                name: 'ქლოროპლასტი', color: '#22c55e', plant: true,
+                desc: 'შეიცავს მწვანე პიგმენტს - ქლოროფილს. აქვს საკუთარი დნმ და ორმაგი მემბრანა. შიგნით მოთავსებულია თილაკოიდების დასტები (გრანები). <strong>ფუნქცია:</strong> აწარმოებს ფოტოსინთეზს - მზის ენერგიას იყენებს ნახშირორჟანგისგან და წყლისგან შაქრის (გლუკოზის) სინთეზისთვის.'
+            },
+            'vacuole': {
+                name: 'ცენტრალური ვაკუოლა', color: '#3b82f6', plant: true,
+                desc: 'მცენარეულ უჯრედში ძალიან დიდი ზომისაა (მოცულობის 80-90%-ს იკავებს) და შემოსაზღვრულია მემბრანით (ტონოპლასტით). <strong>ფუნქცია:</strong> ინახავს წყალს, საკვებ ნივთიერებებს, ტოქსინებსა და პიგმენტებს. განაპირობებს <strong>ტურგორის წნევას</strong>, რაც მცენარეს სიმაგრეს აძლევს.'
+            },
+            'rough_er': {
+                name: 'ხორკლიანი ენდოპლაზმური ბადე', color: '#ec4899', both: true,
+                desc: 'დაკავშირებული მილაკებისა და ცისტერნების სისტემა, რომელიც უშუალოდ უერთდება ბირთვის გარსს. ზედაპირზე "დაფენილია" რიბოსომები. <strong>ფუნქცია:</strong> ასინთეზებს ცილებს, რომლებიც უნდა გაიგზავნოს უჯრედის სხვა ნაწილებში ან უჯრედგარეთ.'
+            },
+            'smooth_er': {
+                name: 'გლუვი ენდოპლაზმური ბადე', color: '#f472b6', both: true,
+                desc: 'ენდოპლაზმური ბადის ნაწილი, რომელსაც არ აქვს რიბოსომები. <strong>ფუნქცია:</strong> ასინთეზებს ლიპიდებს (ცხიმებს, ფოსფოლიპიდებს, სტეროიდებს), მონაწილეობს შხამების და წამლების დეტოქსიკაციაში (განსაკუთრებით ღვიძლში) და კალციუმის იონების დეპონირებაში.'
+            },
+            'golgi': {
+                name: 'გოლჯის აპარატი', color: '#f97316', both: true,
+                desc: 'გაბრტყელებული მემბრანული ტომსიკების (ცისტერნების) სისტემა. უჯრედის "ფოსტა". <strong>ფუნქცია:</strong> ღებულობს ცილებს და ლიპიდებს ER-დან, შეაქვს მათში ქიმიური ცვლილებები (მაგ., ამატებს ნახშირწყლებს), სტამბავს და აფასოებს ვეზიკულებში და გზავნის დანიშნულების ადგილას.'
+            },
+            'lysosome': {
+                name: 'ლიზოსომა', color: '#14b8a6', animal: true,
+                desc: 'პატარა მემბრანული ბუშტუკები, რომლებიც სავსეა ჰიდროლიზური (მომნელებელი) ფერმენტებით (მათთვის იდეალურია მჟავე გარემო pH=5). <strong>ფუნქცია:</strong> "უჯრედის კუჭი" - ინელებს საკვებს, ანადგურებს ვირუსებს/ბაქტერიებს და შლის დაზიანებულ ორგანელებს გამოსაყენებლად.'
+            },
+            'centrioles': {
+                name: 'ცენტრიოლები', color: '#0ea5e9', animal: true,
+                desc: 'ცილინდრული სტრუქტურები, რომლებიც შედგება მიკრომილაკებისგან. ძირითადად წყვილად არიან და ქმნიან ცენტროსომას. <strong>ფუნქცია:</strong> მონაწილეობენ უჯრედის გაყოფაში (მიტოზი/მეიოზი) თითისტარის ძაფების ფორმირების ორგანიზებით. მცენარეთა უმეტესობას არ გააჩნია.'
+            }
+        };
 
-        function getVisibleOrganelles() {
-            return organelles.filter(o => o.both || (cellMode === 'animal' && o.animal) || (cellMode === 'plant' && o.plant));
+        const drawObjects = [];
+
+        function getVisible() {
+            return Object.keys(data).filter(k => data[k].both || (cellMode === 'animal' && data[k].animal) || (cellMode === 'plant' && data[k].plant));
+        }
+
+        function setMode(mode) {
+            cellMode = mode;
+            selected = null;
+            document.getElementById('btnAnimal').classList.toggle('active', mode === 'animal');
+            document.getElementById('btnPlant').classList.toggle('active', mode === 'plant');
+            
+            const badge = document.getElementById('modeBadge');
+            badge.className = 'mode-badge ' + (mode === 'animal' ? 'badge-animal' : 'badge-plant');
+            badge.innerText = mode === 'animal' ? 'ცხოველური უჯრედი' : 'მცენარეული უჯრედი';
+
+            buildList();
+            showInfo(null);
+            buildLayout();
         }
 
         function buildList() {
-            const listEl = document.getElementById('org-list');
-            listEl.innerHTML = '';
-            getVisibleOrganelles().forEach(o => {
+            const list = document.getElementById('org-list');
+            list.innerHTML = '';
+            getVisible().forEach(k => {
+                const item = data[k];
                 const btn = document.createElement('button');
-                btn.className = 'org-btn' + (selected===o.id?' active':'');
-                btn.id = 'btn-' + o.id;
-                btn.innerHTML = `<span class="o-dot" style="background:${o.color}"></span>${o.name}`;
-                btn.onclick = () => selectOrganelle(o.id);
-                listEl.appendChild(btn);
+                btn.className = 'org-btn' + (selected === k ? ' active' : '');
+                btn.id = 'btn-' + k;
+                btn.style.color = selected === k ? item.color : '#cbd5e1';
+                btn.innerHTML = `<div class="o-dot" style="background:${item.color};"></div> ${item.name}`;
+                
+                btn.onclick = () => selectOrg(k);
+                btn.onmouseenter = () => hovered = k;
+                btn.onmouseleave = () => hovered = null;
+                list.appendChild(btn);
             });
         }
 
-        function selectOrganelle(id) {
-            selected = id;
+        function selectOrg(key) {
+            selected = key;
             buildList();
-            const o = organelles.find(x=>x.id===id);
-            if(o) document.getElementById('info-box').innerHTML = `<h4 style="color:${o.color}">${o.name}</h4>${o.info}`;
+            showInfo(key);
         }
 
-        function setMode(m) {
-            cellMode = m;
-            selected = null;
-            document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-            document.getElementById('mode-'+m).classList.add('active');
-            document.getElementById('info-box').innerHTML = '<h4>აირჩიე ორგანელა</h4>დააკლიკე უჯრედზე ან აირჩიე სიიდან.';
-            buildList();
-        }
-
-        canvas.addEventListener('click', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = (e.clientX - rect.left) / rect.width * W;
-            const my = (e.clientY - rect.top) / rect.height * H;
-            // Check nucleus
-            const vis = getVisibleOrganelles();
-            // Simple: check distance to center for nucleus
-            const dx = mx - CX, dy = my - CY;
-            const dist = Math.sqrt(dx*dx+dy*dy);
-            if(dist < CR*0.22) { selectOrganelle('nucleus'); return; }
-            if(dist > CR*0.9) { selectOrganelle('membrane'); return; }
-            // More specific clicks would need per-organelle bounds — simplified here
-        });
-
-        function draw() {
-            ctx.clearRect(0,0,W,H);
-            const t = Date.now()*0.001;
-            CX = W/2; CY = H/2; CR = Math.min(W,H)*0.4;
-
-            const isPlant = cellMode === 'plant';
-            const isSel = (id) => selected === id;
-
-            // Cell wall (plant)
-            if(isPlant) {
-                ctx.strokeStyle = isSel('wall') ? '#a3e635' : 'rgba(163,230,53,0.5)';
-                ctx.lineWidth = isSel('wall') ? 8 : 5;
-                ctx.beginPath();
-                ctx.rect(CX-CR-10, CY-CR-10, (CR+10)*2, (CR+10)*2);
-                ctx.stroke();
-                if(isSel('wall')) { ctx.shadowColor='#a3e635'; ctx.shadowBlur=15; ctx.stroke(); ctx.shadowBlur=0; }
+        function showInfo(key) {
+            const panel = document.getElementById('info-box');
+            if(!key) {
+                panel.style.borderColor = 'rgba(255,255,255,0.05)';
+                panel.innerHTML = `<h3 style="color:#a78bfa;">🔬 საწყისი ინფორმაცია</h3>
+                <strong>ციტოლოგია</strong> არის მეცნიერება, რომელიც შეისწავლის უჯრედის აგებულებას, ფუნქციებს და გამრავლებას.<br><br>
+                დააკლიკეთ უჯრედის მოდელზე ან აირჩიეთ სიიდან დეტალური ინფორმაციის მისაღებად!`;
+                return;
             }
+            const item = data[key];
+            panel.style.borderColor = item.color;
+            panel.innerHTML = `<h3 style="color:${item.color};"><div class="o-dot" style="background:${item.color};"></div> ${item.name}</h3>${item.desc}`;
+        }
 
-            // Membrane
-            ctx.beginPath();
-            if(isPlant) ctx.rect(CX-CR, CY-CR, CR*2, CR*2);
-            else ctx.arc(CX, CY, CR, 0, Math.PI*2);
-            ctx.fillStyle = isPlant ? 'rgba(200,230,200,0.1)' : 'rgba(200,200,230,0.1)';
-            ctx.fill();
-            ctx.strokeStyle = isSel('membrane') ? '#f59e0b' : 'rgba(245,158,11,0.4)';
-            ctx.lineWidth = isSel('membrane') ? 5 : 3;
-            ctx.stroke();
-            if(isSel('membrane')) { ctx.shadowColor='#f59e0b'; ctx.shadowBlur=15; ctx.stroke(); ctx.shadowBlur=0; }
+        function buildLayout() {
+            // Generate visual objects with precomputed positions
+            drawObjects.length = 0;
+            
+            // Add objects based on properties. Order determines z-index visually.
+            const add = (id, fn, boundsFn) => {
+                if(getVisible().includes(id)) drawObjects.push({id, draw: fn, bounds: boundsFn});
+            };
 
-            // Vacuole (plant)
-            if(isPlant) {
-                ctx.beginPath(); ctx.arc(CX+CR*0.1, CY+CR*0.1, CR*0.25, 0, Math.PI*2);
-                ctx.fillStyle = isSel('vacuole') ? 'rgba(147,197,253,0.4)' : 'rgba(147,197,253,0.15)';
+            // Background cytoplasm/membrane/wall
+            add('wall', (ctx, isSel, isHov, t) => {
+                if(cellMode !== 'plant') return;
+                ctx.fillStyle = isSel||isHov ? '#84cc16' : '#4d7c0f';
+                ctx.beginPath(); ctx.roundRect(CX-CR-15, CY-CR-15, CR*2+30, CR*2+30, 20); ctx.fill();
+                ctx.strokeStyle = '#1a2e05'; ctx.lineWidth = 4; ctx.stroke();
+            }, (x,y) => cellMode === 'plant' && Math.abs(x-CX)<CR+15 && Math.abs(y-CY)<CR+15 );
+
+            add('membrane', (ctx, isSel, isHov, t) => {
+                const float = Math.sin(t*2)*2;
+                ctx.fillStyle = isSel||isHov ? '#fbbf24' : '#b45309';
+                ctx.beginPath();
+                if(cellMode === 'plant') ctx.roundRect(CX-CR, CY-CR, CR*2, CR*2, 10);
+                else ctx.arc(CX, CY, CR+float, 0, Math.PI*2);
                 ctx.fill();
-                ctx.strokeStyle = isSel('vacuole') ? '#93c5fd' : 'rgba(147,197,253,0.3)';
-                ctx.lineWidth = 2; ctx.stroke();
-                if(isSel('vacuole')) { ctx.shadowColor='#93c5fd'; ctx.shadowBlur=15; ctx.stroke(); ctx.shadowBlur=0; }
-            }
+            }, (x,y) => {
+                if(cellMode === 'plant') return Math.max(Math.abs(x-CX), Math.abs(y-CY)) < CR;
+                return Math.hypot(x-CX, y-CY) < CR;
+            });
 
-            // ER
-            ctx.strokeStyle = isSel('er') ? '#3b82f6' : 'rgba(59,130,246,0.3)';
-            ctx.lineWidth = isSel('er') ? 3 : 1.5;
-            for(let i=0;i<5;i++) {
+            add('cytoplasm', (ctx, isSel, isHov, t) => {
+                ctx.fillStyle = cellMode === 'plant' ? (isSel||isHov ? '#dcfce7':'#bbf7d0') : (isSel||isHov ? '#f8fafc':'#e2e8f0');
                 ctx.beginPath();
-                const startX = CX + CR*0.15;
-                const y = CY - CR*0.15 + i*12;
-                ctx.moveTo(startX, y);
-                for(let x=0; x<CR*0.5; x+=5) {
-                    ctx.lineTo(startX+x, y + Math.sin(x*0.1+t)*4);
+                if(cellMode === 'plant') ctx.roundRect(CX-CR+5, CY-CR+5, CR*2-10, CR*2-10, 8);
+                else ctx.arc(CX, CY, CR-5, 0, Math.PI*2);
+                ctx.fill();
+            }, (x,y) => true); // background
+
+            // Vacuole
+            add('vacuole', (ctx, isSel, isHov, t) => {
+                if(cellMode !== 'plant') return;
+                ctx.fillStyle = isSel||isHov ? '#60a5fa' : '#93c5fd';
+                ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+                const float = Math.sin(t*1.5)*3;
+                ctx.beginPath(); ctx.roundRect(CX-CR*0.8, CY-CR*0.8, CR*1.6, CR, 20+float);
+                ctx.fill(); ctx.stroke();
+            }, (x,y) => cellMode === 'plant' && x > CX-CR*0.8 && x < CX+CR*0.8 && y > CY-CR*0.8 && y < CY+CR*0.2);
+
+            // Nucleus & Nucleolus
+            let nx = CX, ny = CY;
+            if (cellMode === 'plant') { nx = CX; ny = CY + CR*0.4; }
+            const nr = CR*0.28;
+
+            add('nucleus', (ctx, isSel, isHov, t) => {
+                ctx.fillStyle = isSel||isHov ? '#a78bfa' : '#8b5cf6';
+                ctx.strokeStyle = '#5b21b6'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.arc(nx, ny, nr, 0, Math.PI*2); ctx.fill();
+                // Pores
+                ctx.setLineDash([5, 15]); ctx.stroke(); ctx.setLineDash([]);
+            }, (x,y) => Math.hypot(x-nx, y-ny) < nr);
+
+            add('nucleolus', (ctx, isSel, isHov, t) => {
+                ctx.fillStyle = isSel||isHov ? '#e879f9' : '#d946ef';
+                ctx.beginPath(); ctx.arc(nx+nr*0.15, ny-nr*0.15, nr*0.35, 0, Math.PI*2); ctx.fill();
+            }, (x,y) => Math.hypot(x-(nx+nr*0.15), y-(ny-nr*0.15)) < nr*0.35);
+
+            // Smooth & Rough ER
+            add('rough_er', (ctx, isSel, isHov, t) => {
+                ctx.strokeStyle = isSel||isHov ? '#f472b6' : '#be185d';
+                ctx.lineWidth = 8; ctx.lineCap='round'; ctx.lineJoin='round';
+                for(let i=0; i<3; i++) {
+                    const radius = nr + 15 + i*12;
+                    ctx.beginPath();
+                    ctx.arc(nx, ny, radius, Math.PI*0.8, Math.PI*2.2);
+                    ctx.stroke();
+                    // Draw ribosomes on it
+                    ctx.fillStyle = '#fff';
+                    for(let a=Math.PI*0.8; a<Math.PI*2.2; a+=0.3) {
+                        ctx.beginPath(); ctx.arc(nx + Math.cos(a)*radius, ny + Math.sin(a)*radius, 2, 0, Math.PI*2); ctx.fill();
+                    }
                 }
+            }, (x,y) => {
+                const dist = Math.hypot(x-nx, y-ny);
+                return dist > nr && dist < nr+50 && y < ny + 20;
+            });
+            
+            add('smooth_er', (ctx, isSel, isHov, t) => {
+                ctx.strokeStyle = isSel||isHov ? '#f9a8d4' : '#db2777';
+                ctx.lineWidth = 7; ctx.lineCap='round'; ctx.lineJoin='round';
+                ctx.beginPath();
+                ctx.moveTo(nx-nr-40, ny);
+                ctx.quadraticCurveTo(nx-nr-60, ny-30, nx-nr-30, ny-50);
+                ctx.quadraticCurveTo(nx-nr-10, ny-20, nx-nr-40, ny);
                 ctx.stroke();
-            }
+            }, (x,y) => Math.hypot(x-(nx-nr-40), y-(ny-20)) < 30);
 
             // Golgi
-            const gx = CX - CR*0.35, gy = CY + CR*0.2;
-            ctx.strokeStyle = isSel('golgi') ? '#f97316' : 'rgba(249,115,22,0.4)';
-            ctx.lineWidth = isSel('golgi') ? 3 : 2;
-            for(let i=0;i<4;i++) {
-                ctx.beginPath();
-                ctx.ellipse(gx, gy + i*8, CR*0.12, 4, 0, 0, Math.PI*2);
-                ctx.stroke();
-            }
-
-            // Mitochondria
-            const mitoPos = [[0.3,0.25],[-0.35,0.15],[-0.1,-0.35]];
-            mitoPos.forEach(([mx2,my2]) => {
-                const px = CX+mx2*CR, py = CY+my2*CR;
-                ctx.beginPath(); ctx.ellipse(px, py, CR*0.08, CR*0.04, mx2, 0, Math.PI*2);
-                ctx.fillStyle = isSel('mito') ? 'rgba(239,68,68,0.7)' : 'rgba(239,68,68,0.3)';
-                ctx.fill();
-                ctx.strokeStyle = isSel('mito') ? '#ef4444' : 'rgba(239,68,68,0.5)';
-                ctx.lineWidth = 1.5; ctx.stroke();
-                // Inner folds
-                ctx.beginPath();
-                for(let f=0;f<3;f++) {
-                    const fx = px - CR*0.05 + f*CR*0.04;
-                    ctx.moveTo(fx, py-CR*0.03); ctx.lineTo(fx+CR*0.01, py+CR*0.02);
+            add('golgi', (ctx, isSel, isHov, t) => {
+                const gx = cellMode === 'animal' ? CX - CR*0.5 : CX + CR*0.5;
+                const gy = cellMode === 'animal' ? CY + CR*0.3 : CY + CR*0.5;
+                const float = Math.sin(t*3)*2;
+                ctx.strokeStyle = isSel||isHov ? '#fdba74' : '#ea580c';
+                ctx.lineWidth = Math.max(4, CR*0.04); ctx.lineCap='round';
+                for(let i=0; i<4; i++) {
+                    ctx.beginPath();
+                    ctx.arc(gx, gy + i*12 + float, CR*0.15 - i*5, Math.PI*0.8, Math.PI*2.2);
+                    ctx.stroke();
                 }
-                ctx.stroke();
+                // Vesicles
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.beginPath(); ctx.arc(gx - 20, gy - 10 + float, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(gx + 25, gy + 15 + float, 4, 0, Math.PI*2); ctx.fill();
+            }, (x,y) => {
+                const gx = cellMode === 'animal' ? CX - CR*0.5 : CX + CR*0.5;
+                const gy = cellMode === 'animal' ? CY + CR*0.3 : CY + CR*0.5;
+                return Math.hypot(x-gx, y-gy) < 40;
             });
 
-            // Chloroplasts (plant)
-            if(isPlant) {
-                [[0.25,-0.2],[-0.2,0.3]].forEach(([cx2,cy2]) => {
-                    const px = CX+cx2*CR, py = CY+cy2*CR;
-                    ctx.beginPath(); ctx.ellipse(px, py, CR*0.09, CR*0.05, cx2*2, 0, Math.PI*2);
-                    ctx.fillStyle = isSel('chloroplast') ? 'rgba(22,163,106,0.7)' : 'rgba(22,163,106,0.3)';
-                    ctx.fill();
-                    ctx.strokeStyle = isSel('chloroplast') ? '#16a34a' : 'rgba(22,163,106,0.5)';
-                    ctx.lineWidth = 1.5; ctx.stroke();
-                    // Grana stacks
-                    for(let g=0;g<3;g++) {
-                        ctx.fillStyle = 'rgba(22,163,106,0.3)';
-                        ctx.fillRect(px-8+g*6, py-3, 4, 6);
+            // Mitochondria
+            const mitos = cellMode === 'animal' ? [{x:CX+CR*0.4, y:CY-CR*0.3, a:0.5}, {x:CX-CR*0.3, y:CY+CR*0.6, a:-0.2}] : [{x:CX-CR*0.6, y:CY+CR*0.4, a:0.8}];
+            add('mitochondria', (ctx, isSel, isHov, t) => {
+                mitos.forEach(m => {
+                    ctx.save(); ctx.translate(m.x, m.y + Math.sin(t*2+m.x)*3); ctx.rotate(m.a);
+                    ctx.fillStyle = isSel||isHov ? '#f87171' : '#dc2626';
+                    ctx.strokeStyle = '#7f1d1d'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.ellipse(0, 0, CR*0.15, CR*0.07, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Cristae
+                    ctx.strokeStyle = '#fca5a5'; ctx.lineWidth = 1.5; ctx.beginPath();
+                    for(let cx=-CR*0.1; cx<CR*0.1; cx+=8) {
+                        ctx.moveTo(cx, -CR*0.06); ctx.lineTo(cx+4, CR*0.06);
                     }
+                    ctx.stroke();
+                    ctx.restore();
                 });
-            }
+            }, (x,y) => {
+                return mitos.some(m => Math.hypot(x-m.x, y-m.y) < CR*0.15);
+            });
 
-            // Lysosome (animal)
-            if(!isPlant) {
-                const lx = CX-CR*0.3, ly = CY-CR*0.25;
-                ctx.beginPath(); ctx.arc(lx, ly, CR*0.06, 0, Math.PI*2);
-                ctx.fillStyle = isSel('lysosome') ? 'rgba(34,197,94,0.7)' : 'rgba(34,197,94,0.3)';
-                ctx.fill();
-                ctx.strokeStyle = isSel('lysosome') ? '#22c55e' : 'rgba(34,197,94,0.5)';
-                ctx.lineWidth = 1.5; ctx.stroke();
-            }
+            // Chloroplasts
+            const chloros = [{x:CX+CR*0.6, y:CY+CR*0.3, a:0}, {x:CX-CR*0.5, y:CY-CR*0.1, a:0.5}];
+            add('chloroplast', (ctx, isSel, isHov, t) => {
+                if(cellMode !== 'plant') return;
+                chloros.forEach(c => {
+                    ctx.save(); ctx.translate(c.x, c.y + Math.cos(t*2+c.x)*3); ctx.rotate(c.a);
+                    ctx.fillStyle = isSel||isHov ? '#4ade80' : '#16a34a';
+                    ctx.strokeStyle = '#14532d'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.ellipse(0, 0, CR*0.14, CR*0.08, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Thylakoids
+                    ctx.fillStyle = '#14532d';
+                    [-10, 0, 10].forEach(tx => {
+                        ctx.fillRect(tx-3, -8, 6, 16);
+                        ctx.fillStyle = '#86efac';
+                        ctx.fillRect(tx-3, -8, 6, 2); ctx.fillRect(tx-3, -2, 6, 2); ctx.fillRect(tx-3, 4, 6, 2);
+                    });
+                    ctx.restore();
+                });
+            }, (x,y) => cellMode === 'plant' && chloros.some(c => Math.hypot(x-c.x, y-c.y) < CR*0.14));
 
-            // Centriole (animal)
-            if(!isPlant) {
-                const cx2 = CX+CR*0.15, cy2 = CY-CR*0.3;
-                ctx.strokeStyle = isSel('centriole') ? '#06b6d4' : 'rgba(6,182,212,0.4)';
-                ctx.lineWidth = isSel('centriole') ? 3 : 2;
-                ctx.beginPath(); ctx.moveTo(cx2-8,cy2); ctx.lineTo(cx2+8,cy2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx2,cy2-8); ctx.lineTo(cx2,cy2+8); ctx.stroke();
-            }
+            // Lysosomes
+            const lysos = [{x:CX+CR*0.2, y:CY+CR*0.6}, {x:CX+CR*0.6, y:CY-CR*0.1}];
+            add('lysosome', (ctx, isSel, isHov, t) => {
+                if(cellMode !== 'animal') return;
+                lysos.forEach(l => {
+                    const ly = l.y + Math.sin(t*3+l.x)*4;
+                    ctx.fillStyle = isSel||isHov ? '#2dd4bf' : '#0d9488';
+                    ctx.beginPath(); ctx.arc(l.x, ly, CR*0.08, 0, Math.PI*2); ctx.fill();
+                    // Inner dots (enzymes)
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.beginPath(); ctx.arc(l.x-5, ly-3, 2, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(l.x+3, ly+5, 3, 0, Math.PI*2); ctx.fill();
+                });
+            }, (x,y) => cellMode === 'animal' && lysos.some(l => Math.hypot(x-l.x, y-l.y) < CR*0.08));
 
-            // Ribosomes (tiny dots)
-            ctx.fillStyle = isSel('ribosome') ? '#e2e8f0' : 'rgba(226,232,240,0.3)';
-            for(let i=0;i<30;i++) {
-                const rx = CX + Math.sin(i*1.3+t*0.5) * CR * 0.6;
-                const ry = CY + Math.cos(i*1.7+t*0.3) * CR * 0.5;
-                ctx.beginPath(); ctx.arc(rx, ry, 2, 0, Math.PI*2); ctx.fill();
-            }
+            // Centrioles
+            add('centrioles', (ctx, isSel, isHov, t) => {
+                if(cellMode !== 'animal') return;
+                const cx = CX - CR*0.2, cy = CY - CR*0.5;
+                ctx.save(); ctx.translate(cx, cy); ctx.rotate(t);
+                ctx.fillStyle = isSel||isHov ? '#38bdf8' : '#0284c7';
+                ctx.fillRect(-8, -15, 6, 30);
+                ctx.fillRect(2, -15, 6, 30);
+                ctx.translate(0, 0); ctx.rotate(Math.PI/2);
+                ctx.fillRect(-8, -15, 6, 30);
+                ctx.fillRect(2, -15, 6, 30);
+                ctx.restore();
+            }, (x,y) => cellMode === 'animal' && Math.hypot(x-(CX-CR*0.2), y-(CY-CR*0.5)) < 25);
+            
+        }
 
-            // Nucleus
-            ctx.beginPath(); ctx.arc(CX, CY, CR*0.22, 0, Math.PI*2);
-            ctx.fillStyle = isSel('nucleus') ? 'rgba(124,58,237,0.5)' : 'rgba(124,58,237,0.2)';
-            ctx.fill();
-            ctx.strokeStyle = isSel('nucleus') ? '#7c3aed' : 'rgba(124,58,237,0.5)';
-            ctx.lineWidth = isSel('nucleus') ? 4 : 2; ctx.stroke();
-            if(isSel('nucleus')) { ctx.shadowColor='#7c3aed'; ctx.shadowBlur=20; ctx.stroke(); ctx.shadowBlur=0; }
-            // DNA strands
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-            for(let i=0;i<3;i++) {
-                ctx.beginPath();
-                for(let x = -CR*0.15; x < CR*0.15; x+=3) {
-                    ctx.lineTo(CX+x, CY+i*8-8+Math.sin(x*0.2+t*2)*3);
+        function draw() {
+            time += 0.02;
+            ctx.clearRect(0, 0, W, H);
+            
+            // Draw order needs to be reversed from generic so we draw background first
+            // drawObjects were added background first, so we just iterate normally.
+            
+            // Draw items
+            drawObjects.forEach(obj => {
+                const isSel = selected === obj.id;
+                const isHov = hovered === obj.id;
+                
+                if (isSel) {
+                    ctx.shadowColor = data[obj.id].color;
+                    ctx.shadowBlur = 20;
+                } else if (isHov) {
+                    ctx.shadowColor = 'rgba(255,255,255,0.5)';
+                    ctx.shadowBlur = 10;
                 }
-                ctx.stroke();
-            }
 
-            // Labels for visible organelles
-            ctx.font = `${Math.max(9,W*0.015)}px 'Noto Sans Georgian'`;
-            ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.fillText('ბირთვი', CX, CY + CR*0.28);
+                obj.draw(ctx, isSel, isHov, time);
+                ctx.shadowBlur = 0;
+            });
 
             requestAnimationFrame(draw);
         }
-        buildList();
-        draw();
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) / rect.width * W;
+            const mouseY = (e.clientY - rect.top) / rect.height * H;
+            
+            let found = null;
+            // Iterate backwards to hit top-most elements first
+            for(let i = drawObjects.length-1; i>=0; i--) {
+                if(drawObjects[i].bounds(mouseX, mouseY)) {
+                    found = drawObjects[i].id;
+                    break;
+                }
+            }
+            
+            if (found !== hovered) {
+                hovered = found;
+                if(hovered) canvas.style.cursor = 'pointer';
+                else canvas.style.cursor = 'crosshair';
+                
+                // Keep list highlight synced with canvas hover
+                getVisible().forEach(k => {
+                    const btn = document.getElementById('btn-' + k);
+                    if(btn) btn.style.transform = (k === hovered && k!==selected) ? 'translateX(5px)' : 'none';
+                });
+            }
+        });
+
+        canvas.addEventListener('click', e => {
+            if (hovered) {
+                selectOrg(hovered);
+            }
+        });
+
+        setTimeout(() => { setMode('animal'); buildLayout(); draw(); }, 100);
+
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,149 +7,426 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1050px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-        .sim-area { background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 550px; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .organ-btn { padding: 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-        .organ-btn:hover { background: #334155; }
-        .organ-btn.active { background: linear-gradient(135deg, #ef4444, #ec4899); border-color: #ef4444; }
-        .organ-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .info-box { background: #0f172a; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); max-height: 200px; overflow-y: auto; }
-        .info-box h4 { color: #f8fafc; margin-bottom: 5px; }
-        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #ef4444; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 550px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: crosshair; background-image: radial-gradient(#1e293b, #0b1120);
+        }
+        
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .toolbar { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 10px; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 12px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
+        .sys-btn { background: #1e293b; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: 0.2s; font-size: 1rem; font-family: inherit; }
+        .sys-btn:hover { background: #334155; transform: translateY(-2px); }
+        .sys-btn.active { color: white; background: #ec4899; border-color: #ec4899; box-shadow: 0 4px 10px rgba(236, 72, 153, 0.4); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 550px; overflow-y: auto; }
+        
+        .xray-slider { display: flex; flex-direction: column; gap: 10px; background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .xray-slider label { font-size: 0.8rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between;}
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 6px; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: #334155; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #38bdf8; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+
+        .info-box { background: #0b1120; padding: 15px; border-radius: 10px; border-left: 4px solid #334155; margin-top: 5px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; min-height: 200px; transition: 0.3s; }
+        .info-box h3 { font-size: 1.2rem; color: #f8fafc; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
+        .info-box .stat { display: inline-block; background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #eab308; margin-bottom: 10px; font-family: monospace; }
+        
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #ef4444; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
+
+        .pulse-icon { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
-    <h1>🫀 ადამიანის ანატომია</h1>
-    <p class="subtitle">დააკლიკე ორგანოებს მათი ფუნქციების გასაცნობად</p>
+    <h1>🫀 ვირტუალური ანატომია</h1>
+    <p class="subtitle">შეისწავლე ადამიანის სხეულის სისტემები: ჩართე რენტგენი და დააკლიკე ორგანოებს</p>
+
     <div class="container">
-        <div class="sim-area"><canvas id="canvas"></canvas></div>
-        <div class="panel">
-            <div style="font-weight:bold; color:#ec4899; margin-bottom:5px;">ორგანოები</div>
-            <div id="organ-list"></div>
-            <div class="info-box" id="info-box"><h4>აირჩიე ორგანო</h4>დააკლიკე სხეულზე ან აირჩიე სიიდან.</div>
+        <div class="sim-area">
+            <div class="toolbar">
+                <button class="sys-btn active" id="btn-cir" onclick="setSystem('circulatory')" title="გულ-სისხლძარღვთა">🫀</button>
+                <button class="sys-btn" id="btn-res" onclick="setSystem('respiratory')" title="სასუნთქი">🫁</button>
+                <button class="sys-btn" id="btn-dig" onclick="setSystem('digestive')" title="მომნელებელი">🍎</button>
+                <button class="sys-btn" id="btn-ner" onclick="setSystem('nervous')" title="ნერვული">🧠</button>
+                <button class="sys-btn" id="btn-ske" onclick="setSystem('skeletal')" title="ჩონჩხი">🦴</button>
+            </div>
+            <canvas id="canvas"></canvas>
         </div>
+
+        <div class="panel">
+            <div class="xray-slider">
+                <label><span>შიშველი კანი / რენტგენი</span> <span id="xray-pct" style="color:#38bdf8;">80%</span></label>
+                <input type="range" id="xray" min="0" max="100" value="80" oninput="updateXray()">
+            </div>
+
+            <div class="info-box" id="infoBox">
+                <h3><span class="pulse-icon">👆</span> აირჩიეთ ორგანო</h3>
+                <div class="stat">სტატუსი: მოლოდინი</div>
+                <p>დააკლიკეთ სხეულზე გამოჩენილ ნებისმიერ ორგანოს ან სტრუქტურას, რათა გაიგოთ მისი დანიშნულება, ანატომიური მონაცემები და მახასიათებლები.</p>
+            </div>
+        </div>
+
         <div class="info-panel">
-            <strong>🔬 ანატომია:</strong> შეისწავლის ადამიანის სხეულის აგებულებას. ორგანოთა სისტემები ერთმანეთთან კოორდინირებულად მუშაობენ სხეულის სიცოცხლისუნარიანობის შესანარჩუნებლად.
+            <strong>🔬 ადამიანის ანატომია:</strong> ჩვენი სხეული არის უაღრესად რთული და კოორდინირებული მანქანა, რომელიც დაყოფილია <strong>სისტემებად</strong>.<br>
+            • <strong>გულ-სისხლძარღვთა:</strong> ჟანგბადისა და საკვები ნივთიერებების ტრანსპორტი.<br>
+            • <strong>სასუნთქი:</strong> გაზთა ცვლა (ჟანგბადის მიღება, ნახშირორჟანგის გამოყოფა).<br>
+            • <strong>მომნელებელი:</strong> საკვების ქიმიური დაშლა და ენერგიის ათვისება.<br>
+            • <strong>ნერვული:</strong> ინფორმაციის გადამუშავება და კონტროლი გადაცემული ელექტრული იმპულსების მეშვეობით.<br>
+            • <strong>ჩონჩხი:</strong> საყრდენ-მამოძრავებელი აპარატი და შიდა ორგანოების დამცავი შიტი.
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const simArea = canvas.parentElement;
-        let W, H;
-        function resize() { canvas.width = simArea.offsetWidth * devicePixelRatio; canvas.height = simArea.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = simArea.offsetWidth; H = simArea.offsetHeight; draw(); }
+        let W, H, CX, CY, SCALE;
+
+        let activeSys = 'circulatory';
+        let xrayOpacity = 0.8; // 0 is full skin, 1 is totally invisible skin (max skeleton/organs)
+        
+        let hoveredItem = null;
+        let selectedItem = null;
+        let time = 0;
+
+        // Definition of specific organs within systems
+        const organData = {
+            'heart': { name:'გული', emoji:'❤️', color:'#ef4444', sys:'circulatory', stat:'100,000 დაცემა/დღეში', desc:'კუნთოვანი ოთხკამერიანი ორგანო (2 წინაგული, 2 პარკუჭი), რომელიც ტუმბავს სისხლს. მარჯვენა მხარე გზავნის დეოქსიგენირებულ სისხლს ფილტვებში, მარცხენა გზავნის ჟანგბადით მდიდარ სისხლს მთელ სხეულში.' },
+            'veins': { name:'ვენები და არტერიები', emoji:'🩸', color:'#3b82f6', sys:'circulatory', stat:'~100,000 კმ ძარღვები', desc:'არტერიებს (წითელი) გადააქვთ სისხლი გულიდან ორგანოებისკენ (მაღალი წნევით), ხოლო ვენებს (ლურჯი) უბრუნდებათ უკან.' },
+            
+            'lungs': { name:'ფილტვები', emoji:'🫁', color:'#38bdf8', sys:'respiratory', stat:'~20 სუნთქვა/წუთში', desc:'წყვილადი ორგანო გულმკერდში. აქ ხდება გაზთა ცვლა ალვეოლების დონეზე - ჟანგბადი გადადის სისხლში, ხოლო ნახშირორჟანგი გამოიყოფა გარეთ.' },
+            'trachea': { name:'ტრაქეა', emoji:'🌬️', color:'#94a3b8', sys:'respiratory', stat:'სიგრძე: 10-12 სმ', desc:'სასულე, ხრტილოვანი მილი, რომელიც აკავშირებს ხორხს ბრონქებთან. უზრუნველყოფს ფილტვებში ჰაერის თავისუფალ მოძრაობას.' },
+            
+            'brain': { name:'ტვინი', emoji:'🧠', color:'#c084fc', sys:'nervous', stat:'~86 მილიარდი ნეირონი', desc:'ცენტრალური ნერვული სისტემის მთავარი ორგანო. აკონტროლებს მეხსიერებას, ემოციებს, მოტორიკას, მხედველობას, სუნთქვასა და სხეულის ყველა სასიცოცხლო ფუნქციას.' },
+            'spinal': { name:'ზურგის ტვინი', emoji:'⚡', color:'#fde047', sys:'nervous', stat:'ინფორმაციის მაგისტრალი', desc:'ხერხემლის არხში მოთავსებული ნერვული ღერო. წარმოადგენს დამაკავშირებელ ხიდს თავის ტვინსა და პერიფერიულ ნერვებს შორის და პასუხისმგებელია ბევრ რეფლექსზე.' },
+            
+            'stomach': { name:'კუჭი', emoji:'🥟', color:'#f97316', sys:'digestive', stat:'მოცულობა: 1-1.5 ლიტრი', desc:'კუნთოვანი ტომარა, სადაც საკვები იკრიბება და მუშავდება მარილმჟავით (HCl) და პეპსინით (ფერმენტით). აქვს ექსტრემალურად დაბალი pH (1.5 - 3.5).' },
+            'liver': { name:'ღვიძლი', emoji:'🟤', color:'#92400e', sys:'digestive', stat:'წონა: ~1.5 კგ', desc:'უმსხვილესი შინაგანი ორგანო. ასრულებს 500-ზე მეტ ფუნქციას: ფილტრავს სისხლს, ასინთეზებს ნაღველს (ცხიმების მონელებისთვის), ანეიტრალებს ტოქსინებს და რეგულირებს შაქარს.' },
+            'intestines': { name:'ნაწლავები', emoji:'🌀', color:'#ec4899', sys:'digestive', stat:'წვრილი: 6მ, მსხვილი: 1.5მ', desc:'წვრილ ნაწლავში ხდება საკვები ნივთიერებების უმეტესობის მონელება და სისხლში შეწოვა. მსხვილ ნაწლავში შეიწოვება წყალი და ფორმირდება ნარჩენები.' },
+            
+            'skull': { name:'თავის ქალა', emoji:'💀', color:'#f8fafc', sys:'skeletal', stat:'შედგება 22 ძვლისგან', desc:'მყარი ძვლოვანი კოლოფი, რომელიც იცავს ტვინს მექანიკური დაზიანებისგან და აფორმირებს სახის სტრუქტურას. ქვედა ყბის გარდა ყველა ძვალი უძრავადაა შეერთებული.' },
+            'ribs': { name:'ნეკნები', emoji:'🦴', color:'#e2e8f0', sys:'skeletal', stat:'12 წყვილი ნეკნი', desc:'ქმნიან გულმკერდის ყუთს. იცავენ სასიცოცხლო ორგანოებს (გული, ფილტვები) და მონაწილეობენ სუნთქვის პროცესში, აფართოებენ რა გულმკერდის ღრუს.' },
+            'pelvis': { name:'მენჯი', emoji:'🩻', color:'#cbd5e1', sys:'skeletal', stat:'საყრდენი ბაზა', desc:'რგოლისებური ძვლოვანი ამოკვეთა, რომელიც აკავშირებს ხერხემალს ქვედა კიდურებთან. იცავს რეპროდუქციულ ორგანოებს და შარდის ბუშტს.' }
+        };
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+            CX = W/2; CY = H/2;
+            SCALE = Math.min(W, H) * 0.8;
+        }
         resize(); window.addEventListener('resize', resize);
 
-        const organs = [
-            { id:'brain', name:'ტვინი', color:'#a78bfa', x:0.5, y:0.08, w:0.12, h:0.06, emoji:'🧠',
-              info:'ცენტრალური ნერვული სისტემის ორგანო. აკონტროლებს ყველა სხეულისეულ ფუნქციას: მოძრაობას, აზროვნებას, მეხსიერებას, ემოციებს. შეიცავს ~86 მილიარდ ნეირონს.' },
-            { id:'lungs', name:'ფილტვები', color:'#60a5fa', x:0.5, y:0.27, w:0.22, h:0.12, emoji:'🫁',
-              info:'სუნთქვის ორგანო. ჰაერიდან ჟანგბადს გადასცემს სისხლს, ხოლო ნახშირორჟანგს გარეთ გამოყოფს. საშუალოდ 12-20 სუნთქვა/წთ.' },
-            { id:'heart', name:'გული', color:'#f43f5e', x:0.45, y:0.30, w:0.08, h:0.08, emoji:'❤️',
-              info:'კუნოვანი ორგანო, რომელიც სისხლს მთელ სხეულში ავრცელებს. ცემს საშუალოდ 100,000-ჯერ დღეში. აქვს 4 პალატა (2 წინაგული + 2 პარკუჭი).' },
-            { id:'liver', name:'ღვიძლი', color:'#b45309', x:0.42, y:0.40, w:0.14, h:0.07, emoji:'🟤',
-              info:'ყველაზე დიდი შიდა ორგანო (~1.5 კგ). ფილტრავს სისხლს, გამოყოფს ნაღველს, ინახავს გლიკოგენს, ანეიტრალებს ტოქსინებს.' },
-            { id:'stomach', name:'კუჭი', color:'#f97316', x:0.52, y:0.42, w:0.10, h:0.08, emoji:'🟠',
-              info:'საჭმლის მომნელებელი ორგანო. მარილმჟავა (HCl) და ფერმენტები საკვებს შლის. pH ≈ 1.5-3.5. ტევადობა ~1 ლიტრი.' },
-            { id:'kidneys', name:'თირკმელები', color:'#dc2626', x:0.5, y:0.50, w:0.18, h:0.06, emoji:'🫘',
-              info:'ფილტრავს სისხლს, გამოყოფს შარდს (1.5-2L/დღე). არეგულირებს წყლის ბალანსს, ელექტროლიტებს და არტერიულ წნევას.' },
-            { id:'intestines', name:'ნაწლავები', color:'#ec4899', x:0.5, y:0.58, w:0.16, h:0.10, emoji:'🌀',
-              info:'წვრილი ნაწლავი (~6მ) — საკვები ნივთიერებების შეწოვა. მსხვილი ნაწლავი (~1.5მ) — წყლის შეწოვა, ნარჩენების ფორმირება.' },
-            { id:'bones', name:'ჩონჩხი', color:'#e2e8f0', x:0.5, y:0.75, w:0.14, h:0.15, emoji:'🦴',
-              info:'206 ძვლისგან შედგება. იცავს ორგანოებს, უზრუნველყოფს მოძრაობას, წარმოქმნის სისხლის უჯრედებს (ძვლის ტვინში).' },
-        ];
-
-        let selectedOrgan = null;
-
-        // Build button list
-        const listEl = document.getElementById('organ-list');
-        organs.forEach(o => {
-            const btn = document.createElement('button');
-            btn.className = 'organ-btn';
-            btn.id = 'btn-' + o.id;
-            btn.innerHTML = `<span class="organ-dot" style="background:${o.color}"></span>${o.emoji} ${o.name}`;
-            btn.onclick = () => selectOrgan(o.id);
-            listEl.appendChild(btn);
-        });
-
-        function selectOrgan(id) {
-            selectedOrgan = id;
-            document.querySelectorAll('.organ-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('btn-' + id);
-            if(btn) btn.classList.add('active');
-            const o = organs.find(x => x.id === id);
-            if(o) document.getElementById('info-box').innerHTML = `<h4>${o.emoji} ${o.name}</h4>${o.info}`;
-            draw();
+        function updateXray() {
+            let val = document.getElementById('xray').value;
+            xrayOpacity = val / 100;
+            document.getElementById('xray-pct').innerText = val + '%';
         }
 
-        canvas.addEventListener('click', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = (e.clientX - rect.left) / rect.width;
-            const my = (e.clientY - rect.top) / rect.height;
-            for(const o of organs) {
-                if(mx > o.x - o.w/2 && mx < o.x + o.w/2 && my > o.y - o.h/2 && my < o.y + o.h/2) {
-                    selectOrgan(o.id); return;
-                }
+        function setSystem(sys) {
+            activeSys = sys;
+            document.querySelectorAll('.sys-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + sys.substring(0,3)).classList.add('active');
+            selectedItem = null;
+            updateInfoPanel();
+        }
+
+        function updateInfoPanel() {
+            const panel = document.getElementById('infoBox');
+            if(!selectedItem) {
+                panel.style.borderLeftColor = '#334155';
+                panel.innerHTML = `<h3><span class="pulse-icon">👆</span> აირჩიეთ ორგანო</h3><div class="stat">სტატუსი: მოლოდინი</div><p>დააკლიკეთ სხეულზე გამოჩენილ ნებისმიერ ორგანოს ან სტრუქტურას მის შესასწავლად.</p>`;
+                return;
             }
+            const info = organData[selectedItem];
+            panel.style.borderLeftColor = info.color;
+            panel.innerHTML = `
+                <h3 style="color:${info.color}">${info.emoji} ${info.name}</h3>
+                <div class="stat">📌 მონაცემი: ${info.stat}</div>
+                <p>${info.desc}</p>
+            `;
+        }
+
+        // --- DRAWING HELPER FUNCTIONS ---
+        // Draws organic shapes using Beziers scaled to CX, CY, SCALE
+        const bodySilhoutte = () => {
+            const s = SCALE * 0.6; // Scale of the body
+            const ty = CY - s*0.65; // top y
+            
+            // Generate full body
+            ctx.beginPath();
+            ctx.ellipse(CX, ty + s*0.1, s*0.15, s*0.2, 0, 0, Math.PI*2); // Head
+            
+            // Neck/Shoulders/Arms/Torso using custom path
+            ctx.moveTo(CX - s*0.08, ty + s*0.25);
+            ctx.quadraticCurveTo(CX - s*0.3, ty + s*0.25, CX - s*0.3, ty + s*0.4); // Left shoulder
+            ctx.lineTo(CX - s*0.35, ty + s*0.9); // Left Arm top
+            ctx.lineTo(CX - s*0.25, ty + s*0.9); // Left Arm inner
+            ctx.lineTo(CX - s*0.2, ty + s*0.5); // Armpit Left
+            ctx.lineTo(CX - s*0.18, ty + s*0.9); // Torso Left
+            ctx.lineTo(CX - s*0.22, ty + s*1.4); // Leg left out
+            ctx.lineTo(CX - s*0.1, ty + s*1.4); // Leg left in
+            ctx.lineTo(CX, ty + s*1.0); // Crotch
+            ctx.lineTo(CX + s*0.1, ty + s*1.4); // Leg right in
+            ctx.lineTo(CX + s*0.22, ty + s*1.4); // Leg right out
+            ctx.lineTo(CX + s*0.18, ty + s*0.9); // Torso Right
+            ctx.lineTo(CX + s*0.2, ty + s*0.5); // Armpit right
+            ctx.lineTo(CX + s*0.25, ty + s*0.9); // Right arm inner
+            ctx.lineTo(CX + s*0.35, ty + s*0.9); // Right arm top
+            ctx.quadraticCurveTo(CX + s*0.3, ty + s*0.25, CX + s*0.08, ty + s*0.25); // Right shoulder
+            ctx.closePath();
+        };
+
+        const objects = [];
+
+        function registerObj(id, sys, zIndex, drawFn, boundsFn) {
+            objects.push({id, sys, zIndex, drawFn, boundsFn});
+        }
+
+        // -- REGISTRATION OF ORGANS --
+        // Skeletal
+        registerObj('skull', 'skeletal', 1, (ctx, y, s, isSel, isHov) => {
+            ctx.fillStyle = isSel||isHov ? '#fff' : '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.arc(CX, y+s*0.1, s*0.13, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            // Eyes
+            ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.ellipse(CX-s*0.05, y+s*0.12, s*0.03, s*0.02, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(CX+s*0.05, y+s*0.12, s*0.03, s*0.02, 0, 0, Math.PI*2); ctx.fill();
+            // Nose/mouth
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.16); ctx.lineTo(CX-s*0.01, y+s*0.2); ctx.lineTo(CX+s*0.01, y+s*0.2); ctx.fill();
+        }, (x, y, oy, s) => Math.hypot(x-CX, y-(oy+s*0.1)) < s*0.13);
+
+        registerObj('ribs', 'skeletal', 2, (ctx, y, s, isSel, isHov) => {
+            ctx.strokeStyle = isSel||isHov ? '#f8fafc' : '#cbd5e1'; ctx.lineWidth = s*0.02; ctx.lineCap='round';
+            ctx.beginPath();
+            ctx.moveTo(CX, y+s*0.3); ctx.lineTo(CX, y+s*0.6); // Sternum
+            ctx.stroke();
+            // Rib lines
+            ctx.lineWidth = s*0.015;
+            for(let i=0; i<6; i++) {
+                let ry = y+s*0.35 + i*s*0.05;
+                let rw = s*0.15 - Math.abs(i-3)*s*0.01;
+                ctx.beginPath(); ctx.moveTo(CX, ry); ctx.quadraticCurveTo(CX-rw, ry-s*0.02, CX-rw*1.2, ry+s*0.02); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(CX, ry); ctx.quadraticCurveTo(CX+rw, ry-s*0.02, CX+rw*1.2, ry+s*0.02); ctx.stroke();
+            }
+        }, (x, y, oy, s) => Math.abs(x-CX) < s*0.2 && y > oy+s*0.3 && y < oy+s*0.65);
+
+        registerObj('pelvis', 'skeletal', 1, (ctx, y, s, isSel, isHov) => {
+            ctx.fillStyle = isSel||isHov ? '#fff' : '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth=2;
+            ctx.beginPath();
+            ctx.ellipse(CX-s*0.08, y+s*0.8, s*0.08, s*0.06, 0.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(CX+s*0.08, y+s*0.8, s*0.08, s*0.06, -0.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.fillRect(CX-s*0.02, y+s*0.75, s*0.04, s*0.1);
+        }, (x, y, oy, s) => Math.abs(x-CX) < s*0.18 && y > oy+s*0.7 && y < oy+s*0.9);
+
+        // Respiratory
+        registerObj('trachea', 'respiratory', 2, (ctx, y, s, isSel, isHov) => {
+            ctx.strokeStyle = isSel||isHov ? '#e2e8f0' : '#94a3b8'; ctx.lineWidth = s*0.02;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.25); ctx.lineTo(CX, y+s*0.4); ctx.stroke();
+            // Bronchi
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.38); ctx.lineTo(CX-s*0.08, y+s*0.45); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.38); ctx.lineTo(CX+s*0.08, y+s*0.45); ctx.stroke();
+            ctx.setLineDash([]);
+        }, (x, y, oy, s) => Math.abs(x-CX) < s*0.05 && y > oy+s*0.25 && y < oy+s*0.4);
+
+        registerObj('lungs', 'respiratory', 1, (ctx, y, s, isSel, isHov) => {
+            let breath = Math.sin(time*2) * s*0.005; // Breathing animation
+            ctx.fillStyle = isSel||isHov ? '#7dd3fc' : '#38bdf8';
+            // Left lung
+            ctx.beginPath(); ctx.ellipse(CX-s*0.08 - breath, y+s*0.48, s*0.07 + breath, s*0.13 + breath*2, -0.2, 0, Math.PI*2); ctx.fill();
+            // Right lung
+            ctx.beginPath(); ctx.ellipse(CX+s*0.08 + breath, y+s*0.48, s*0.07 + breath, s*0.13 + breath*2, 0.2, 0, Math.PI*2); ctx.fill();
+        }, (x, y, oy, s) => Math.abs(x-CX) > s*0.02 && Math.abs(x-CX) < s*0.18 && y > oy+s*0.35 && y < oy+s*0.6);
+
+        // Digestive
+        registerObj('liver', 'digestive', 2, (ctx, y, s, isSel, isHov) => {
+            ctx.fillStyle = isSel||isHov ? '#d97706' : '#92400e';
+            ctx.beginPath();
+            ctx.moveTo(CX, y+s*0.45);
+            ctx.quadraticCurveTo(CX-s*0.15, y+s*0.45, CX-s*0.15, y+s*0.55);
+            ctx.quadraticCurveTo(CX, y+s*0.6, CX+s*0.05, y+s*0.55);
+            ctx.lineTo(CX+s*0.1, y+s*0.5); ctx.fill();
+        }, (x, y, oy, s) => x > CX-s*0.15 && x < CX && y > oy+s*0.45 && y < oy+s*0.6);
+
+        registerObj('stomach', 'digestive', 3, (ctx, y, s, isSel, isHov) => {
+            ctx.fillStyle = isSel||isHov ? '#fb923c' : '#ea580c';
+            ctx.beginPath(); ctx.ellipse(CX+s*0.06, y+s*0.55, s*0.06, s*0.04, 0.4, 0, Math.PI*2); ctx.fill();
+        }, (x, y, oy, s) => x > CX && x < CX+s*0.12 && y > oy+s*0.5 && y < oy+s*0.6);
+
+        registerObj('intestines', 'digestive', 1, (ctx, y, s, isSel, isHov) => {
+            // Large intestine frame
+            ctx.strokeStyle = isSel||isHov ? '#f472b6' : '#db2777'; ctx.lineWidth = s*0.04; ctx.lineCap='round'; ctx.lineJoin='round';
+            ctx.beginPath(); ctx.moveTo(CX-s*0.1, y+s*0.75); ctx.lineTo(CX-s*0.1, y+s*0.65); ctx.lineTo(CX+s*0.1, y+s*0.65); ctx.lineTo(CX+s*0.1, y+s*0.75); ctx.stroke();
+            // Small intestine mass
+            ctx.fillStyle = isSel||isHov ? '#fbcfe8' : '#ec4899';
+            ctx.beginPath(); ctx.ellipse(CX, y+s*0.7, s*0.08, s*0.06, 0, 0, Math.PI*2); ctx.fill();
+        }, (x, y, oy, s) => Math.abs(x-CX) < s*0.15 && y > oy+s*0.6 && y < oy+s*0.8);
+
+        // Circulatory
+        let particles = [];
+        registerObj('veins', 'circulatory', 1, (ctx, y, s, isSel, isHov) => {
+            ctx.lineWidth = s*0.015;
+            // Arteries (Red)
+            ctx.strokeStyle = '#ef4444';
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.35); ctx.lineTo(CX, y+s*0.8); // Aorta down
+            ctx.moveTo(CX, y+s*0.35); ctx.lineTo(CX-s*0.2, y+s*0.5); // Left arm
+            ctx.moveTo(CX, y+s*0.35); ctx.lineTo(CX+s*0.2, y+s*0.5); // Right arm
+            ctx.moveTo(CX, y+s*0.8); ctx.lineTo(CX-s*0.1, y+s*1.2); // Left leg
+            ctx.moveTo(CX, y+s*0.8); ctx.lineTo(CX+s*0.1, y+s*1.2); // Right leg
+            ctx.stroke();
+
+            // Veins (Blue)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.beginPath(); ctx.moveTo(CX+5, y+s*0.35); ctx.lineTo(CX+5, y+s*0.8);
+            ctx.moveTo(CX+5, y+s*0.35); ctx.lineTo(CX-s*0.18, y+s*0.5);
+            ctx.moveTo(CX+5, y+s*0.35); ctx.lineTo(CX+s*0.22, y+s*0.5);
+            ctx.moveTo(CX+5, y+s*0.8); ctx.lineTo(CX-s*0.08, y+s*1.2);
+            ctx.moveTo(CX+5, y+s*0.8); ctx.lineTo(CX+s*0.12, y+s*1.2);
+            ctx.stroke();
+        }, (x, y, oy, s) => {
+            // Broad bounding box for veins
+            return (Math.abs(x-CX) < s*0.3 && y > oy+s*0.35 && y < oy+s*1.2);
         });
 
+        registerObj('heart', 'circulatory', 2, (ctx, y, s, isSel, isHov) => {
+            let beat = Math.sin(time*10) > 0.5 ? 1.1 : 1.0; // Heartbeat
+            ctx.save(); ctx.translate(CX, y+s*0.4); ctx.scale(beat, beat);
+            ctx.fillStyle = isSel||isHov ? '#f87171' : '#dc2626';
+            ctx.shadowColor = '#dc2626'; ctx.shadowBlur = 10*beat;
+            // Heart shape
+            ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-s*0.06, -s*0.06, -s*0.1, s*0.04, 0, s*0.08); ctx.bezierCurveTo(s*0.1, s*0.04, s*0.06, -s*0.06, 0, 0); ctx.fill();
+            ctx.restore();
+        }, (x, y, oy, s) => Math.hypot(x-CX, y-(oy+s*0.4)) < s*0.06);
+
+        // Nervous
+        registerObj('brain', 'nervous', 2, (ctx, y, s, isSel, isHov) => {
+            // Electrical sparks
+            let elec = Math.sin(time*15)*s*0.01;
+            ctx.fillStyle = isSel||isHov ? '#d8b4fe' : '#a855f7';
+            ctx.shadowColor = '#a855f7'; ctx.shadowBlur = Math.max(0, elec*150);
+            ctx.beginPath(); ctx.ellipse(CX, y+s*0.09, s*0.08, s*0.06, 0, 0, Math.PI*2); ctx.fill();
+            // Cerebellum
+            ctx.beginPath(); ctx.arc(CX, y+s*0.15, s*0.03, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            // Folds
+            ctx.strokeStyle = '#7e22ce'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(CX, y+s*0.09, s*0.05, Math.PI, 0); ctx.stroke();
+        }, (x, y, oy, s) => Math.hypot(x-CX, y-(oy+s*0.1)) < s*0.08);
+
+        registerObj('spinal', 'nervous', 1, (ctx, y, s, isSel, isHov) => {
+            ctx.strokeStyle = isSel||isHov ? '#fef08a' : '#eab308'; ctx.lineWidth = s*0.015;
+            ctx.beginPath(); ctx.moveTo(CX, y+s*0.16); ctx.lineTo(CX, y+s*0.75); ctx.stroke();
+            // Nerve branches
+            ctx.lineWidth = s*0.005;
+            for(let i=0; i<10; i++) {
+                let ny = y+s*0.25 + i*s*0.05;
+                ctx.beginPath(); ctx.moveTo(CX, ny); ctx.lineTo(CX-s*0.05, ny+s*0.02); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(CX, ny); ctx.lineTo(CX+s*0.05, ny+s*0.02); ctx.stroke();
+            }
+        }, (x, y, oy, s) => Math.abs(x-CX) < s*0.05 && y > oy+s*0.16 && y < oy+s*0.75);
+
+        // --- RENDER LOOP ---
         function draw() {
+            time += 0.02;
             ctx.clearRect(0,0,W,H);
-            // Body silhouette
-            ctx.fillStyle = '#1a2744';
-            ctx.beginPath();
-            ctx.ellipse(W*0.5, W*0.08, W*0.06, W*0.06, 0, 0, Math.PI*2); ctx.fill(); // Head
-            ctx.fillRect(W*0.44, H*0.13, W*0.12, H*0.05); // Neck
-            ctx.beginPath(); ctx.moveTo(W*0.32, H*0.18); ctx.lineTo(W*0.68, H*0.18); ctx.lineTo(W*0.64, H*0.55); ctx.lineTo(W*0.36, H*0.55); ctx.closePath(); ctx.fill(); // Torso
-            ctx.fillRect(W*0.38, H*0.55, W*0.10, H*0.35); // Left leg
-            ctx.fillRect(W*0.52, H*0.55, W*0.10, H*0.35); // Right leg
-            ctx.fillRect(W*0.22, H*0.18, W*0.12, H*0.25); // Left arm
-            ctx.fillRect(W*0.66, H*0.18, W*0.12, H*0.25); // Right arm
+            
+            const sysObjs = objects.filter(o => o.sys === activeSys).sort((a,b) => a.zIndex - b.zIndex);
+            
+            const s = SCALE * 0.6; 
+            const topY = CY - s*0.65; 
 
-            // Organs
-            const t = Date.now() * 0.003;
-            organs.forEach(o => {
-                const ox = o.x * W, oy = o.y * H;
-                const ow = o.w * W, oh = o.h * H;
-                const isSel = selectedOrgan === o.id;
-                const pulse = isSel ? 1 + Math.sin(t * 2) * 0.08 : 1;
+            // 1. Draw solid body/skin (Alpha based on XRay slider)
+            // xrayOpacity = 0 -> skin is fully opaque
+            // xrayOpacity = 1 -> skin is transparent (only organs)
+            let skinAlpha = 1.0 - xrayOpacity;
+            
+            if (skinAlpha > 0) {
+                ctx.fillStyle = `rgba(15, 23, 42, ${skinAlpha})`; // dark filled silhouette
+                bodySilhoutte(); ctx.fill();
+                ctx.strokeStyle = `rgba(255, 255, 255, ${skinAlpha * 0.2})`; ctx.lineWidth = 2; ctx.stroke();
+            }
 
-                ctx.save();
-                ctx.translate(ox, oy);
-                ctx.scale(pulse, pulse);
+            // 2. Base Grid / Glow for organs if fully xray
+            if (xrayOpacity > 0) {
+                ctx.fillStyle = `rgba(30, 41, 59, ${xrayOpacity * 0.3})`;
+                bodySilhoutte(); ctx.fill();
+                // Subtly outline body
+                ctx.strokeStyle = `rgba(56, 189, 248, ${xrayOpacity * 0.3})`; ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+            }
 
-                // Glow
-                if(isSel) {
-                    ctx.shadowColor = o.color; ctx.shadowBlur = 20;
-                }
-                ctx.fillStyle = o.color + (isSel ? 'cc' : '88');
-                ctx.beginPath();
-                ctx.ellipse(0, 0, ow/2, oh/2, 0, 0, Math.PI*2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
+            // 3. Draw active system organs
+            ctx.globalAlpha = xrayOpacity; // Scale organ visibility by xray if desired? Usually organs stay visible.
+            // Wait, if Xray is 0, organs shouldn't be visible at all unless skin is transparent.
+            // Oh, actual logic: xrayOpacity determines organ visibility!
+            ctx.globalAlpha = xrayOpacity;
 
-                // Label
-                ctx.fillStyle = '#fff';
-                ctx.font = `${isSel ? 'bold ' : ''}${Math.max(11, W*0.02)}px 'Noto Sans Georgian', sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.fillText(o.name, 0, oh/2 + 15);
-
-                ctx.restore();
+            sysObjs.forEach(o => {
+                const isSel = selectedItem === o.id;
+                const isHov = hoveredItem === o.id;
+                o.drawFn(ctx, topY, s, isSel, isHov);
             });
+
+            ctx.globalAlpha = 1.0;
 
             requestAnimationFrame(draw);
         }
-        draw();
+
+        // --- INTERACTION ---
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) / rect.width * W;
+            const my = (e.clientY - rect.top) / rect.height * H;
+            
+            let found = null;
+            const s = SCALE * 0.6;
+            const topY = CY - s*0.65;
+
+            // Only test current system objects (top z-index first)
+            const sysObjs = objects.filter(o => o.sys === activeSys).sort((a,b) => b.zIndex - a.zIndex);
+            
+            if (xrayOpacity > 0.2) { // Only clickable if visible
+                for(let o of sysObjs) {
+                    if(o.boundsFn(mx, my, topY, s)) {
+                        found = o.id;
+                        break;
+                    }
+                }
+            }
+            
+            if (found !== hoveredItem) {
+                hoveredItem = found;
+                canvas.style.cursor = hoveredItem ? 'pointer' : 'crosshair';
+            }
+        });
+
+        canvas.addEventListener('click', e => {
+            if(hoveredItem) {
+                selectedItem = hoveredItem;
+                updateInfoPanel();
+            }
+        });
+        
+        setTimeout(() => { updateXray(); setSystem('circulatory'); loop = draw(); }, 100);
+
     </script>
 </body>
 </html>

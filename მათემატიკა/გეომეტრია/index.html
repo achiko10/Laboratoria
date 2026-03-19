@@ -1,319 +1,384 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — გეომეტრია</title>
+    <title>მათემატიკა — გეომეტრია (ფართობის თავსატეხი)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 260px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 500px; cursor: crosshair; }
-        .toolbar { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; z-index: 5; }
-        .tool-btn { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.5); color: #e2e8f0; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; backdrop-filter: blur(5px); }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); }
-        .tool-btn.active { border-color: #6366f1; background: rgba(99,102,241,0.3); }
-        .grid-toggle { position: absolute; top: 10px; right: 10px; z-index: 5; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .panel h3 { font-size: 0.95rem; color: #6366f1; }
-        .result-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .result-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .result-row:last-child { border-bottom: none; }
-        .result-label { color: #94a3b8; }
-        .result-val { color: #f8fafc; font-weight: bold; font-family: 'Courier New', monospace; }
-        .shape-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .shape-btn { padding: 10px 5px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; font-family: inherit; font-size: 0.8rem; transition: 0.2s; text-align: center; }
-        .shape-btn:hover { background: #334155; }
-        .shape-btn.active { background: linear-gradient(135deg, #6366f1, #06b6d4); border-color: #6366f1; }
-        .color-row { display: flex; gap: 5px; }
-        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .color-dot.active { border-color: #fff; transform: scale(1.2); }
-        button.clear-btn { padding: 10px; background: #ef4444; border: none; border-radius: 8px; color: white; font-family: inherit; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
-        .formula-box { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #6366f1; }
-        .formula-box b { color: #a5b4fc; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; width: 100%; max-width: 1000px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .game-area {
+            background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 500px; 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex; align-items: center; justify-content: center;
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .floating-ui {
+            position: absolute; top: 15px; left: 15px; z-index: 5; background: rgba(15,23,42,0.8);
+            border: 1px solid #6366f1; padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(99,102,241,0.2);
+        }
+        .floating-ui .lvl { font-size: 0.8rem; color: #a5b4fc; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .floating-ui .target { font-size: 1.2rem; font-weight: bold; color: #fff;}
+        .target-val { color: #f43f5e; font-size: 1.5rem;}
+
+        .success-overlay {
+            position: absolute; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);
+            z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .success-overlay h2 { color: #10b981; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 15px rgba(16,185,129,0.5);}
+        .btn-large {
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 15px;
+            box-shadow: 0 0 20px rgba(16,185,129,0.4);
+        }
+        .btn-large:hover { transform: scale(1.05); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .stat-box { background: #0f172a; border-radius: 10px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .stat-title { font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold;}
+        .stat-val { font-size: 2.2rem; font-weight: bold; color: #06b6d4; transition: 0.3s; font-family: 'Courier New', monospace;}
+        
+        .stat-val.match { color: #10b981 !important; text-shadow: 0 0 15px rgba(16,185,129,0.5); transform: scale(1.1); display: inline-block;}
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #6366f1; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>📐 ინტერაქტიული გეომეტრია</h1>
-    <p class="subtitle">აირჩიე ფიგურა, დახაზე კანვასზე მაუსით, და რეალ-ტაიმში ნახე ფართობი, პერიმეტრი, კუთხეები</p>
-    <div class="app">
-        <div class="canvas-wrap">
-            <div class="toolbar">
-                <button class="tool-btn active" id="tool-rect" onclick="setTool('rect')" title="მართკუთხედი">▭</button>
-                <button class="tool-btn" id="tool-circle" onclick="setTool('circle')" title="წრე">◯</button>
-                <button class="tool-btn" id="tool-tri" onclick="setTool('tri')" title="სამკუთხედი">△</button>
-                <button class="tool-btn" id="tool-line" onclick="setTool('line')" title="მონაკვეთი / საზომი">╱</button>
-                <button class="tool-btn" id="tool-move" onclick="setTool('move')" title="გადაადგილება">✋</button>
+    <h1>📐 ფართობის თავსატეხი (Area Builder)</h1>
+    <p class="subtitle">გადააადგილე ფიგურის წერტილები ბადეზე და დაამთხვიე მისი ფართობი მოთხოვნილს!</p>
+
+    <div class="container">
+        <!-- Game Area Canvas -->
+        <div class="game-area" id="game-area">
+            <div class="floating-ui">
+                <div class="lvl" id="lvl-display">დონე 1</div>
+                <div class="target">სამიზნე ფართობი: <span class="target-val" id="target-display">12</span> <span style="font-size:0.9rem; color:#94a3b8;">ერთეული²</span></div>
             </div>
-            <label class="grid-toggle" style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:#94a3b8;cursor:pointer;"><input type="checkbox" id="grid-check" checked onchange="showGrid=this.checked"> ბადე</label>
+
+            <div class="success-overlay" id="success">
+                <h2>ზუსტია! 🎉</h2>
+                <p style="color:#e2e8f0; margin-bottom: 10px;">თქვენ წარმატებით ააწყვეთ ფიგურა.</p>
+                <button class="btn-large" onclick="nextLevel()">შემდეგი დონე ➞</button>
+            </div>
+
             <canvas id="canvas"></canvas>
         </div>
+
+        <!-- Controls / Stats Panel -->
         <div class="panel">
-            <h3>📏 გაზომვები</h3>
-            <div class="result-card" id="measurements">
-                <div style="color:#64748b; font-size:0.8rem; text-align:center; padding:15px 0;">დახაზე ფიგურა სანახავად</div>
+            <div class="stat-box">
+                <div class="stat-title">მიმდინარე ფართობი</div>
+                <!-- This value updates dynamically as vertices are dragged -->
+                <div class="stat-val" id="current-area">0.0</div>
             </div>
-            <h3>🎨 ფერი</h3>
-            <div class="color-row" id="color-row"></div>
-            <h3>📚 ფორმულები</h3>
-            <div class="formula-box" id="formula-box">
-                <b>მართკუთხედი:</b><br>
-                S = a × b<br>
-                P = 2(a + b)<br>
-                d = √(a² + b²)
+
+            <div style="background: #0f172a; padding: 12px; border-radius: 8px; font-size:0.8rem; color:#cbd5e1; line-height:1.5; border:1px solid rgba(255,255,255,0.05)">
+                <b>დახმარება:</b><br><br>
+                1. ეკრანზე ჩანს მრავალკუთხედი (პოლიგონი).<br>
+                2. დააჭირეთ და გაათრიეთ ნებისმიერი პატარა თეთრი წერტილი (წვერო).<br>
+                3. წერტილები "ეწებება" (snap) ბადის კვეთებს.<br>
+                4. მიიღეთ ზუსტად ის ფართობი, რაც მითითებულია ზედა მარცხენა კუთხეში!
             </div>
-            <button class="clear-btn" onclick="clearAll()">🗑️ გასუფთავება</button>
+
+            <button onclick="resetLevel()" style="padding:10px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer; font-family:inherit; margin-top:auto;">↺ დონის თავიდან დაწყება</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 გეომეტრიის ლოგიკა:</strong> მრავალკუთხედის ფართობი ავტომატურად ითვლება <em>შუმაკერის (Shoelace) ფორმულით</em>. ეს ფორმულა საშუალებას გვაძლევს გამოვთვალოთ ნებისმიერი არაწესიერი ფიგურის ფართობი თითოეული წვეროს კოორდინატების ცოდნით: <br>
+            <code>Area = 0.5 * |(x₁y₂ - y₁x₂) + (x₂y₃ - y₂x₃) + ... + (xₙy₁ - yₙx₁)|</code>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const wrap = canvas.parentElement;
+        const gameArea = document.getElementById('game-area');
         let W, H;
-        function resize() {
-            canvas.width = wrap.offsetWidth * devicePixelRatio;
-            canvas.height = wrap.querySelector('canvas').offsetHeight * devicePixelRatio;
-            ctx.scale(devicePixelRatio, devicePixelRatio);
-            W = wrap.offsetWidth; H = 500;
-            redraw();
-        }
-        resize(); window.addEventListener('resize', resize);
-
-        const colors = ['#6366f1','#06b6d4','#22c55e','#f59e0b','#ef4444','#ec4899','#a78bfa'];
-        let currentColor = colors[0];
-        const colorRow = document.getElementById('color-row');
-        colors.forEach((c,i) => {
-            const d = document.createElement('div');
-            d.className = 'color-dot' + (i===0?' active':'');
-            d.style.background = c;
-            d.onclick = () => { currentColor = c; document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('active')); d.classList.add('active'); redraw(); };
-            colorRow.appendChild(d);
-        });
-
-        let tool = 'rect';
-        let showGrid = true;
-        let shapes = [];
-        let drawing = false;
-        let startX, startY, curX, curY;
-        let dragIndex = -1, dragOffX, dragOffY;
-        const GRID = 20;
-
-        function snap(v) { return Math.round(v/GRID)*GRID; }
         
-        function setTool(t) {
-            tool = t;
-            document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-            document.getElementById('tool-'+t)?.classList.add('active');
-            const fb = document.getElementById('formula-box');
-            if(t==='rect') fb.innerHTML='<b>მართკუთხედი:</b><br>S = a × b<br>P = 2(a + b)<br>d = √(a² + b²)';
-            else if(t==='circle') fb.innerHTML='<b>წრე:</b><br>S = π × r²<br>C = 2π × r<br>d = 2r';
-            else if(t==='tri') fb.innerHTML='<b>სამკუთხედი:</b><br>S = ½ × a × h<br>P = a + b + c<br>ჰერონის ფორმულა: S = √(s(s-a)(s-b)(s-c))';
-            else if(t==='line') fb.innerHTML='<b>მონაკვეთი:</b><br>სიგრძე = √((x₂-x₁)² + (y₂-y₁)²)<br>შუაწერტილი = ((x₁+x₂)/2, (y₁+y₂)/2)';
+        let GRID_SIZE = 40; // Pixels per grid unit
+
+        function resize() {
+            canvas.width = gameArea.offsetWidth * devicePixelRatio;
+            canvas.height = gameArea.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = gameArea.offsetWidth; H = gameArea.offsetHeight;
+            drawLoop();
+        }
+        window.addEventListener('resize', resize);
+
+        // -- Game State --
+        let currentLevel = 1;
+        let targetArea = 0;
+        let currentArea = 0;
+        let points = [];
+        // Math coords relative to center
+        let isDragging = false;
+        let dragIdx = -1;
+        let isLevelComplete = false;
+
+        // Level Config: { numPoints: 3, target: 8, baseRadius: 2 }
+        const levels = [
+            { pts: 3, target: 4 },   // Level 1: Triangle
+            { pts: 4, target: 12 },  // Level 2: Quad
+            { pts: 4, target: 20 },
+            { pts: 5, target: 25 },
+            { pts: 5, target: 36 },
+            { pts: 6, target: 40 },
+            { pts: 8, target: 60 }
+        ];
+
+        function getLevelConfig() {
+            if (currentLevel <= levels.length) return levels[currentLevel-1];
+            // Infinite generation
+            return {
+                pts: Math.min(10, 4 + Math.floor(currentLevel/2)),
+                target: 20 + currentLevel * 10
+            };
+        }
+
+        function initLevel() {
+            isLevelComplete = false;
+            document.getElementById('success').style.display = 'none';
+            
+            const conf = getLevelConfig();
+            targetArea = conf.target;
+            points = [];
+
+            document.getElementById('lvl-display').innerText = `დონე ${currentLevel}`;
+            document.getElementById('target-display').innerText = targetArea;
+            document.getElementById('current-area').classList.remove('match');
+
+            // Generate points around center 0,0 (in grid units)
+            let radius = Math.max(1, Math.sqrt(targetArea / Math.PI)) * 0.7; // Start smaller than target
+            
+            for(let i=0; i<conf.pts; i++) {
+                let ang = (i / conf.pts) * Math.PI * 2;
+                // Add tiny jitter but lock to integer
+                let px = Math.round(Math.cos(ang) * radius);
+                let py = Math.round(Math.sin(ang) * radius);
+                points.push({gx: px, gy: py});
+            }
+
+            // Ensure no overlapping points at start
+            for(let i=0;i<points.length;i++){
+                for(let j=i+1;j<points.length;j++){
+                    if(points[i].gx === points[j].gx && points[i].gy === points[j].gy) {
+                        points[i].gx += 1;
+                    }
+                }
+            }
+            
+            calcArea();
+            drawLoop();
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            initLevel();
+        }
+
+        function resetLevel() {
+            initLevel();
+        }
+
+        // --- Math & Shoelace Formula ---
+        function calcArea() {
+            let sum = 0;
+            let n = points.length;
+            for(let i=0; i<n; i++) {
+                let p1 = points[i];
+                let p2 = points[(i+1)%n];
+                sum += (p1.gx * p2.gy) - (p1.gy * p2.gx);
+            }
+            currentArea = Math.abs(sum) / 2;
+            
+            let display = document.getElementById('current-area');
+            display.innerText = (currentArea % 1 === 0) ? currentArea.toString() : currentArea.toFixed(1);
+
+            if(currentArea === targetArea && !isLevelComplete) {
+                isLevelComplete = true;
+                display.classList.add('match');
+                // Pop overlay with tiny delay for drama
+                setTimeout(() => {
+                    document.getElementById('success').style.display = 'flex';
+                }, 300);
+            } else if (currentArea !== targetArea) {
+                isLevelComplete = false;
+                display.classList.remove('match');
+            }
+        }
+
+        // --- Coords Converter ---
+        // Converts grid coordinates (0,0 is center) to pixel coords
+        function toPx(gx, gy) {
+            return {
+                x: (W/2) + (gx * GRID_SIZE),
+                y: (H/2) - (gy * GRID_SIZE) // Cartesian, up is +
+            };
+        }
+
+        // Converts pixel coords to closest grid integer
+        function toGrid(px, py) {
+            return {
+                gx: Math.round((px - W/2) / GRID_SIZE),
+                gy: Math.round(-(py - H/2) / GRID_SIZE) // Negative because pixel Y is down
+            };
+        }
+
+        // --- Interaction ---
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let cx = e.clientX; let cy = e.clientY;
+            if(e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            return { x: (cx - rect.left) / rect.width * W, y: (cy - rect.top) / rect.height * H };
         }
 
         canvas.addEventListener('mousedown', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-
-            if(tool === 'move') {
-                for(let i=shapes.length-1; i>=0; i--) {
-                    if(hitTest(shapes[i], mx, my)) {
-                        dragIndex = i;
-                        dragOffX = mx - shapes[i].x;
-                        dragOffY = my - shapes[i].y;
-                        return;
-                    }
+            if(isLevelComplete) return;
+            const m = getMousePos(e);
+            
+            // Find if mouse is over any point
+            dragIdx = -1;
+            for(let i=0; i<points.length; i++) {
+                let pPx = toPx(points[i].gx, points[i].gy);
+                let dist = Math.sqrt((m.x - pPx.x)**2 + (m.y - pPx.y)**2);
+                if(dist < 20) { // 20px hit radius
+                    dragIdx = i;
+                    isDragging = true;
+                    break;
                 }
-                return;
             }
-
-            drawing = true;
-            startX = snap(mx); startY = snap(my);
-            curX = startX; curY = startY;
         });
 
         canvas.addEventListener('mousemove', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-
-            if(dragIndex >= 0) {
-                shapes[dragIndex].x = snap(mx - dragOffX);
-                shapes[dragIndex].y = snap(my - dragOffY);
-                redraw();
-                showMeasurements(shapes[dragIndex]);
-                return;
+            if(!isDragging || isLevelComplete || dragIdx === -1) return;
+            const m = getMousePos(e);
+            let gridPos = toGrid(m.x, m.y); // Auto-snaps to integer
+            
+            // Update only if changed
+            if(points[dragIdx].gx !== gridPos.gx || points[dragIdx].gy !== gridPos.gy) {
+                points[dragIdx].gx = gridPos.gx;
+                points[dragIdx].gy = gridPos.gy;
+                calcArea();
+                drawLoop();
             }
-            if(!drawing) return;
-            curX = snap(mx); curY = snap(my);
-            redraw();
-            // Preview
-            drawShape({type:tool, x:startX, y:startY, x2:curX, y2:curY, color:currentColor}, true);
-            showPreviewMeasurements();
         });
 
-        canvas.addEventListener('mouseup', e => {
-            if(dragIndex >= 0) { dragIndex = -1; return; }
-            if(!drawing) return;
-            drawing = false;
-            const rect = canvas.getBoundingClientRect();
-            curX = snap(e.clientX - rect.left);
-            curY = snap(e.clientY - rect.top);
-            if(Math.abs(curX-startX) > 5 || Math.abs(curY-startY) > 5) {
-                const s = {type:tool, x:startX, y:startY, x2:curX, y2:curY, color:currentColor};
-                shapes.push(s);
-                showMeasurements(s);
-            }
-            redraw();
-        });
+        window.addEventListener('mouseup', () => { isDragging = false; dragIdx = -1; });
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:e.touches[0].clientX,clientY:e.touches[0].clientY})); }, {passive:false});
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove',{clientX:e.touches[0].clientX,clientY:e.touches[0].clientY})); }, {passive:false});
+        canvas.addEventListener('touchend', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup')); }, {passive:false});
 
-        // Touch support
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
-        canvas.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
-        canvas.addEventListener('touchend', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup',{clientX:0,clientY:0})); }, {passive:false});
-
-        function hitTest(s, mx, my) {
-            const minX = Math.min(s.x, s.x2||s.x) - 10;
-            const maxX = Math.max(s.x, s.x2||s.x) + 10;
-            const minY = Math.min(s.y, s.y2||s.y) - 10;
-            const maxY = Math.max(s.y, s.y2||s.y) + 10;
-            return mx >= minX && mx <= maxX && my >= minY && my <= maxY;
-        }
-
-        function drawShape(s, isPreview) {
-            ctx.globalAlpha = isPreview ? 0.5 : 0.8;
-            ctx.strokeStyle = s.color;
-            ctx.fillStyle = s.color + '22';
-            ctx.lineWidth = 2.5;
-            ctx.setLineDash(isPreview ? [6,4] : []);
-
-            const x = Math.min(s.x, s.x2), y = Math.min(s.y, s.y2);
-            const w = Math.abs(s.x2 - s.x), h = Math.abs(s.y2 - s.y);
-
-            if(s.type === 'rect') {
-                ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
-                // Dimensions
-                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
-                ctx.fillText(`${w}`, x+w/2, y-8);
-                ctx.save(); ctx.translate(x-8, y+h/2); ctx.rotate(-Math.PI/2); ctx.fillText(`${h}`, 0, 0); ctx.restore();
-                // Diagonal
-                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+w,y+h); ctx.strokeStyle=s.color+'88'; ctx.stroke();
-                const diag = Math.sqrt(w*w+h*h).toFixed(1);
-                ctx.fillStyle = '#eab308'; ctx.fillText(`d=${diag}`, x+w/2+15, y+h/2-8);
-                ctx.setLineDash([]);
-            } else if(s.type === 'circle') {
-                const r = Math.sqrt(w*w+h*h)/2;
-                const cx = (s.x+s.x2)/2, cy = (s.y+s.y2)/2;
-                ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-                // Radius line
-                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+r,cy); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
-                ctx.fillText(`r=${r.toFixed(1)}`, cx+r/2, cy-8);
-                // Center dot
-                ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fillStyle=s.color; ctx.fill();
-            } else if(s.type === 'tri') {
-                const midX = (s.x+s.x2)/2;
-                ctx.beginPath(); ctx.moveTo(midX, s.y); ctx.lineTo(s.x, s.y2); ctx.lineTo(s.x2, s.y2); ctx.closePath(); ctx.fill(); ctx.stroke();
-                // Side labels
-                ctx.fillStyle = s.color; ctx.font = 'bold 12px Courier New'; ctx.textAlign = 'center';
-                const base = Math.abs(s.x2-s.x);
-                const height = Math.abs(s.y2-s.y);
-                const sideL = Math.sqrt((base/2)**2 + height**2).toFixed(1);
-                ctx.fillText(`b=${base}`, (s.x+s.x2)/2, s.y2+15);
-                ctx.fillText(`h=${height}`, midX+20, (s.y+s.y2)/2);
-                // Height dashed line
-                ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(midX,s.y); ctx.lineTo(midX,s.y2); ctx.strokeStyle=s.color+'88'; ctx.stroke(); ctx.setLineDash([]);
-            } else if(s.type === 'line') {
-                ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x2,s.y2); ctx.stroke();
-                const len = Math.sqrt((s.x2-s.x)**2+(s.y2-s.y)**2).toFixed(1);
-                const mx = (s.x+s.x2)/2, my = (s.y+s.y2)/2;
-                ctx.fillStyle = s.color; ctx.font = 'bold 13px Courier New'; ctx.textAlign = 'center';
-                ctx.fillText(`${len}`, mx, my-10);
-                // Endpoints
-                ctx.beginPath(); ctx.arc(s.x,s.y,4,0,Math.PI*2); ctx.arc(s.x2,s.y2,4,0,Math.PI*2); ctx.fillStyle=s.color; ctx.fill();
-                // Midpoint
-                ctx.beginPath(); ctx.arc(mx,my,3,0,Math.PI*2); ctx.fillStyle='#eab308'; ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-            ctx.setLineDash([]);
-        }
-
-        function redraw() {
+        // --- Rendering ---
+        function drawLoop() {
             ctx.clearRect(0,0,W,H);
-            // Grid
-            if(showGrid) {
-                ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
-                for(let x=0;x<=W;x+=GRID) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-                for(let y=0;y<=H;y+=GRID) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+            
+            // 1. Draw Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            
+            let cx = W/2, cy = H/2;
+            
+            // Visually show 0,0 axes stronger
+            
+            // Verticals
+            for(let x=0; x<W/2; x+=GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(cx + x, 0); ctx.lineTo(cx + x, H); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx - x, 0); ctx.lineTo(cx - x, H); ctx.stroke();
             }
-            shapes.forEach(s => drawShape(s, false));
-        }
-
-        function showPreviewMeasurements() {
-            const w = Math.abs(curX-startX), h = Math.abs(curY-startY);
-            showMeasurements({type:tool, x:startX, y:startY, x2:curX, y2:curY});
-        }
-
-        function showMeasurements(s) {
-            const m = document.getElementById('measurements');
-            const w = Math.abs(s.x2-s.x), h = Math.abs(s.y2-s.y);
-            let html = '';
-            if(s.type === 'rect') {
-                const area = w*h;
-                const perim = 2*(w+h);
-                const diag = Math.sqrt(w*w+h*h);
-                html = `
-                    <div class="result-row"><span class="result-label">სიგანე (a)</span><span class="result-val">${w} px</span></div>
-                    <div class="result-row"><span class="result-label">სიმაღლე (b)</span><span class="result-val">${h} px</span></div>
-                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toLocaleString()} px²</span></div>
-                    <div class="result-row"><span class="result-label">პერიმეტრი (P)</span><span class="result-val" style="color:#06b6d4">${perim} px</span></div>
-                    <div class="result-row"><span class="result-label">დიაგონალი (d)</span><span class="result-val" style="color:#eab308">${diag.toFixed(2)} px</span></div>`;
-            } else if(s.type === 'circle') {
-                const r = Math.sqrt(w*w+h*h)/2;
-                const area = Math.PI*r*r;
-                const circ = 2*Math.PI*r;
-                html = `
-                    <div class="result-row"><span class="result-label">რადიუსი (r)</span><span class="result-val">${r.toFixed(1)} px</span></div>
-                    <div class="result-row"><span class="result-label">დიამეტრი (d)</span><span class="result-val">${(2*r).toFixed(1)} px</span></div>
-                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toFixed(1)} px²</span></div>
-                    <div class="result-row"><span class="result-label">გარშემოწერილობა (C)</span><span class="result-val" style="color:#06b6d4">${circ.toFixed(1)} px</span></div>`;
-            } else if(s.type === 'tri') {
-                const base = w;
-                const height = h;
-                const area = 0.5*base*height;
-                const sideL = Math.sqrt((base/2)**2+height**2);
-                const perim = base + 2*sideL;
-                html = `
-                    <div class="result-row"><span class="result-label">ფუძე (b)</span><span class="result-val">${base} px</span></div>
-                    <div class="result-row"><span class="result-label">სიმაღლე (h)</span><span class="result-val">${height} px</span></div>
-                    <div class="result-row"><span class="result-label">გვერდი</span><span class="result-val">${sideL.toFixed(1)} px</span></div>
-                    <div class="result-row"><span class="result-label">ფართობი (S)</span><span class="result-val" style="color:#22c55e">${area.toFixed(1)} px²</span></div>
-                    <div class="result-row"><span class="result-label">პერიმეტრი (P)</span><span class="result-val" style="color:#06b6d4">${perim.toFixed(1)} px</span></div>`;
-            } else if(s.type === 'line') {
-                const len = Math.sqrt((s.x2-s.x)**2+(s.y2-s.y)**2);
-                const mx = ((s.x+s.x2)/2).toFixed(0), my = ((s.y+s.y2)/2).toFixed(0);
-                const angle = (Math.atan2(s.y2-s.y, s.x2-s.x)*180/Math.PI).toFixed(1);
-                html = `
-                    <div class="result-row"><span class="result-label">სიგრძე</span><span class="result-val">${len.toFixed(2)} px</span></div>
-                    <div class="result-row"><span class="result-label">Δx</span><span class="result-val">${s.x2-s.x} px</span></div>
-                    <div class="result-row"><span class="result-label">Δy</span><span class="result-val">${s.y2-s.y} px</span></div>
-                    <div class="result-row"><span class="result-label">შუაწერტილი</span><span class="result-val">(${mx}, ${my})</span></div>
-                    <div class="result-row"><span class="result-label">კუთხე</span><span class="result-val" style="color:#eab308">${angle}°</span></div>`;
+            // Horizontals
+            for(let y=0; y<H/2; y+=GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(0, cy + y); ctx.lineTo(W, cy + y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, cy - y); ctx.lineTo(W, cy - y); ctx.stroke();
             }
-            m.innerHTML = html;
+            
+            // X and Y Axes (bold)
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+            if(points.length === 0) return;
+
+            // 2. Draw Polygon Fill
+            ctx.beginPath();
+            let start = toPx(points[0].gx, points[0].gy);
+            ctx.moveTo(start.x, start.y);
+            for(let i=1; i<points.length; i++) {
+                let p = toPx(points[i].gx, points[i].gy);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+            
+            // Coloring
+            if(isLevelComplete) {
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.3)'; // Green
+                ctx.strokeStyle = '#10b981';
+                ctx.shadowColor = '#10b981'; ctx.shadowBlur = 15;
+            } else if (currentArea > targetArea) {
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; // Red-ish (too big)
+                ctx.strokeStyle = '#ef4444';
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.fillStyle = 'rgba(6, 182, 212, 0.3)'; // Cyan (good)
+                ctx.strokeStyle = '#06b6d4';
+                ctx.shadowBlur = 0;
+            }
+            ctx.fill();
+            
+            // 3. Draw Polygon Stroke
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 4. Draw Vertices (Points)
+            for(let i=0; i<points.length; i++) {
+                let p = toPx(points[i].gx, points[i].gy);
+                
+                // Outer ring
+                ctx.fillStyle = (i === dragIdx) ? '#ec4899' : '#1e293b'; 
+                ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill();
+                
+                // Stroke
+                ctx.strokeStyle = (i === dragIdx) ? '#fff' : (isLevelComplete ? '#10b981' : '#06b6d4');
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner dot
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+            }
+            
+            // If dragging, draw tooltip near node
+            if(dragIdx !== -1) {
+                let p = toPx(points[dragIdx].gx, points[dragIdx].gy);
+                ctx.fillStyle = '#fff'; ctx.font = '12px Courier New'; ctx.textAlign = 'center';
+                ctx.fillText(`(${points[dragIdx].gx}, ${points[dragIdx].gy})`, p.x, p.y - 15);
+            }
         }
 
-        function clearAll() { shapes = []; document.getElementById('measurements').innerHTML='<div style="color:#64748b;font-size:0.8rem;text-align:center;padding:15px 0;">დახაზე ფიგურა სანახავად</div>'; redraw(); }
-        redraw();
+        // Init App
+        resize(); // sets W,H and calls drawLoop but we need to init level first
+        initLevel();
+
     </script>
 </body>
 </html>

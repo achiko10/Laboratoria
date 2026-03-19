@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,212 +7,383 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center;}
         
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
 
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 340px; gap: 20px; width: 100%; max-width: 1000px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
 
-        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; position: relative; overflow: hidden; height: 450px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
         canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
 
-        .beaker { position: relative; width: 220px; height: 260px; border: 8px solid rgba(255,255,255,0.2); border-top: none; border-radius: 0 0 25px 25px; z-index: 5; margin-top: 50px; background: rgba(59, 130, 246, 0.1); }
-        .water { position: absolute; bottom: 0; left: 0; right: 0; height: 75%; background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.5)); border-radius: 0 0 17px 17px; }
-        .water::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 12px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translateY(-50%); }
-
-        .precipitate { position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: #f8fafc; border-radius: 0 0 17px 17px; transition: height 0.3s; opacity: 0.9; box-shadow: inset 0 5px 10px rgba(0,0,0,0.1); }
-
-        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
+        .panel { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; width: 100%; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
-
-        .meter-box { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;}
-        .m-title { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
-        .m-val { font-size: 2rem; font-weight: bold; color: #38bdf8; font-family: 'Courier New', monospace; }
+        label { font-size: 0.85rem; color: #cbd5e1; font-weight: 600; margin-bottom: 3px; display: block; }
         
-        .alert-box { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 10px; font-size: 0.8rem; color: #e2e8f0; display: none; }
-        .alert-box.show { display: block; }
+        select, input[type="range"] {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: #fff; font-family: inherit; font-size: 0.9rem;
+        }
+        input[type="range"] { padding: 0; height: 6px; accent-color: #38bdf8; cursor: pointer; }
 
-        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #0ea5e9; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-add { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-add:hover { box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); filter: brightness(1.1); }
+        .btn-clear { background: #334155; }
+        .btn-clear:hover { background: #475569; }
+
+        .meter-box { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .meter-info { display: flex; flex-direction: column; }
+        .m-title { font-size: 0.75rem; color: #94a3b8;text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .m-val { font-size: 1.4rem; font-weight: bold; color: #38bdf8; }
+        
+        .alert-box { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 12px; font-size: 0.8rem; color: #e2e8f0; display: none; border-radius: 0 8px 8px 0; }
+        .alert-box.show { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #38bdf8; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
 
-        .salt-shaker { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); transition: top 0.3s, transform 0.3s; z-index: 10; font-size: 3rem; }
-        .salt-shaker.shake { top: 20px; transform: translateX(-50%) rotate(20deg); animation: shake 0.5s; }
-        @keyframes shake { 0%, 100% { transform: translateX(-50%) rotate(20deg); } 25% { transform: translateX(-50%) rotate(15deg); } 75% { transform: translateX(-50%) rotate(25deg); } }
-
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
+        
+        .temp-display { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
     </style>
 </head>
 <body>
     <h1>💧 ხსნარები და ხსნადობა</h1>
-    <p class="subtitle">დაამატე მარილი, დააკვირდი იონებად დაშლას და გაჯერებული ხსნარის წარმოქმნას</p>
+    <p class="subtitle">შეისწავლე ტემპერატურის გავლენა ნივთიერებათა ხსნადობაზე (კრისტალიზაცია და გახსნა)</p>
 
     <div class="container">
         <div class="sim-area">
             <canvas id="canvas"></canvas>
-            <div class="salt-shaker" id="shaker">🧂</div>
-            <div class="beaker">
-                <div class="water"></div>
-                <div class="precipitate" id="precipitate"></div>
-            </div>
         </div>
 
         <div class="panel">
-            <button onclick="addSalt()">➕ მარილის წაყრა (NaCl)</button>
-            <button onclick="resetSim()" style="background: #334155;">↺ სუფთა წყალი</button>
-
-            <div class="meter-box">
-                <div class="m-title">კონცენტრაცია (მოლარობა)</div>
-                <div class="m-val"><span id="conc-val">0.00</span> <span style="font-size:1rem; color:#94a3b8;">M</span></div>
+            <div>
+                <label>ნივთიერება (გახსნილი):</label>
+                <select id="solute-select" onchange="changeSolute()">
+                    <option value="nacl">სუფრის მარილი (NaCl)</option>
+                    <option value="cuso4">სპილენძის სულფატი (CuSO₄)</option>
+                    <option value="kno3">კალიუმის ნიტრატი (KNO₃)</option>
+                </select>
             </div>
 
+            <div>
+                <label>ტემპერატურა: <span id="temp-val" style="color:#fff;">20</span> °C</label>
+                <input type="range" id="temp-slider" min="0" max="100" value="20" oninput="updateTemp()">
+                <div class="temp-display"><span>0°C</span><span>100°C</span></div>
+            </div>
+
+            <button class="btn btn-add" onclick="addSolute()">➕ დამატება (10გ)</button>
+            <button class="btn btn-clear" onclick="resetSim()">↺ სუფთა წყალი (100 მლ)</button>
+
             <div class="meter-box">
-                <div class="m-title">მდგომარეობა</div>
-                <div style="font-weight:bold; color:#10b981;" id="state-val">უჯერი ხსნარი</div>
+                <div class="meter-info">
+                    <div class="m-title">ხსნარშია</div>
+                    <div class="m-val"><span id="dissolved-val">0</span>გ</div>
+                </div>
+                <div class="meter-info" style="text-align:right;">
+                    <div class="m-title">ნალექი</div>
+                    <div class="m-val" style="color:#ef4444;"><span id="precipitate-val">0</span>გ</div>
+                </div>
+            </div>
+
+            <div class="meter-box" style="justify-content:center;">
+                <div class="meter-info" style="align-items:center;">
+                    <div class="m-title">სტატუსი</div>
+                    <div style="font-weight:bold; color:#10b981; font-size:1.1rem;" id="state-val">უჯერი ხსნარი</div>
+                </div>
             </div>
 
             <div class="alert-box" id="alert">
-                ⚠️ ხსნარი გაჯერებულია! მეტი მარილი აღარ გაიხსნება და ილექება ფსკერზე.
+                ⚠️ ხსნარი გაჯერებულია! ნალექი ფსკერზე ილექება. გაათბეთ წყალი, რომ მეტი გაიხსნას.
             </div>
         </div>
 
         <div class="info-panel">
-            <strong>🔬 ხსნადობა და გაჯერება:</strong><br>
-            • <strong>გახსნა:</strong> მყარი კრისტალი წყალში იშლება იონებად (მაგ. $NaCl \rightarrow Na^+ + Cl^-$). რასაც წყლის პოლარული მოლეკულები ანხორციელებენ.<br>
-            • <strong>უჯერი ხსნარი:</strong> ჯერ კიდევ შეუძლია დამატებითი ნივთიერების გახსნა.<br>
-            • <strong>გაჯერებული ხსნარი (Saturated):</strong> მიღწეულია მაქსიმალური კონცენტრაცია დროის მოცემულ პირობებში. ზედმეტი ნივთიერება ილექება (Precipitate).
+            <strong>🔬 ხსნადობა, ტემპერატურა და კრისტალიზაცია:</strong><br>
+            • <strong>ხსნადობის მრუდი:</strong> მყარი ნივთიერებების უმეტესობა წყალში უკეთ იხსნება ტემპერატურის ზრდასთან ერთად (მაგ. $KNO_3$-ის ხსნადობა მკვეთრად იზრდება, ხოლო $NaCl$-ის თითქმის უცვლელია).<br>
+            • <strong>გაჯერებული ხსნარი:</strong> ხსნარი, რომელშიც მოცემულ ტემპერატურაზე მეტი ნივთიერება აღარ იხსნება. ზედმეტი ნივთიერება წარმოქმნის <strong>შენალექს</strong>.<br>
+            • <strong>კრისტალიზაცია:</strong> გაჯერებული ცხელი ხსნარის გაცივებისას, ხსნადობა მცირდება და <strong>ჭარბი გახსნილი ნივთიერება კრისტალების სახით გამოიყოფა</strong>.
         </div>
     </div>
     
-    <div style="text-align:center;">
-        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
-    </div>
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let W, H;
-        function resize() { canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio; canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight; }
+
+        // Solute properties (solubility curves roughly approximated: g per 100ml water at T°C)
+        const solutes = {
+            'nacl': { name: 'NaCl', color: '#ffffff', ion1: '#f87171', ion2: '#a3e635', sol: (T) => 35.7 + 0.04 * T, waterHue: 210, waterSat: 60, waterLitBase: 40 },
+            'cuso4': { name: 'CuSO₄', color: '#3b82f6', ion1: '#60a5fa', ion2: '#93c5fd', sol: (T) => 14 + 0.6 * T, waterHue: 210, waterSat: 80, waterLitBase: 40 }, 
+            // Kno3 has very steep curve: 13g at 0C, 246g at 100C
+            'kno3': { name: 'KNO₃', color: '#e2e8f0', ion1: '#c084fc', ion2: '#f472b6', sol: (T) => 13 + 0.5 * T + 0.018 * T * T, waterHue: 210, waterSat: 60, waterLitBase: 40 }
+        };
+
+        let currentSolute = 'nacl';
+        let temperature = 20;
+        let totalAdded = 0; // grams
+        let dissolved = 0; // grams
+        let precipitate = 0; // grams
+
+        let particles = []; // falling grains or precipitating crystals
+        let ions = []; // dissolved ones
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+        }
         resize(); window.addEventListener('resize', resize);
 
-        let ions = [];
-        let saltGrains = [];
-        let concentration = 0;
-        const maxConc = 5.0; // Molarity limit
-        let precipHeight = 0;
-
-        function resetSim() {
-            ions = [];
-            saltGrains = [];
-            concentration = 0;
-            precipHeight = 0;
-            document.getElementById('precipitate').style.height = '0px';
-            document.getElementById('conc-val').textContent = '0.00';
-            document.getElementById('state-val').textContent = 'უჯერი ხსნარი';
-            document.getElementById('state-val').style.color = '#10b981';
-            document.getElementById('alert').classList.remove('show');
+        function changeSolute() {
+            currentSolute = document.getElementById('solute-select').value;
+            resetSim();
         }
 
-        function addSalt() {
-            const shaker = document.getElementById('shaker');
-            shaker.classList.add('shake');
-            setTimeout(() => shaker.classList.remove('shake'), 500);
+        function updateTemp() {
+            temperature = parseInt(document.getElementById('temp-slider').value);
+            document.getElementById('temp-val').innerText = temperature;
+            recalculate();
+        }
 
-            // Add falling grains
-            for(let i=0; i<15; i++) {
-                saltGrains.push({
-                    x: W/2 + (Math.random()*40 - 20),
-                    y: 100 + Math.random()*20,
+        function resetSim() {
+            totalAdded = 0;
+            dissolved = 0;
+            precipitate = 0;
+            particles = [];
+            ions = [];
+            updateUI();
+        }
+
+        function addSolute() {
+            totalAdded += 10;
+            recalculate();
+
+            // Add falling particles
+            const prop = solutes[currentSolute];
+            for(let i=0; i<30; i++) {
+                particles.push({
+                    x: W/2 + (Math.random()*60 - 30),
+                    y: 20 + Math.random()*20,
                     vx: (Math.random()-0.5)*2,
-                    vy: 2 + Math.random()*3
+                    vy: 2 + Math.random()*4,
+                    color: prop.color,
+                    target: 'fall'
+                });
+            }
+        }
+
+        function recalculate() {
+            const prop = solutes[currentSolute];
+            const maxSolubility = prop.sol(temperature);
+            
+            let oldDissolved = dissolved;
+            
+            if (totalAdded <= maxSolubility) {
+                dissolved = totalAdded;
+                precipitate = 0;
+            } else {
+                dissolved = maxSolubility;
+                precipitate = totalAdded - maxSolubility;
+            }
+
+            // Adjust ions array size based on dissolved (visual ratio 1g = 5 ions)
+            let targetIons = Math.floor(dissolved * 3);
+            if(targetIons > 300) targetIons = 300; // soft cap drawing
+            
+            let bLeft = W/2 - 100; let bRight = W/2 + 100;
+            let bTop = Math.max(H - 250, 100); let bBot = H - 60 - precipitate*0.5;
+
+            while(ions.length < targetIons) {
+                ions.push({
+                    x: W/2 + (Math.random()*100 - 50),
+                    y: bTop + 20 + Math.random() * (bBot - bTop - 40),
+                    vx: (Math.random()-0.5)*(1 + temperature/50),
+                    vy: (Math.random()-0.5)*(1 + temperature/50),
+                    type: Math.random() > 0.5 ? 1 : 2
+                });
+            }
+            while(ions.length > targetIons) {
+                // Remove ions to form crystals (crystallization effect)
+                let rem = ions.pop();
+                particles.push({
+                    x: rem.x, y: rem.y,
+                    vx: 0, vy: 1+Math.random()*2,
+                    color: prop.color,
+                    target: 'precipitate'
                 });
             }
 
-            if(concentration < maxConc) {
-                concentration += 1.25;
-                document.getElementById('conc-val').textContent = concentration.toFixed(2);
-                
-                if (concentration >= maxConc) {
-                    concentration = maxConc;
-                    document.getElementById('state-val').textContent = 'გაჯერებული ხსნარი';
-                    document.getElementById('state-val').style.color = '#ef4444';
-                    document.getElementById('alert').classList.add('show');
-                }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('dissolved-val').innerText = dissolved.toFixed(1);
+            document.getElementById('precipitate-val').innerText = precipitate.toFixed(1);
+
+            const prop = solutes[currentSolute];
+            const maxSol = prop.sol(temperature);
+            
+            const stateEl = document.getElementById('state-val');
+            const alertEl = document.getElementById('alert');
+
+            if (totalAdded === 0) {
+                stateEl.innerText = 'სუფთა წყალი';
+                stateEl.style.color = '#38bdf8';
+                alertEl.classList.remove('show');
+            } else if (totalAdded < maxSol) {
+                stateEl.innerText = 'უჯერი ხსნარი';
+                stateEl.style.color = '#10b981';
+                alertEl.classList.remove('show');
             } else {
-                // Add to precipitate
-                precipHeight += 10;
-                if(precipHeight > 50) precipHeight = 50;
-                document.getElementById('precipitate').style.height = precipHeight + 'px';
+                stateEl.innerText = 'გაჯერებული ხსნარი';
+                stateEl.style.color = '#ef4444';
+                alertEl.classList.add('show');
             }
         }
 
         function draw() {
-            ctx.clearRect(0,0,W,H);
+            ctx.clearRect(0, 0, W, H);
+            
+            // Beaker dimensions
+            let bw = 220; let bh = 280;
+            let bx = W/2 - bw/2; let by = H - bh - 20;
 
-            // Process grains
-            saltGrains = saltGrains.filter(g => {
-                g.x += g.vx; g.y += g.vy;
+            // Heat visualization (burner effect if temp > 30)
+            if (temperature > 30) {
+                ctx.save();
+                let heatScale = (temperature-30)/70;
+                let flicker = Math.random()*10;
+                let grd = ctx.createRadialGradient(W/2, H-15, 10, W/2, H-15, 60 + flicker);
+                grd.addColorStop(0, `rgba(239, 68, 68, ${0.8 * heatScale})`);
+                grd.addColorStop(0.5, `rgba(249, 115, 22, ${0.4 * heatScale})`);
+                grd.addColorStop(1, 'transparent');
+                ctx.fillStyle = grd;
+                ctx.fillRect(W/2 - 100, H-80, 200, 80);
                 
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(g.x, g.y, 4, 4);
+                // Hot plate
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(W/2 - 110, H-20, 220, 15);
+                ctx.fillStyle = `rgba(239,68,68,${0.5*heatScale})`;
+                ctx.fillRect(W/2 - 90, H-20, 180, 5);
+                ctx.restore();
+            } else {
+                // Just table
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(W/2 - 120, H-20, 240, 10);
+            }
 
-                let waterTop = H - 260 + 260*0.25; // approx
-                if (g.y > waterTop) {
-                    // Dissolve
-                    if (concentration < maxConc || Math.random() < 0.2) {
-                        // Create ions Na+ and Cl-
-                        let bLeft = W/2 - 100;
-                        let bRight = W/2 + 100;
-                        let bBot = H - 50 - precipHeight;
-                        
-                        // Only add ions up to a visual limit
-                        if(ions.length < 150) {
-                            // Na+
-                            ions.push({ type: 'Na+', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
-                            // Cl-
-                            ions.push({ type: 'Cl-', x: g.x, y: g.y, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5 });
-                        }
-                        return false; // remove grain
-                    } else {
-                        // Keep falling to precip
-                        if(g.y > H - 60 - precipHeight) return false;
-                        return true;
+            // Draw Beaker Back
+            ctx.fillStyle = 'rgba(255,255,255,0.02)';
+            ctx.beginPath();
+            ctx.roundRect(bx, by, bw, bh, [0, 0, 20, 20]);
+            ctx.fill();
+
+            // Draw Water
+            const prop = solutes[currentSolute];
+            // Change water color based on dissolved amount
+            let concRatio = dissolved / 150; // max ref for color
+            if (concRatio > 1) concRatio = 1;
+            
+            let wL = prop.waterLitBase + (currentSolute==='cuso4' ? -concRatio*15 : 0);
+            let wS = prop.waterSat + (currentSolute==='cuso4' ? concRatio*20 : -concRatio*10);
+            
+            ctx.fillStyle = `hsla(${prop.waterHue}, ${wS}%, ${wL}%, ${0.3 + concRatio*0.3})`;
+            ctx.beginPath();
+            let wh = bh * 0.7; // water fill level
+            let wy = by + bh - wh;
+            ctx.roundRect(bx+6, wy, bw-12, wh-6, [0, 0, 15, 15]);
+            ctx.fill();
+            
+            // Water surface
+            ctx.fillStyle = `hsla(${prop.waterHue}, ${wS}%, ${wL+20}%, 0.5)`;
+            ctx.beginPath();
+            ctx.ellipse(W/2, wy, bw/2 - 6, 8, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Draw precipitate heap at the bottom
+            if (precipitate > 0) {
+                ctx.fillStyle = prop.color;
+                ctx.beginPath();
+                let ph = Math.min(precipitate * 0.5, 40); // cap precip height visually
+                ctx.ellipse(W/2, by + bh - 10, bw/2 - 15, ph, 0, 0, Math.PI);
+                ctx.fill();
+            }
+
+            // Draw Particles (Falling/Precipitating)
+            for(let i=particles.length-1; i>=0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, Math.random()>0.5?1.5:2, 0, Math.PI*2); ctx.fill();
+                
+                // If it hits water surface
+                if(p.y > wy && p.target === 'fall') {
+                    // Decide if it dissolves
+                    p.vy = 1 + Math.random()*2; // slow down in water
+                    // Check if it should disappear (into ions)
+                    if(dissolved > 0 && Math.random() < 0.1) {
+                         particles.splice(i, 1); continue; 
                     }
                 }
-                return true;
-            });
+                
+                // If it hits bottom
+                if (p.y > by + bh - 15) {
+                    particles.splice(i, 1);
+                }
+            }
 
-            // Draw and move ions inside beaker bounds
-            let bLeft = W/2 - 90;
-            let bRight = W/2 + 90;
-            let bTop = H - 260 + 260*0.25 + 10;
-            let bBot = H - 55 - precipHeight;
+            // Draw Ions
+            let iLeft = bx + 15; let iRight = bx + bw - 15;
+            let iTop = wy + 15; let iBot = by + bh - 20 - (precipitate > 0 ? Math.min(precipitate*0.3, 30) : 0);
+
+            // Thermal motion depends on temp
+            let speedMult = 0.5 + temperature/100;
 
             ions.forEach(ion => {
-                ion.x += ion.vx; ion.y += ion.vy;
+                ion.x += ion.vx * speedMult; ion.y += ion.vy * speedMult;
+                if(ion.x < iLeft || ion.x > iRight) ion.vx *= -1;
+                if(ion.y < iTop || ion.y > iBot) ion.vy *= -1;
                 
-                // Bounds keeping
-                if(ion.x < bLeft || ion.x > bRight) ion.vx *= -1;
-                if(ion.y < bTop || ion.y > bBot) ion.vy *= -1;
+                if(ion.x < iLeft) ion.x = iLeft; if(ion.x > iRight) ion.x = iRight;
+                if(ion.y < iTop) ion.y = iTop; if(ion.y > iBot) ion.y = iBot;
 
-                // Restrict firmly
-                if(ion.x < bLeft) ion.x = bLeft; if(ion.x > bRight) ion.x = bRight;
-                if(ion.y < bTop) ion.y = bTop; if(ion.y > bBot) ion.y = bBot;
-
-                ctx.beginPath();
-                ctx.arc(ion.x, ion.y, 5, 0, Math.PI*2);
-                if(ion.type === 'Na+') {
-                    ctx.fillStyle = '#f87171'; // Reddish for Na+
-                    ctx.fill();
-                    ctx.fillStyle = '#fff'; ctx.font = '7px Arial'; ctx.textAlign = 'center'; ctx.fillText('+', ion.x, ion.y+2);
-                } else {
-                    ctx.fillStyle = '#a3e635'; // Greenish for Cl-
-                    ctx.fill();
-                    ctx.fillStyle = '#111'; ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.fillText('-', ion.x, ion.y+2);
-                }
+                ctx.fillStyle = ion.type === 1 ? prop.ion1 : prop.ion2;
+                ctx.beginPath(); ctx.arc(ion.x, ion.y, 3, 0, Math.PI*2); ctx.fill();
+                // optional glow
+                ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 4; ctx.fill(); ctx.shadowBlur = 0;
             });
+
+            // Draw Beaker Front (glass reflection)
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx, by + bh - 20);
+            ctx.quadraticCurveTo(bx, by + bh, bx + 20, by + bh);
+            ctx.lineTo(bx + bw - 20, by + bh);
+            ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw, by + bh - 20);
+            ctx.lineTo(bx + bw, by);
+            ctx.stroke();
+
+            // Glass glare
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.beginPath();
+            ctx.roundRect(bx + 15, by + 10, 20, bh - 30, 10);
+            ctx.fill();
 
             requestAnimationFrame(draw);
         }

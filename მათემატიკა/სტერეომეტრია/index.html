@@ -1,265 +1,536 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — სტერეომეტრია</title>
+    <title>მათემატიკა — მოცულობის ლაბორატორია (სტერეომეტრია)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #f97316, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 260px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 500px; cursor: grab; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .shape-btn { padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.85rem; transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 8px; }
-        .shape-btn:hover { background: #334155; }
-        .shape-btn.active { background: linear-gradient(135deg, #f97316, #a855f7); color: white; border-color: #f97316; }
-        .control label { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .control label b { color: #f8fafc; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #f97316, #a855f7); cursor: pointer; }
-        .result-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .r-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.8rem; }
-        .r-label { color: #94a3b8; }
-        .r-val { font-family: 'Courier New'; font-weight: bold; color: #f8fafc; }
-        .formula-box { background: #0f172a; border-left: 3px solid #a855f7; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.6; }
-        .formula-box b { color: #c084fc; }
-        .check-row { display: flex; align-items: center; gap: 8px; }
-        .check-row label { font-size: 0.8rem; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #0ea5e9, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (max-width: 800px) { .container { grid-template-columns: 1fr; } }
+
+        .game-area {
+            background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 500px; 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 70%, #0f172a 100%);
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .floating-ui {
+            position: absolute; top: 15px; left: 15px; z-index: 5; background: rgba(15,23,42,0.8);
+            border: 1px solid #3b82f6; padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(59,130,246,0.2);
+        }
+        .floating-ui .lvl { font-size: 0.8rem; color: #93c5fd; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .floating-ui .target { font-size: 1.1rem; font-weight: bold; color: #fff;}
+        .target-water { font-size: 1.5rem; color: #38bdf8; font-family: 'Courier New', monospace; font-weight:bold; text-shadow: 0 0 10px rgba(56,189,248,0.5);}
+
+        .result-overlay {
+            position: absolute; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);
+            z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .result-overlay h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        .win-title { color: #10b981; text-shadow: 0 0 15px rgba(16,185,129,0.5);}
+        .lose-title { color: #ef4444; text-shadow: 0 0 15px rgba(239,68,68,0.5);}
+        .fail-reason { color: #cbd5e1; font-size: 1.1rem; margin-bottom: 15px;}
+        
+        .btn-large {
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 10px;
+            box-shadow: 0 0 20px rgba(16,185,129,0.4);
+        }
+        .btn-large:hover { transform: scale(1.05); }
+        .btn-retry { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 20px rgba(245,158,11,0.4); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 5;}
+        
+        .shape-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 5px;}
+        .s-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; padding: 8px; border-radius: 6px; cursor:pointer; transition:0.2s; font-family:inherit; font-size:0.85rem;}
+        .s-btn:hover { background: #334155; color: white;}
+        .s-btn.active { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: white; border-color:#0ea5e9;}
+
+        .control-group { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .control-group label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; font-weight: bold; }
+        .val-span { color: #facc15; font-family: 'Courier New', monospace; font-size: 1.1rem;}
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; margin-bottom: 12px;}
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #facc15; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(250,204,21,0.5);}
+
+        .math-box { background: #0f172a; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.5; border-left: 3px solid #facc15; }
+        .vol-val { font-size: 1.4rem; font-weight: bold; color: #facc15; text-shadow: 0 0 10px rgba(250,204,21,0.3); }
+        
+        .btn-pour {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border: none; padding: 15px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s;
+            box-shadow: 0 5px 20px rgba(14,165,233,0.5); width: 100%; margin-top: auto;
+        }
+        .btn-pour:hover { transform: scale(1.02); filter: brightness(1.1); }
+        .btn-pour:active { transform: scale(0.98); }
+        .btn-pour:disabled { background: #334155; color: #64748b; cursor: not-allowed; box-shadow: none; transform:none; filter:none;}
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>🧊 3D სტერეომეტრია</h1>
-    <p class="subtitle">აირჩიე ფიგურა, შეცვალე ზომა, გადაათრიე სატრიალებლად — ნახე მოცულობა და ზედაპირი</p>
-    <div class="app">
-        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+    <h1>💧 მოცულობის ლაბორატორია (წყლის სიმულაცია)</h1>
+    <p class="subtitle">ააწყვეთ მინის კონტეინერი ზუსტი ზომებით, რათა იდეალურად ჩაატიოთ შემომავალი წყალი!</p>
+
+    <div class="container">
+        <!-- Game Canvas -->
+        <div class="game-area" id="game-area">
+            <div class="floating-ui">
+                <div class="lvl" id="lvl-display">დონე 1</div>
+                <div class="target">წყლის მარაგი:</div>
+                <div class="target-water" id="target-water">12000 მლ</div>
+            </div>
+
+            <div class="result-overlay" id="result-screen">
+                <h2 id="res-title" class="win-title">იდეალურია! 🌊</h2>
+                <div class="fail-reason" id="res-desc">წყალი ზუსტად ჩაეტია კონტეინერში წვეთის გადმოღვრის გარეშე!</div>
+                <button class="btn-large" id="btn-next" onclick="nextLevel()">შემდეგი დონე ➞</button>
+                <button class="btn-large btn-retry" id="btn-retry" onclick="retryLevel()" style="display:none;">თავიდან ცდა ↺</button>
+            </div>
+
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Engine Controls -->
         <div class="panel">
-            <div style="font-weight:bold; color:#f97316; font-size:0.9rem;">ფიგურა</div>
-            <button class="shape-btn active" onclick="setShape('cube')">🧊 კუბი</button>
-            <button class="shape-btn" onclick="setShape('prism')">📦 პრიზმა</button>
-            <button class="shape-btn" onclick="setShape('pyramid')">🔺 პირამიდა</button>
-            <button class="shape-btn" onclick="setShape('cylinder')">🫙 ცილინდრი</button>
-            <button class="shape-btn" onclick="setShape('cone')">🍦 კონუსი</button>
-            <button class="shape-btn" onclick="setShape('sphere')">🔵 სფერო</button>
-            <div class="control">
-                <label>ზომა: <b><span id="size-val">100</span></b></label>
-                <input type="range" id="size" min="40" max="180" value="100" oninput="document.getElementById('size-val').textContent=this.value; updateCalc();">
+            <div style="font-size:0.85rem; color:#94a3b8; font-weight:bold; margin-bottom:-5px;">1. აირჩიეთ კონტეინერის ფორმა:</div>
+            <div class="shape-selector">
+                <button class="s-btn active" onclick="setShape('cylinder')">🫙 ცილინდრი</button>
+                <button class="s-btn" onclick="setShape('prism')">📦 პრიზმა</button>
+                <button class="s-btn" onclick="setShape('cone')">🍦 კონუსი</button>
+                <button class="s-btn" onclick="setShape('pyramid')">🔺 პირამიდა</button>
             </div>
-            <div class="check-row">
-                <label><input type="checkbox" id="show-edges" checked onchange="updateCalc()"> წიბოები</label>
-                <label><input type="checkbox" id="show-faces" checked onchange="updateCalc()"> ზედაპირი</label>
-                <label><input type="checkbox" id="auto-rotate" checked> ავტო-ბრუნვა</label>
+
+            <div style="font-size:0.85rem; color:#94a3b8; font-weight:bold; margin-top:5px;">2. მიუთითეთ ზომები:</div>
+            <div class="control-group">
+                <label><span id="lbl-rad">რადიუსი (r):</span> <span class="val-span" id="val-rad">10</span> სმ</label>
+                <input type="range" id="sl-rad" min="5" max="30" value="10" oninput="updateContainer()">
+                
+                <label><span>სიმაღლე (h):</span> <span class="val-span" id="val-h">20</span> სმ</label>
+                <input type="range" id="sl-h" min="10" max="40" value="20" oninput="updateContainer()">
             </div>
-            <div style="font-weight:bold; color:#a855f7; font-size:0.9rem; margin-top:5px;">📏 გაზომვები</div>
-            <div class="result-card" id="calcs"></div>
-            <div class="formula-box" id="formulas"></div>
+
+            <div class="math-box">
+                <div style="font-size:0.75rem; color:#94a3b8;">კონტეინერის ტევადობა (V)</div>
+                <div class="vol-val"><span id="current-vol">6280</span> მლ</div>
+                <div style="color: #cbd5e1; font-size: 0.75rem; margin-top: 5px; opacity:0.8;" id="current-formula">V = πr²h</div>
+            </div>
+
+            <button class="btn-pour" id="btn-pour" onclick="pourWater()">💧 ჩამოსხმა!</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 თამაშის წესები:</strong> თითოეულ დონეზე მოგეცემათ წყლის ზუსტი რაოდენობა (მაგ. 12000 მლ = 12 ლიტრი). თქვენ უნდა აირჩიოთ ფორმა და ისეთი ზომები (რადიუსი, სიმაღლე), რომ მოცულობა ზუსტად დაემთხვეს წყლის მარაგს.<br>
+            • თუ <strong>ტევადობა ნაკლებია</strong> — წყალი გადმოვა და წააგებთ!<br>
+            • თუ <strong>ტევადობა მეტია</strong> — კონტეინერი ბოლომდე არ შეივსება და წააგებთ!<br>
+            <em>ფიზიკური სიმულაცია იყენებს თქვენს მიერ შერჩეულ ზომებს კონტეინერის ასაგებად რეალურ დროში.</em>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const wrap = canvas.parentElement;
+        const gameArea = document.getElementById('game-area');
         let W, H;
+        
         function resize() {
-            canvas.width = wrap.offsetWidth * devicePixelRatio;
-            canvas.height = 500 * devicePixelRatio;
+            canvas.width = gameArea.offsetWidth * devicePixelRatio;
+            canvas.height = gameArea.offsetHeight * devicePixelRatio;
             ctx.scale(devicePixelRatio, devicePixelRatio);
-            W = wrap.offsetWidth; H = 500;
+            W = gameArea.offsetWidth; H = gameArea.offsetHeight;
         }
-        resize(); window.addEventListener('resize', resize);
+        window.addEventListener('resize', resize);
 
-        let shape = 'cube';
-        let rotX = 0.4, rotY = 0.6;
-        let dragging = false, lastMX, lastMY;
+        // --- Game State ---
+        let level = 1;
+        let targetWater = 0; // The goal volume
+        
+        let container = { shape: 'cylinder', r: 10, h: 20, capacity: 0 };
+        let state = 'building'; // 'building', 'pouring', 'done'
+        
+        let waterFilled = 0; // How much capacity is currently filled
+        let waterPoured = 0; // How much water left the pipe
+        
+        // Physics / Visuals
+        let particles = [];
+        let pipeDrops = [];
+        let splashParticles = [];
 
-        canvas.addEventListener('mousedown', e => { dragging = true; lastMX = e.clientX; lastMY = e.clientY; });
-        canvas.addEventListener('mousemove', e => {
-            if(!dragging) return;
-            rotY += (e.clientX - lastMX) * 0.01;
-            rotX += (e.clientY - lastMY) * 0.01;
-            lastMX = e.clientX; lastMY = e.clientY;
-        });
-        canvas.addEventListener('mouseup', () => dragging = false);
-        canvas.addEventListener('mouseleave', () => dragging = false);
-        // Touch
-        canvas.addEventListener('touchstart', e => { dragging = true; lastMX = e.touches[0].clientX; lastMY = e.touches[0].clientY; e.preventDefault(); }, {passive:false});
-        canvas.addEventListener('touchmove', e => { if(!dragging) return; rotY += (e.touches[0].clientX-lastMX)*0.01; rotX += (e.touches[0].clientY-lastMY)*0.01; lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY; e.preventDefault(); }, {passive:false});
-        canvas.addEventListener('touchend', () => dragging = false);
+        // Simple pixel scale mapping (1 cm = ~5 pixels visually, but math is purely numerical)
+        const scale = 6; 
+        const pipeY = 50;
 
         function setShape(s) {
-            shape = s;
-            document.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active'));
+            if(state !== 'building') return;
+            container.shape = s;
+            document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            updateCalc();
+            
+            let lbl = document.getElementById('lbl-rad');
+            if(s === 'cylinder' || s === 'cone') lbl.innerText = 'ფუძის რადიუსი (r):';
+            else lbl.innerText = 'ფუძის წიბო (a):';
+            
+            updateContainer();
         }
 
-        function project(x3, y3, z3) {
-            // Rotate Y
-            let x = x3*Math.cos(rotY) - z3*Math.sin(rotY);
-            let z = x3*Math.sin(rotY) + z3*Math.cos(rotY);
-            // Rotate X
-            let y = y3*Math.cos(rotX) - z*Math.sin(rotX);
-            z = y3*Math.sin(rotX) + z*Math.cos(rotX);
-            const f = 500 / (500 + z);
-            return { x: W/2 + x*f, y: H/2 + y*f, z };
+        function initLevel() {
+            state = 'building';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('lvl-display').innerText = `დონე ${level}`;
+            document.getElementById('btn-pour').disabled = false;
+            
+            // Generate a valid target water amount that is actually possible with sliders
+            // Let's internally pick random sliders, calc volume, and use that as target!
+            let randShape = ['cylinder', 'prism', 'cone', 'pyramid'][Math.floor(Math.random()*4)];
+            let randR = Math.floor(Math.random()*(30-10)+10);
+            let randH = Math.floor(Math.random()*(40-15)+15);
+            
+            let tv = calculateVolume(randShape, randR, randH);
+            targetWater = Math.round(tv);
+            // Add a tiny bit of random padding to obscure it maybe? No, let's keep it exact so they can match it exactly.
+            // Actually, because of rounding, let's just pick a clean number!
+            // Wait, if it's Pi, making it exact is hard. We will allow a 5% margin of error for winning.
+
+            targetWater = Math.round(targetWater / 100) * 100; // Round to nearest 100
+
+            document.getElementById('target-water').innerText = targetWater + ' მლ';
+            
+            waterFilled = 0;
+            waterPoured = 0;
+            particles = [];
+            pipeDrops = [];
+            splashParticles = [];
+            
+            updateContainer();
         }
 
-        function updateCalc() {
-            const a = +document.getElementById('size').value;
-            const calcs = document.getElementById('calcs');
-            const formulas = document.getElementById('formulas');
-            let html = '', fhtml = '';
-            if(shape==='cube'){
-                const V=a**3, S=6*a**2, d=a*Math.sqrt(3);
-                html=`<div class="r-row"><span class="r-label">წიბო (a)</span><span class="r-val">${a}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა (V)</span><span class="r-val" style="color:#22c55e">${V.toLocaleString()}</span></div>
-                    <div class="r-row"><span class="r-label">ზედაპირი (S)</span><span class="r-val" style="color:#3b82f6">${S.toLocaleString()}</span></div>
-                    <div class="r-row"><span class="r-label">დიაგონალი (d)</span><span class="r-val" style="color:#f59e0b">${d.toFixed(1)}</span></div>`;
-                fhtml=`<b>V = a³</b> = ${a}³ = ${V}<br><b>S = 6a²</b> = 6·${a}² = ${S}<br><b>d = a√3</b> = ${d.toFixed(2)}`;
-            } else if(shape==='prism'){
-                const b=a, h=a*1.5;
-                const V=b*b*h, S=2*b*b+4*b*h;
-                html=`<div class="r-row"><span class="r-label">ფუძე (a)</span><span class="r-val">${b}</span></div>
-                    <div class="r-row"><span class="r-label">სიმაღლე (h)</span><span class="r-val">${h.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა</span><span class="r-val" style="color:#22c55e">${V.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">ზედაპირი</span><span class="r-val" style="color:#3b82f6">${S.toFixed(0)}</span></div>`;
-                fhtml=`<b>V = a²·h</b><br><b>S = 2a² + 4ah</b>`;
-            } else if(shape==='pyramid'){
-                const h=a*1.2;
-                const V=a*a*h/3, l=Math.sqrt((a/2)**2+h**2), S=a*a+2*a*l;
-                html=`<div class="r-row"><span class="r-label">ფუძის წიბო</span><span class="r-val">${a}</span></div>
-                    <div class="r-row"><span class="r-label">სიმაღლე</span><span class="r-val">${h.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა</span><span class="r-val" style="color:#22c55e">${V.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">აპოთემა</span><span class="r-val" style="color:#f59e0b">${l.toFixed(1)}</span></div>`;
-                fhtml=`<b>V = ⅓·a²·h</b><br><b>S = a² + 2a·l</b>`;
-            } else if(shape==='cylinder'){
-                const r=a/2, h=a*1.3;
-                const V=Math.PI*r*r*h, S=2*Math.PI*r*(r+h);
-                html=`<div class="r-row"><span class="r-label">რადიუსი</span><span class="r-val">${r.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">სიმაღლე</span><span class="r-val">${h.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა</span><span class="r-val" style="color:#22c55e">${V.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">ზედაპირი</span><span class="r-val" style="color:#3b82f6">${S.toFixed(0)}</span></div>`;
-                fhtml=`<b>V = πr²h</b><br><b>S = 2πr(r+h)</b>`;
-            } else if(shape==='cone'){
-                const r=a/2, h=a*1.3;
-                const l=Math.sqrt(r*r+h*h), V=Math.PI*r*r*h/3, S=Math.PI*r*(r+l);
-                html=`<div class="r-row"><span class="r-label">რადიუსი</span><span class="r-val">${r.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">სიმაღლე</span><span class="r-val">${h.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა</span><span class="r-val" style="color:#22c55e">${V.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">ზარმაცა (l)</span><span class="r-val" style="color:#f59e0b">${l.toFixed(1)}</span></div>`;
-                fhtml=`<b>V = ⅓πr²h</b><br><b>l = √(r²+h²)</b><br><b>S = πr(r+l)</b>`;
-            } else {
-                const r=a/2;
-                const V=4/3*Math.PI*r**3, S=4*Math.PI*r*r;
-                html=`<div class="r-row"><span class="r-label">რადიუსი</span><span class="r-val">${r.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">მოცულობა</span><span class="r-val" style="color:#22c55e">${V.toFixed(0)}</span></div>
-                    <div class="r-row"><span class="r-label">ზედაპირი</span><span class="r-val" style="color:#3b82f6">${S.toFixed(0)}</span></div>`;
-                fhtml=`<b>V = 4/3·πr³</b><br><b>S = 4πr²</b>`;
+        function calculateVolume(shape, r, h) {
+            if (shape === 'cylinder') return Math.PI * r * r * h;
+            if (shape === 'prism') return r * r * h; // Assuming square base a=r
+            if (shape === 'cone') return (Math.PI * r * r * h) / 3;
+            if (shape === 'pyramid') return (r * r * h) / 3; // Square base pyramid
+        }
+
+        function getFormulaText(shape, r, h) {
+            if (shape === 'cylinder') return `V = πr²h ≈ 3.14 · ${r}² · ${h}`;
+            if (shape === 'prism') return `V = a²h = ${r}² · ${h}`;
+            if (shape === 'cone') return `V = ⅓πr²h ≈ 1.04 · ${r}² · ${h}`;
+            if (shape === 'pyramid') return `V = ⅓a²h ≈ 0.33 · ${r}² · ${h}`;
+        }
+
+        function updateContainer() {
+            if(state !== 'building') return;
+            
+            container.r = parseInt(document.getElementById('sl-rad').value);
+            container.h = parseInt(document.getElementById('sl-h').value);
+            
+            document.getElementById('val-rad').innerText = container.r;
+            document.getElementById('val-h').innerText = container.h;
+            
+            container.capacity = calculateVolume(container.shape, container.r, container.h);
+            
+            document.getElementById('current-vol').innerText = Math.round(container.capacity);
+            document.getElementById('current-formula').innerText = getFormulaText(container.shape, container.r, container.h);
+        }
+
+        function pourWater() {
+            if(state !== 'building') return;
+            state = 'pouring';
+            document.getElementById('btn-pour').disabled = true;
+            
+            // Disable UI inputs visually
+            document.getElementById('sl-rad').disabled = true;
+            document.getElementById('sl-h').disabled = true;
+            document.querySelectorAll('.s-btn').forEach(b => b.style.opacity = 0.5);
+
+            waterFilled = 0;
+            waterPoured = 0;
+
+            // Start water sim
+            requestAnimationFrame(simulationLoop);
+        }
+
+        let lastTime = 0;
+        function simulationLoop(timestamp) {
+            if(state !== 'pouring' && state !== 'overflow') {
+                lastTime = timestamp;
+                return;
             }
-            calcs.innerHTML = html;
-            formulas.innerHTML = fhtml;
-        }
 
-        function getVertices(a) {
-            const s = a/2;
-            if(shape==='cube') {
-                return { verts:[[-s,-s,-s],[s,-s,-s],[s,s,-s],[-s,s,-s],[-s,-s,s],[s,-s,s],[s,s,s],[-s,s,s]],
-                    edges:[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]],
-                    faces:[[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[0,3,7,4],[1,2,6,5]] };
-            } else if(shape==='prism') {
-                const h=a*0.75;
-                return { verts:[[-s,-h,-s],[s,-h,-s],[s,-h,s],[-s,-h,s],[-s,h,-s],[s,h,-s],[s,h,s],[-s,h,s]],
-                    edges:[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]],
-                    faces:[[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[0,3,7,4],[1,2,6,5]] };
-            } else if(shape==='pyramid') {
-                const h=a*0.6;
-                return { verts:[[-s,-h,-s],[s,-h,-s],[s,-h,s],[-s,-h,s],[0,h,0]],
-                    edges:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]],
-                    faces:[[0,1,2,3],[0,1,4],[1,2,4],[2,3,4],[3,0,4]] };
-            } else if(shape==='cylinder' || shape==='cone') {
-                const seg=20, r=s, h=a*0.65;
-                const verts=[], edges=[], faces=[];
-                for(let i=0;i<seg;i++) {
-                    const ang=i/seg*Math.PI*2;
-                    verts.push([r*Math.cos(ang),-h,r*Math.sin(ang)]);
-                    if(shape==='cylinder') verts.push([r*Math.cos(ang),h,r*Math.sin(ang)]);
+            let dt = (timestamp - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.016;
+            lastTime = timestamp;
+
+            // 1. Logic
+            let pourRateMax = targetWater / 3.0; // Pour everything in 3 seconds
+            
+            if (waterPoured < targetWater && state !== 'overflow') {
+                let amount = pourRateMax * dt;
+                waterPoured += amount;
+                
+                // Add graphical pipe drops
+                if (Math.random() > 0.3) {
+                    pipeDrops.push({
+                        x: W/2 + (Math.random()-0.5)*10,
+                        y: pipeY,
+                        vy: 200 + Math.random()*100,
+                        color: `rgba(56, 189, 248, ${0.4+Math.random()*0.4})`
+                    });
                 }
-                if(shape==='cone') verts.push([0,h,0]);
-                for(let i=0;i<seg;i++) {
-                    const ni=(i+1)%seg;
-                    if(shape==='cylinder') {
-                        edges.push([i*2,ni*2]); edges.push([i*2+1,ni*2+1]); edges.push([i*2,i*2+1]);
+            } else if (state === 'pouring' && pipeDrops.length === 0) {
+                // Done pouring! Evaluate Win/Loss
+                evaluateResult();
+            }
+
+            // Update Pipe Drops (Water falling from ceiling)
+            for(let i=pipeDrops.length-1; i>=0; i--) {
+                let d = pipeDrops[i];
+                d.y += d.vy * dt * 1.5; // fall fast
+                
+                // Base of container is near bottom of screen
+                let bottomY = H - 50;
+                let topY = bottomY - container.h * scale;
+                // Width at top
+                let topR = container.shape === 'cone' || container.shape === 'pyramid' ? 0 : container.r * scale;
+                
+                // Did drop hit the water level inside?
+                // Calculate height of water currently
+                let fillRatio = Math.min(1, waterFilled / container.capacity);
+                let currentWaterY = bottomY - (container.h * scale * getHeightRatioByVolume(fillRatio));
+
+                if (d.y >= currentWaterY) {
+                    pipeDrops.splice(i, 1);
+                    
+                    // Add volume
+                    waterFilled += pourRateMax * dt * 3; // fast fill visually
+                    
+                    // Overflow check
+                    if (waterFilled > container.capacity) {
+                        waterFilled = container.capacity;
+                        if(state === 'pouring') triggerOverflow();
+                        createSplash(W/2, topY, true); // Splash outwards
                     } else {
-                        edges.push([i,ni]); edges.push([i,seg]);
+                        // Small splash inside
+                        if(Math.random()>0.8) createSplash(d.x, currentWaterY, false);
                     }
                 }
-                return {verts, edges, faces:[]};
-            } else { // sphere
-                const seg=16, rings=12, r=s;
-                const verts=[], edges=[];
-                for(let j=0;j<=rings;j++) {
-                    const phi=j/rings*Math.PI;
-                    for(let i=0;i<seg;i++) {
-                        const theta=i/seg*Math.PI*2;
-                        verts.push([r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(theta)]);
-                        if(i>0) edges.push([verts.length-1, verts.length-2]);
-                        if(j>0) edges.push([verts.length-1, verts.length-1-seg]);
-                    }
-                    edges.push([j*seg, (j+1)*seg-1]);
-                }
-                return {verts, edges, faces:[]};
+            }
+
+            // Update Splashes
+            for(let i=splashParticles.length-1; i>=0; i--) {
+                let p = splashParticles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vy += 800 * dt; // gravity
+                p.life -= dt * 2;
+                if(p.life <= 0 || p.y > H) splashParticles.splice(i, 1);
+            }
+
+            renderDynamic();
+            if (state === 'pouring' || state === 'overflow' || pipeDrops.length > 0 || splashParticles.length > 0) {
+                requestAnimationFrame(simulationLoop);
             }
         }
 
-        function draw() {
+        // Math helper to get visual height ratio based on volume ratio (non-linear for cones/pyramids)
+        function getHeightRatioByVolume(volRatio) {
+            if (container.shape === 'cylinder' || container.shape === 'prism') return volRatio;
+            // For cone/pyramid: V scales with h^3 if filling from bottom? 
+            // Wait, apex is at top!
+            // Shape gets narrower at top.
+            // Volume up to height y (from bottom) = V_total - V_top_cone
+            // Unfilled ratio = (1 - y)^3
+            // volRatio = 1 - (1 - y)^3
+            // (1 - y)^3 = 1 - volRatio
+            // 1 - y = cubeRoot(1 - volRatio)
+            // y = 1 - cubeRoot(1 - volRatio)
+            return 1 - Math.pow(1 - volRatio, 1/3);
+        }
+
+        function createSplash(x, y, big) {
+            let count = big ? 10 : 3;
+            for(let i=0; i<count; i++) {
+                splashParticles.push({
+                    x: x, y: y,
+                    vx: (Math.random()-0.5) * (big ? 200 : 50),
+                    vy: -(100 + Math.random() * (big ? 200 : 100)),
+                    life: 1 + Math.random(),
+                    size: big ? (3 + Math.random()*4) : (1 + Math.random()*2)
+                });
+            }
+        }
+
+        function triggerOverflow() {
+            state = 'overflow';
+            // Wait a bit then show fail
+            setTimeout(() => {
+                showResult(false, "მოცულობა მცირეა! თავზე გადავიდა მარაგი.");
+            }, 1000);
+        }
+
+        function evaluateResult() {
+            // Check percentage
+            let margin = targetWater * 0.05; // 5% error allowed
+            let fillRatio = waterFilled / container.capacity;
+            
+            if (container.capacity < targetWater - margin) {
+                // Should have naturally overflowed in logic, but safety catch
+                showResult(false, "კონტეინერი ძალიან პატარაა, წყალი გადმოიღვარა.");
+            } else if (container.capacity > targetWater + margin) {
+                showResult(false, `კონტეინერი ზედმეტად დიდია! ტევადობა იყო ${Math.round(container.capacity)} მლ. სრულად არ გაივსო.`);
+            } else {
+                showResult(true, `ზუსტი კომპრომისი იპოვეთ! (ტევადობა: ${Math.round(container.capacity)} მლ)`);
+            }
+        }
+
+        function showResult(win, msg) {
+            state = 'done';
+            document.getElementById('result-screen').style.display = 'flex';
+            document.getElementById('res-desc').innerText = msg;
+            
+            if (win) {
+                document.getElementById('res-title').innerText = "იდეალურია! 🌊";
+                document.getElementById('res-title').className = "win-title";
+                document.getElementById('btn-next').style.display = 'inline-block';
+                document.getElementById('btn-retry').style.display = 'none';
+            } else {
+                document.getElementById('res-title').innerText = "ჩავარდნა! 🚨";
+                document.getElementById('res-title').className = "lose-title";
+                document.getElementById('btn-next').style.display = 'none';
+                document.getElementById('btn-retry').style.display = 'inline-block';
+            }
+            // re-enable UI
+            document.getElementById('sl-rad').disabled = false;
+            document.getElementById('sl-h').disabled = false;
+            document.querySelectorAll('.s-btn').forEach(b => b.style.opacity = 1);
+        }
+
+        function nextLevel() { level++; initLevel(); renderDynamic(); }
+        function retryLevel() { initLevel(); renderDynamic(); }
+
+        function renderDynamic() {
             ctx.clearRect(0,0,W,H);
-            if(document.getElementById('auto-rotate').checked && !dragging) { rotY += 0.008; }
+            
+            // Draw Target Info UI
+            ctx.fillStyle = 'rgba(255,255,255,0.03)';
+            ctx.fillRect(0, H - 50, W, 50); // floor line
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, H-50); ctx.lineTo(W, H-50); ctx.stroke();
 
-            const a = +document.getElementById('size').value;
-            const {verts, edges, faces} = getVertices(a);
-            const showEdges = document.getElementById('show-edges').checked;
-            const showFaces = document.getElementById('show-faces').checked;
+            // Draw Pipe
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(W/2 - 15, 0, 30, pipeY);
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(W/2 - 10, pipeY, 20, 5);
 
-            const projected = verts.map(v => project(v[0], v[1], v[2]));
+            // Draw Physics Particles
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+            for(let d of pipeDrops) {
+                ctx.beginPath(); ctx.arc(d.x, d.y, 4, 0, Math.PI*2); ctx.fill();
+            }
+            
+            for(let s of splashParticles) {
+                ctx.globalAlpha = Math.max(0, s.life);
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
 
-            // Draw faces
-            if(showFaces && faces.length > 0) {
-                const faceColors = ['rgba(249,115,22,0.12)','rgba(168,85,247,0.12)','rgba(34,197,94,0.12)','rgba(59,130,246,0.12)','rgba(236,72,153,0.12)','rgba(6,182,212,0.12)'];
-                // Sort faces by avg z
-                const sortedFaces = faces.map((f,i)=>({f,i,z:f.reduce((s,vi)=>s+projected[vi].z,0)/f.length})).sort((a,b)=>b.z-a.z);
-                sortedFaces.forEach(({f,i})=>{
-                    ctx.beginPath(); f.forEach((vi,j)=>{j===0?ctx.moveTo(projected[vi].x,projected[vi].y):ctx.lineTo(projected[vi].x,projected[vi].y);});
-                    ctx.closePath(); ctx.fillStyle=faceColors[i%faceColors.length]; ctx.fill();
-                });
+            // --- Draw Glass Container Core ---
+            // 2D orthographic cross section projection for nice UI
+            let cx = W/2;
+            let cy = H - 50; // bottom center
+            let rPx = container.r * scale;
+            let hPx = container.h * scale;
+            
+            let points = [];
+            if(container.shape === 'cylinder' || container.shape === 'prism') {
+                points = [[cx-rPx, cy], [cx+rPx, cy], [cx+rPx, cy-hPx], [cx-rPx, cy-hPx]];
+            } else if (container.shape === 'cone' || container.shape === 'pyramid') {
+                points = [[cx-rPx, cy], [cx+rPx, cy], [cx, cy-hPx]];
             }
 
-            // Draw edges
-            if(showEdges) {
-                ctx.strokeStyle = '#f97316'; ctx.lineWidth = 1.5;
-                edges.forEach(([a,b]) => {
-                    if(a < projected.length && b < projected.length) {
-                        ctx.beginPath(); ctx.moveTo(projected[a].x, projected[a].y); ctx.lineTo(projected[b].x, projected[b].y); ctx.stroke();
-                    }
-                });
+            // Draw Fill (Water inside logic)
+            if (waterFilled > 0) {
+                let fillRatio = Math.min(1, Math.max(0, waterFilled / container.capacity));
+                let hh = hPx * getHeightRatioByVolume(fillRatio);
+                let currentY = cy - hh;
+                
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.7)';
+                ctx.beginPath();
+                
+                if(container.shape === 'cylinder' || container.shape === 'prism') {
+                    ctx.moveTo(cx-rPx, cy); ctx.lineTo(cx+rPx, cy);
+                    ctx.lineTo(cx+rPx, currentY); ctx.lineTo(cx-rPx, currentY);
+                } else {
+                    // Similar triangles to find width at currentY
+                    // At bottom (cy), width is 2*rPx. At top (cy-hPx), width is 0.
+                    // width ratio = 1 - (y_dist_from_bottom / hPx)
+                    let wRatio = 1 - (hh / hPx);
+                    let hw = rPx * wRatio;
+                    
+                    ctx.moveTo(cx-rPx, cy); ctx.lineTo(cx+rPx, cy);
+                    ctx.lineTo(cx+hw, currentY); ctx.lineTo(cx-hw, currentY);
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                // Add top liquid surface line
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+                if(container.shape === 'cylinder' || container.shape === 'prism') {
+                    ctx.beginPath(); ctx.moveTo(cx-rPx, currentY); ctx.lineTo(cx+rPx, currentY); ctx.stroke();
+                } else {
+                    let wRatio = 1 - (hh / hPx);
+                    let hw = rPx * wRatio;
+                    ctx.beginPath(); ctx.moveTo(cx-hw, currentY); ctx.lineTo(cx+hw, currentY); ctx.stroke();
+                }
             }
 
-            // Draw vertices
-            projected.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
-                ctx.fillStyle = '#a855f7'; ctx.fill();
-            });
+            // Draw Glass Outline
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10; ctx.shadowColor = 'white';
+            ctx.beginPath();
+            ctx.moveTo(points[0][0], points[0][1]);
+            for(let i=1; i<points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+            // For cylinder/prism we don't close the top, we want an open glass!
+            // Wait, for cone, we shouldn't close the base, we want the top open... but cone's top is a point!
+            // Actually, an inverted cone holds water. A regular cone pointing up can't be filled from top easily...
+            // Let's assume they are all cups (open at top).
+            // A cone cup is inverted! apex at bottom.
+            ctx.stroke();
+            ctx.shadowBlur = 0;
 
-            requestAnimationFrame(draw);
+            // Dimensions Lines
+            ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+            // Height
+            ctx.beginPath(); ctx.moveTo(cx + rPx + 20, cy); ctx.lineTo(cx + rPx + 20, cy - hPx); ctx.stroke();
+            ctx.fillStyle = '#facc15'; ctx.font = '12px Arial';
+            ctx.fillText(container.h + ' სმ', cx + rPx + 30, cy - hPx/2);
+            // Radius
+            ctx.beginPath(); ctx.moveTo(cx, cy + 20); ctx.lineTo(cx + rPx, cy + 20); ctx.stroke();
+            ctx.fillText(container.r + ' სმ', cx + rPx/2 - 10, cy + 35);
+            ctx.setLineDash([]);
         }
-        updateCalc();
-        draw();
+
+        // INIT
+        resize();
+        initLevel();
+        renderDynamic();
+
     </script>
 </body>
 </html>

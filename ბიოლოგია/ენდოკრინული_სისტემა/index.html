@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,154 +7,392 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-        .sim-area { background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 550px; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; max-height: 550px; overflow-y: auto; }
-        .gland-btn { padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left; transition: 0.2s; font-family: inherit; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
-        .gland-btn:hover { background: #334155; }
-        .gland-btn.active { background: linear-gradient(135deg, #8b5cf6, #06b6d4); border-color: #8b5cf6; }
-        .g-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .info-box { background: #0f172a; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #94a3b8; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); }
-        .info-box h4 { color: #f8fafc; margin-bottom: 5px; }
-        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #8b5cf6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;}
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: 320px minmax(0, 1fr) 280px; gap: 20px; width: 100%; max-width: 1200px; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+        /* Left Panel - Vitals */
+        .panel { background: #1e293b; border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .panel-title { font-weight: bold; color: #8b5cf6; margin-bottom: 5px; text-transform: uppercase; font-size: 0.85rem;}
+        
+        .vital-box { background: #0f172a; border-radius: 10px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .vital-header { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; font-weight: bold;}
+        .vital-bar-bg { height: 12px; background: #334155; border-radius: 6px; overflow: hidden; position: relative; }
+        .vital-target { position: absolute; left: 45%; right: 45%; top: 0; bottom: 0; background: rgba(255,255,255,0.2); z-index: 1; border-left: 1px solid #fff; border-right: 1px solid #fff;}
+        .vital-bar { height: 100%; border-radius: 6px; width: 50%; transition: width 0.3s ease, background 0.3s; position: relative; z-index: 2;}
+
+        .event-card { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-top: auto; display: none; animation: popIn 0.3s ease;}
+        @keyframes popIn { 0% {transform: scale(0.9); opacity:0;} 100% {transform: scale(1); opacity:1;} }
+        
+        /* Middle Panel - Canvas */
+        .sim-area { background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; height: 500px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 50px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;}
+        canvas { display: block; width: 100%; height: 100%; cursor: crosshair;}
+        .game-over { position: absolute; inset: 0; background: rgba(15,23,42,0.9); backdrop-filter: blur(4px); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; text-align: center; padding: 20px;}
+        .game-over h2 { color: #ef4444; font-size: 2rem; margin-bottom: 15px;}
+        .score-txt { font-size: 1.2rem; color: #cbd5e1; margin-bottom: 20px;}
+
+        /* Right Panel - Controls */
+        .controls-grid { display: grid; gap: 8px; }
+        .hormone-btn { background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 10px; cursor: pointer; text-align: left; transition: 0.2s; color: #e2e8f0; display: flex; flex-direction: column; gap: 4px; position: relative; overflow: hidden;}
+        .hormone-btn:hover { background: #334155; transform: translateY(-2px); border-color: rgba(255,255,255,0.2);}
+        .hormone-btn:active { transform: translateY(0); }
+        .h-name { font-weight: bold; font-size: 0.9rem; pointer-events: none;}
+        .h-desc { font-size: 0.75rem; color: #94a3b8; pointer-events: none;}
+        .cooldown-overlay { position: absolute; bottom: 0; left: 0; height: 4px; background: #10b981; width: 0%; transition: width 0.1s linear;}
+
+        .btn-start { padding: 12px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); border: none; border-radius: 8px; color: white; font-weight: bold; font-family: inherit; cursor: pointer; transition: 0.2s; font-size: 1rem; box-shadow: 0 4px 15px rgba(139,92,246,0.3);}
+        .btn-start:hover { transform: scale(1.05); }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>🧬 ენდოკრინული სისტემა</h1>
-    <p class="subtitle">ჰორმონების მომწარმოებელი ჯირკვლები და მათი ფუნქციები</p>
+    <h1>⚡ ჰომეოსტაზი: ენდოკრინული მართვა</h1>
+    <p class="subtitle">შენ ხარ ტვინი. მართე ჰორმონები, რათა ორგანიზმი გადაარჩინო სტრესულ სიტუაციებში!</p>
+
     <div class="container">
-        <div class="sim-area"><canvas id="canvas"></canvas></div>
+        <!-- Vitals Panel -->
         <div class="panel">
-            <div style="font-weight:bold; color:#8b5cf6; margin-bottom:5px;">ჯირკვლები</div>
-            <div id="gland-list"></div>
-            <div class="info-box" id="info-box"><h4>აირჩიე ჯირკვალი</h4>დააკლიკე სხეულზე ან აირჩიე სიიდან.</div>
+            <div class="panel-title">ორგანიზმის სასიცოცხლო მაჩვენებლები</div>
+            
+            <div class="vital-box">
+                <div class="vital-header"><span>🩸 სისხლში შაქარი</span></div>
+                <div class="vital-bar-bg">
+                    <div class="vital-target"></div>
+                    <div class="vital-bar" id="v-sugar" style="background: #22c55e;"></div>
+                </div>
+            </div>
+
+            <div class="vital-box">
+                <div class="vital-header"><span>❤️ გულის რიტმი (ენერგია)</span></div>
+                <div class="vital-bar-bg">
+                    <div class="vital-target"></div>
+                    <div class="vital-bar" id="v-heart" style="background: #ef4444;"></div>
+                </div>
+            </div>
+
+            <div class="vital-box">
+                <div class="vital-header"><span>🔥 მეტაბოლიზმი (ტემპ.)</span></div>
+                <div class="vital-bar-bg">
+                    <div class="vital-target"></div>
+                    <div class="vital-bar" id="v-metab" style="background: #f59e0b;"></div>
+                </div>
+            </div>
+
+            <div class="event-card" id="event-card">
+                <div style="font-size:0.8rem; opacity:0.8; margin-bottom:4px;">მიმდინარე მოვლენა:</div>
+                <div id="event-text" style="font-size: 1.1rem;">მშვიდი მდგომარეობა</div>
+            </div>
+            
+            <div style="margin-top:auto; text-align:center; font-size:0.8rem; color:#64748b;">დრო: <span id="time-score" style="font-weight:bold; color:#f8fafc; font-size:1rem;">0</span> წმ</div>
         </div>
+
+        <!-- Canvas Area -->
+        <div class="sim-area">
+            <canvas id="canvas"></canvas>
+            
+            <div class="game-over" id="game-over">
+                <h2 id="go-title">ორგანიზმი დაეცა!</h2>
+                <div class="score-txt">გადარჩენის დრო: <b id="go-score" style="color:#10b981;">0</b> წამი</div>
+                <p id="go-reason" style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px; max-width:80%;">სისხლში შაქარმა კრიტიკულად დაიწია (ჰიპოგლიკემია).</p>
+                <button class="btn-start" onclick="startGame()">თავიდან ცდა ↺</button>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="panel">
+            <div class="panel-title">ჰორმონების ინექცია</div>
+            
+            <div class="controls-grid">
+                <button class="hormone-btn" onclick="injectHormone('insulin', this)">
+                    <span class="h-name" style="color:#22c55e;">🍏 ინსულინი (პანკრეასი)</span>
+                    <span class="h-desc">ამცირებს სისხლში შაქარს</span>
+                    <div class="cooldown-overlay"></div>
+                </button>
+                <button class="hormone-btn" onclick="injectHormone('glucagon', this)">
+                    <span class="h-name" style="color:#eab308;">🍩 გლუკაგონი (პანკრეასი)</span>
+                    <span class="h-desc">ზრდის სისხლში შაქარს</span>
+                    <div class="cooldown-overlay"></div>
+                </button>
+                <button class="hormone-btn" onclick="injectHormone('adrenaline', this)">
+                    <span class="h-name" style="color:#ef4444;">⚡ ადრენალინი (თირკმელზედა)</span>
+                    <span class="h-desc">აჩქარებს გულს, ზრდის ენერგიას</span>
+                    <div class="cooldown-overlay"></div>
+                </button>
+                <button class="hormone-btn" onclick="injectHormone('calmatonin', this)">
+                    <span class="h-name" style="color:#3b82f6;">🧘 პარასიმპატიკური (ნერვ.)</span>
+                    <span class="h-desc">ამშვიდებს გულის რიტმს</span>
+                    <div class="cooldown-overlay"></div>
+                </button>
+                <button class="hormone-btn" onclick="injectHormone('thyroxine', this)">
+                    <span class="h-name" style="color:#06b6d4;">🦋 თიროქსინი (ფარისებრი)</span>
+                    <span class="h-desc">აჩქარებს მეტაბოლიზმს</span>
+                    <div class="cooldown-overlay"></div>
+                </button>
+            </div>
+            
+            <button class="btn-start" id="start-btn" onclick="startGame()" style="margin-top:auto;">თამაშის დაწყება ▶</button>
+        </div>
+
         <div class="info-panel">
-            <strong>🔬 ენდოკრინული სისტემა:</strong> ჯირკვლების ქსელი, რომლებიც ჰორმონებს გამოყოფენ სისხლში. ჰორმონები ქიმიური მესენჯერებია — ისინი სხეულის სხვადასხვა ნაწილში აღწევენ და სპეციფიკურ ორგანოებზე მოქმედებენ.
+            <strong>🔬 ენდოკრინული სისტემა და ჰომეოსტაზი:</strong> ჰომეოსტაზი არის ორგანიზმის უნარი, შეინარჩუნოს სტაბილური შიდა გარემო.<br>
+            • როცა ჭამთ ტკბილს, შაქარი იწევს. პანკრეასი გამოყოფს <strong>ინსულინს</strong> მოსაწესრიგებლად.<br>
+            • საფრთხისას თირკმელზედა ჯირკვალი გამოყოფს <strong>ადრენალინს</strong> გულის ასაჩქარებლად (Fight or Flight).<br>
+            • თამაშის მიზანია დაეხმაროთ ორგანიზმს წონასწორობის შენარჩუნებაში. დააკვირდით მოვლენებს და დროულად დააკლიკეთ შესაბამის ჰორმონს! თუ მაჩვენებელი 0%-ზე ჩამოვა ან 100%-ს აცდება — თამაში სრულდება.
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const sim = canvas.parentElement;
         let W, H;
-        function resize() { canvas.width = sim.offsetWidth * devicePixelRatio; canvas.height = sim.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = sim.offsetWidth; H = sim.offsetHeight; }
+        
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight;
+        }
         resize(); window.addEventListener('resize', resize);
 
-        const glands = [
-            { id:'hypothalamus', name:'ჰიპოთალამუსი', color:'#a78bfa', x:0.50, y:0.07, r:0.03, emoji:'🧠',
-              hormone:'ADH, ოქსიტოცინი',
-              info:'ტვინის ნაწილი, რომელიც ენდოკრინულ და ნერვულ სისტემას აკავშირებს. არეგულირებს: ტემპერატურას, მოწყურებას, ძილს, ემოციას. ჰიპოფიზს გადასცემს ბრძანებებს.' },
-            { id:'pituitary', name:'ჰიპოფიზი', color:'#ec4899', x:0.50, y:0.10, r:0.025, emoji:'👑',
-              hormone:'GH, TSH, ACTH, FSH, LH',
-              info:'„მთავარი ჯირკვალი" — აკონტროლებს სხვა ჯირკვლებს. გამოყოფს ზრდის ჰორმონს (GH), მეტაბოლიზმის მარეგულირებელ (TSH), სტრესის (ACTH) და რეპროდუქციის (FSH/LH) ჰორმონებს.' },
-            { id:'thyroid', name:'ფარისებრი ჯირკვალი', color:'#06b6d4', x:0.50, y:0.17, r:0.035, emoji:'🦋',
-              hormone:'T3, T4 (თიროქსინი)',
-              info:'კისრის წინა ნაწილში. აწარმოებს T3/T4 — მეტაბოლიზმის სიჩქარეს, ენერგიის გამომუშავებას და ტემპერატურას აკონტროლებს. იოდის დეფიციტთ → ჩიყვი.' },
-            { id:'parathyroid', name:'პარათირეოიდული', color:'#14b8a6', x:0.54, y:0.17, r:0.015, emoji:'💎',
-              hormone:'PTH (პარათჰორმონი)',
-              info:'4 წვრილი ჯირკვალი ფარისებრის უკან. PTH აკონტროლებს კალციუმის დონეს სისხლში. ზედმეტი → ძვლებიდან Ca²⁺ გამოტანა; ნაკლები → კრუნჩხვა.' },
-            { id:'adrenal', name:'თირკმელზედა', color:'#f59e0b', x:0.50, y:0.38, r:0.03, emoji:'⚡',
-              hormone:'კორტიზოლი, ადრენალინი',
-              info:'თირკმლების თავზე. ქერქი — კორტიზოლი (სტრესი, იმუნიტეტი); ტვინი — ადრენალინი (fight-or-flight: გული ჩქარობს, ენერგია იზრდება).' },
-            { id:'pancreas', name:'პანკრეასი', color:'#22c55e', x:0.48, y:0.43, r:0.035, emoji:'💚',
-              hormone:'ინსულინი, გლუკაგონი',
-              info:'ლანგერჰანსის კუნძულები: β-უჯრედები → ინსულინი (ამცირებს შაქარს); α-უჯრედები → გლუკაგონი (ზრდის შაქარს). დიაბეტი — ინსულინის ნაკლებობა.' },
-            { id:'gonads', name:'სასქესო ჯირკვლები', color:'#f43f5e', x:0.50, y:0.58, r:0.03, emoji:'🔴',
-              hormone:'ტესტოსტერონი / ესტროგენი',
-              info:'სათესლეები (♂) → ტესტოსტერონი: კუნთების ზრდა, ბგერის სიდაბლე. საკვერცხეები (♀) → ესტროგენი/პროგესტერონი: მენსტრუალური ციკლი, ორსულობა.' },
+        // --- GAME LOGIC ---
+        let isPlaying = false;
+        let score = 0;
+        let lastTime = 0;
+        
+        let vitals = {
+            sugar: 50,
+            heart: 50,
+            metab: 50
+        };
+
+        const EVENTS = [
+            { id: 'cake', name: 'შეჭამა უზარმაზარი ტორტი! 🍰', effect: { sugar: 15, heart: 2, metab: 0 }, duration: 4, msg: 'შაქარი იწევს!' },
+            { id: 'bear', name: 'დაინახა მგელი! სტრესი! 🐺', effect: { sugar: 5, heart: 20, metab: 5 }, duration: 3, msg: 'გული ჩქარდება!' },
+            { id: 'run', name: 'ვარჯიშობს (დარბის) 🏃', effect: { sugar: -10, heart: 5, metab: 10 }, duration: 5, msg: 'შაქარი იწვება!' },
+            { id: 'sleep', name: 'ღრმა ძილი 💤', effect: { sugar: -2, heart: -8, metab: -10 }, duration: 4, msg: 'პროცესები ნელდება' },
+            { id: 'fast', name: 'შიმშილობს (დიეტა) 🍽️', effect: { sugar: -15, heart: -2, metab: -5 }, duration: 4, msg: 'გლუკოზა ეცემა!' },
+            { id: 'cold', name: 'ცივა! (ყინვა) ❄️', effect: { sugar: -5, heart: 0, metab: -15 }, duration: 4, msg: 'მეტაბოლიზმი ეცემა!' }
         ];
 
-        let selected = null;
+        let activeEvent = null;
+        let eventTimer = 0;
+        let eventCooldown = 3;
 
-        const listEl = document.getElementById('gland-list');
-        glands.forEach(g => {
-            const btn = document.createElement('button');
-            btn.className = 'gland-btn'; btn.id = 'btn-' + g.id;
-            btn.innerHTML = `<span class="g-dot" style="background:${g.color}"></span>${g.emoji} ${g.name}`;
-            btn.onclick = () => selectGland(g.id);
-            listEl.appendChild(btn);
-        });
+        // Visual Particles in Canvas
+        let particles = [];
+        let pulses = []; // For drawing blood flow
+        let bloodPhase = 0;
 
-        function selectGland(id) {
-            selected = id;
-            document.querySelectorAll('.gland-btn').forEach(b=>b.classList.remove('active'));
-            document.getElementById('btn-'+id)?.classList.add('active');
-            const g = glands.find(x=>x.id===id);
-            if(g) document.getElementById('info-box').innerHTML = `<h4>${g.emoji} ${g.name}</h4><b style="color:${g.color}">ჰორმონები: ${g.hormone}</b><br><br>${g.info}`;
+        function startGame() {
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('event-card').style.display = 'block';
+            vitals = { sugar: 50, heart: 50, metab: 50 };
+            score = 0;
+            activeEvent = null;
+            eventTimer = 0;
+            eventCooldown = 2; // initial peace
+            particles = [];
+            isPlaying = true;
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
         }
 
-        canvas.addEventListener('click', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = (e.clientX - rect.left) / rect.width;
-            const my = (e.clientY - rect.top) / rect.height;
-            for(const g of glands) {
-                const dx = mx - g.x, dy = my - g.y;
-                if(Math.sqrt(dx*dx+dy*dy) < g.r*2) { selectGland(g.id); return; }
+        function gameOver(reason) {
+            isPlaying = false;
+            document.getElementById('game-over').style.display = 'flex';
+            document.getElementById('go-score').innerText = Math.floor(score);
+            document.getElementById('go-reason').innerText = reason;
+            document.getElementById('start-btn').style.display = 'block';
+            document.getElementById('event-card').style.display = 'none';
+        }
+
+        function injectHormone(type, btnEl) {
+            if(!isPlaying) return;
+            if(btnEl.disabled) return;
+            
+            // Visual Cooldown
+            btnEl.disabled = true;
+            let cdBar = btnEl.querySelector('.cooldown-overlay');
+            cdBar.style.transition = 'none';
+            cdBar.style.width = '100%';
+            setTimeout(() => { cdBar.style.transition = 'width 1s linear'; cdBar.style.width = '0%'; }, 10);
+            setTimeout(() => { btnEl.disabled = false; }, 1000);
+
+            let color = '#fff';
+            let startOrg = {x: W*0.5, y: H*0.3};
+
+            if (type === 'insulin') {
+                vitals.sugar -= 15; color = '#22c55e'; startOrg = {x: W*0.4, y: H*0.45}; // Pancreas
+            } else if (type === 'glucagon') {
+                vitals.sugar += 15; color = '#eab308'; startOrg = {x: W*0.4, y: H*0.45};
+            } else if (type === 'adrenaline') {
+                vitals.heart += 15; color = '#ef4444'; startOrg = {x: W*0.5, y: H*0.6}; // Adrenal
+            } else if (type === 'calmatonin') {
+                vitals.heart -= 15; color = '#3b82f6'; startOrg = {x: W*0.5, y: H*0.1}; // Brain
+            } else if (type === 'thyroxine') {
+                vitals.metab += 15; color = '#06b6d4'; startOrg = {x: W*0.5, y: H*0.25}; // Thyroid
             }
-        });
 
-        let hormoneParticles = [];
-
-        function draw() {
-            ctx.clearRect(0,0,W,H);
-            const t = Date.now()*0.001;
-
-            // Body outline
-            ctx.fillStyle = '#1a2744';
-            ctx.beginPath(); ctx.ellipse(W*0.5, H*0.05, W*0.055, H*0.04, 0, 0, Math.PI*2); ctx.fill();
-            ctx.fillRect(W*0.46, H*0.09, W*0.08, H*0.03);
-            ctx.beginPath(); ctx.moveTo(W*0.35,H*0.12); ctx.lineTo(W*0.65,H*0.12); ctx.lineTo(W*0.6,H*0.55); ctx.lineTo(W*0.4,H*0.55); ctx.closePath(); ctx.fill();
-            ctx.fillRect(W*0.41,H*0.55,W*0.08,H*0.35);
-            ctx.fillRect(W*0.51,H*0.55,W*0.08,H*0.35);
-
-            // Blood vessels (simplified)
-            ctx.strokeStyle = 'rgba(239,68,68,0.15)'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.1); ctx.lineTo(W*0.5,H*0.7); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.2); ctx.lineTo(W*0.35,H*0.4); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(W*0.5,H*0.2); ctx.lineTo(W*0.65,H*0.4); ctx.stroke();
-
-            // Glands
-            glands.forEach(g => {
-                const gx = g.x*W, gy = g.y*H, gr = g.r*W;
-                const isSel = selected === g.id;
-                const pulse = isSel ? 1 + Math.sin(t*3)*0.15 : 1;
-                
-                if(isSel) { ctx.shadowColor = g.color; ctx.shadowBlur = 25; }
-                ctx.beginPath(); ctx.arc(gx, gy, gr*pulse, 0, Math.PI*2);
-                ctx.fillStyle = g.color + (isSel ? 'dd' : '88');
-                ctx.fill(); ctx.shadowBlur = 0;
-
-                ctx.fillStyle = '#fff'; ctx.font = `${isSel?'bold ':''}${Math.max(10, W*0.018)}px 'Noto Sans Georgian'`; ctx.textAlign = 'center';
-                ctx.fillText(g.name, gx, gy + gr + 14);
-
-                // Emit hormone particles
-                if(isSel && Math.random() < 0.15) {
-                    hormoneParticles.push({ x: gx, y: gy, vx: (Math.random()-0.5)*2, vy: 1+Math.random()*2, life: 60, color: g.color });
-                }
-            });
-
-            // Draw particles
-            hormoneParticles = hormoneParticles.filter(p => {
-                p.x += p.vx; p.y += p.vy; p.life--;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
-                ctx.fillStyle = p.color + Math.floor(p.life/60*255).toString(16).padStart(2,'0');
-                ctx.fill();
-                return p.life > 0;
-            });
-
-            requestAnimationFrame(draw);
+            // Spawn Particles
+            for(let i=0; i<15; i++) {
+                particles.push({
+                    x: startOrg.x + (Math.random()-0.5)*20,
+                    y: startOrg.y + (Math.random()-0.5)*20,
+                    vx: (Math.random()-0.5)*8,
+                    vy: (Math.random()-0.5)*8,
+                    life: 1, color: color
+                });
+            }
+            
+            updateUI();
+            checkVitals();
         }
-        draw();
+
+        function updateUI() {
+            let s = vitals.sugar;
+            let bar = document.getElementById('v-sugar');
+            bar.style.width = s + '%';
+            bar.style.background = (s<20 || s>80) ? '#ef4444' : '#22c55e';
+            
+            let h = vitals.heart;
+            bar = document.getElementById('v-heart');
+            bar.style.width = h + '%';
+            bar.style.background = (h<20 || h>80) ? '#ef4444' : '#f59e0b';
+            
+            let m = vitals.metab;
+            bar = document.getElementById('v-metab');
+            bar.style.width = m + '%';
+            bar.style.background = (m<20 || m>80) ? '#ef4444' : '#06b6d4';
+
+            document.getElementById('time-score').innerText = Math.floor(score);
+        }
+
+        function checkVitals() {
+            if(vitals.sugar <= 0) gameOver("კრიტიკული ჰიპოგლიკემია (შაქრის ნაკლებობა). ტვინმა გათიშა სხეული.");
+            else if(vitals.sugar >= 100) gameOver("კრიტიკული ჰიპერგლიკემია. შაქარმა სისხლი დაადრბილა (კომა).");
+            else if(vitals.heart <= 0) gameOver("გული გაჩერდა (ბრადიკარდია / წნევის ვარდნა).");
+            else if(vitals.heart >= 100) gameOver("გულის შეტევა (ტაქიკარდია) ზედმეტი სტრესისგან.");
+            else if(vitals.metab <= 0) gameOver("ჰიპოთერმია (მეტაბოლიზმის გაჩერება). ორგანიზმი გაიყინა.");
+            else if(vitals.metab >= 100) gameOver("ჰიპერთერმია (მეტაბოლიზმის გადაწვა). ორგანიზმი გადახურდა.");
+        }
+
+        function gameLoop(timestamp) {
+            if(!isPlaying) return;
+            let dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            score += dt;
+
+            // Natural Normalization (Very slow drift towards 50)
+            vitals.sugar += (50 - vitals.sugar) * 0.05 * dt;
+            vitals.heart += (50 - vitals.heart) * 0.05 * dt;
+            vitals.metab += (50 - vitals.metab) * 0.05 * dt;
+
+            // Event Logic
+            if (activeEvent) {
+                eventTimer -= dt;
+                // Apply event effects gradually per second
+                vitals.sugar += activeEvent.effect.sugar * dt;
+                vitals.heart += activeEvent.effect.heart * dt;
+                vitals.metab += activeEvent.effect.metab * dt;
+
+                if (eventTimer <= 0) {
+                    activeEvent = null;
+                    document.getElementById('event-card').style.background = '#1e293b';
+                    document.getElementById('event-text').innerText = 'მშვიდი მდგომარეობა';
+                    eventCooldown = 2 + Math.random() * 3; // 2-5 sec peace
+                }
+            } else {
+                eventCooldown -= dt;
+                if (eventCooldown <= 0) {
+                    // Pick new event
+                    activeEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+                    eventTimer = activeEvent.duration;
+                    document.getElementById('event-card').style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
+                    document.getElementById('event-card').querySelector('div').innerText = activeEvent.msg;
+                    document.getElementById('event-text').innerText = activeEvent.name;
+                    
+                    // Add some alert particles
+                    for(let i=0;i<20;i++) particles.push({ x: W/2, y: H/2, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:1, color:'#ef4444'});
+                }
+            }
+
+            updateUI();
+            checkVitals();
+            drawCanvas();
+
+            if(isPlaying) requestAnimationFrame(gameLoop);
+        }
+
+        function drawCanvas() {
+            ctx.clearRect(0,0,W,H);
+            
+            // Draw Human Silhouette (Holographic style)
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            
+            // Head
+            ctx.beginPath(); ctx.ellipse(W/2, H*0.12, W*0.08, H*0.08, 0, 0, Math.PI*2); ctx.stroke();
+            // Torso
+            ctx.beginPath(); ctx.moveTo(W*0.42, H*0.2); ctx.lineTo(W*0.58, H*0.2); 
+            ctx.lineTo(W*0.65, H*0.35); ctx.lineTo(W*0.6, H*0.6); 
+            ctx.lineTo(W*0.4, H*0.6); ctx.lineTo(W*0.35, H*0.35); ctx.closePath(); ctx.stroke();
+            // Heart indicator
+            let hScale = 1 + Math.sin(Date.now()*0.005 * (vitals.heart/50)) * 0.1 * (vitals.heart/50);
+            ctx.save(); ctx.translate(W*0.53, H*0.3); ctx.scale(hScale, hScale);
+            ctx.fillStyle = `rgba(239, 68, 68, ${vitals.heart/100})`;
+            ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill();
+            ctx.restore();
+            
+            // Stomach/Pancreas
+            ctx.fillStyle = `rgba(34, 197, 94, ${Math.abs(vitals.sugar-50)/100})`;
+            ctx.beginPath(); ctx.ellipse(W*0.45, H*0.45, 15, 8, -0.3, 0, Math.PI*2); ctx.fill();
+
+            // Thyroid
+            ctx.fillStyle = `rgba(6, 182, 212, ${Math.abs(vitals.metab-50)/100})`;
+            ctx.beginPath(); ctx.ellipse(W*0.5, H*0.22, 10, 5, 0, 0, Math.PI*2); ctx.fill();
+
+            // Adrenal
+            ctx.fillStyle = `rgba(245, 158, 11, ${(vitals.heart>70)? 0.8 : 0.1})`;
+            ctx.beginPath(); ctx.arc(W*0.45, H*0.53, 6, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W*0.55, H*0.53, 6, 0, Math.PI*2); ctx.fill();
+
+
+            // Draw Particles (Hormones moving)
+            for(let i=particles.length-1; i>=0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.02;     
+                
+                // Gravity towards center
+                p.vx += (W/2 - p.x) * 0.005;
+                p.vy += (H/2 - p.y) * 0.005;
+
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.shadowBlur = 10; ctx.shadowColor = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+
+                if(p.life <= 0) particles.splice(i,1);
+            }
+            ctx.globalAlpha = 1;
+        }
+        
+        // Initial Draw
+        drawCanvas();
     </script>
 </body>
 </html>

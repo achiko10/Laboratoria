@@ -1,242 +1,488 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — ფრაქტალები</title>
+    <title>მათემატიკა — კვანტური ფრაქტალების სკანერი</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 240px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 500px; cursor: crosshair; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .panel h3 { font-size: 0.9rem; }
-        .frac-btn { padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.8rem; transition: 0.2s; text-align: left; }
-        .frac-btn:hover { background: #334155; }
-        .frac-btn.active { background: linear-gradient(135deg, #ec4899, #06b6d4); color: white; border-color: #ec4899; }
-        .control label { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .control label b { color: #f8fafc; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #06b6d4); cursor: pointer; }
-        .color-btns { display: flex; gap: 5px; flex-wrap: wrap; }
-        .color-choice { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
-        .color-choice.active { border-color: #fff; }
-        button.draw-btn { padding: 12px; background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; border-radius: 8px; color: white; font-family: inherit; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
-        button.draw-btn:hover { transform: translateY(-2px); }
-        .info { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.5; border-left: 3px solid #ec4899; }
-        .info b { color: #f9a8d4; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
-        .back-btn:hover { background: #334155; color: #f8fafc; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #000; overflow: hidden; color: #e2e8f0; }
+
+        /* Fullscreen WebGL Background */
+        #glcanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 1;
+        }
+
+        /* Top Left Controls */
+        .top-left-panel {
+            position: absolute;
+            top: 20px; left: 20px;
+            z-index: 10;
+            display: flex; flex-direction: column; gap: 15px;
+            pointer-events: auto;
+        }
+
+        .back-btn {
+            display: inline-block; padding: 10px 20px; background: rgba(15, 23, 42, 0.7); 
+            color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; 
+            transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; backdrop-filter: blur(5px);
+        }
+        .back-btn:hover { background: #334155; color: #f8fafc; border-color: #38bdf8;}
+
+        .header {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            padding: 15px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+            transition: 0.3s;
+        }
+        .header:hover { background: rgba(15, 23, 42, 0.8); border-color: rgba(14, 165, 233, 0.6); }
+
+        h1 { font-size: 1.2rem; margin-bottom: 5px; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .lvl-text { color: #ec4899; font-weight: bold; font-family: 'Courier New'; font-size:0.9rem;}
+
+        /* Bottom Right Game Panel (Radar) */
+        .game-panel {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            z-index: 10; pointer-events: auto;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid #818cf8;
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            width: 280px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; gap: 10px;
+            transition: 0.3s;
+        }
+        .game-panel:hover { background: rgba(15, 23, 42, 0.85); box-shadow: 0 0 40px rgba(129,140,248,0.4); }
+
+        .game-panel h3 { font-size: 0.9rem; color: #38bdf8; text-transform: uppercase; margin:0;}
+        
+        .minimap-container {
+            width: 100%; height: 180px;
+            background: #000; border-radius: 8px;
+            position: relative; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: crosshair;
+        }
+        #minimap { width: 100%; height: 100%; }
+        
+        .crosshair {
+            position: absolute; width: 12px; height: 12px; border: 2px solid #facc15; border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; box-shadow: 0 0 10px #facc15;
+        }
+        .target-crosshair {
+            position: absolute; width: 20px; height: 20px; border: 2px dashed #ec4899; border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; animation: spin 4s linear infinite;
+        }
+        @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .progress-box { background: rgba(0,0,0,0.4); border-radius: 6px; padding: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .progress-text { font-size: 0.75rem; color: #cbd5e1; display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;}
+        .progress-bar { width: 100%; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #facc15, #10b981); transition: width 0.1s; }
+
+        .coordinate-display { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #94a3b8; text-align: right; margin-top:-5px;}
+
+        /* Info Toggle Button */
+        .info-btn {
+            position: absolute; bottom: 20px; left: 20px; z-index: 10; pointer-events: auto;
+            background: rgba(15, 23, 42, 0.7); color: #38bdf8; 
+            border: 2px solid #38bdf8; border-radius: 50%; width: 50px; height: 50px;
+            font-size: 1.5rem; font-weight: bold; font-family: 'Courier New', monospace;
+            cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 0 15px rgba(56,189,248,0.3); transition: 0.3s;
+        }
+        .info-btn:hover { background: #38bdf8; color: #0f172a; transform: scale(1.1); }
+
+        .info-box {
+            position: absolute; bottom: 80px; left: 20px; width: 300px; z-index: 10; pointer-events: auto;
+            background: rgba(15, 23, 42, 0.85); border-left: 4px solid #38bdf8;
+            padding: 15px; border-radius: 12px; backdrop-filter: blur(8px);
+            font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            opacity: 0; transform: translateY(10px); pointer-events: none; transition: 0.3s;
+        }
+        .info-box.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .info-box strong { color: #38bdf8; }
+
+        /* Win Screen */
+        .win-screen {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); text-align: center; pointer-events: auto;
+        }
+        .win-screen h2 { font-size: 3rem; color: #10b981; text-shadow: 0 0 30px rgba(16,185,129,0.8); margin-bottom: 10px;}
+        .win-desc { color: #f8fafc; font-size: 1.1rem; margin-bottom: 20px; max-width: 600px; line-height: 1.5; }
+        
+        .btn-large {
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 40px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit;
+            box-shadow: 0 0 20px rgba(16,185,129,0.4); border: 1px solid #34d399;
+        }
+        .btn-large:hover { transform: scale(1.05); }
+
+        /* Responsive scaling */
+        @media (max-width: 600px) {
+            .header { top: 10px; left: 10px; padding: 10px; }
+            .game-panel { bottom: 10px; right: 10px; width: 240px; padding: 10px; }
+            .minimap-container { height: 140px; }
+            .info-btn { bottom: 10px; left: 10px; width: 40px; height: 40px; font-size: 1.2rem;}
+            .info-box { bottom: 60px; left: 10px; width: 250px; }
+        }
+
     </style>
 </head>
 <body>
-    <h1>🌀 ფრაქტალების გენერატორი</h1>
-    <p class="subtitle">შეარჩიე ფრაქტალი, შეცვალე პარამეტრები და დააგენერირე!</p>
-    <div class="app">
-        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
-        <div class="panel">
-            <h3 style="color:#ec4899;">ფრაქტალის ტიპი</h3>
-            <button class="frac-btn active" id="fb-mandelbrot" onclick="setFractal('mandelbrot')">🌀 მანდელბროტი</button>
-            <button class="frac-btn" id="fb-julia" onclick="setFractal('julia')">🎨 ჟულია</button>
-            <button class="frac-btn" id="fb-koch" onclick="setFractal('koch')">❄️ კოხის ფიფქი</button>
-            <button class="frac-btn" id="fb-sierpinski" onclick="setFractal('sierpinski')">🔺 სიერპინსკის სამკუთხედი</button>
-            <button class="frac-btn" id="fb-tree" onclick="setFractal('tree')">🌳 ფრაქტალური ხე</button>
-            <div class="control">
-                <label>იტერაციები: <b><span id="iter-val">50</span></b></label>
-                <input type="range" id="iterations" min="10" max="200" value="50">
-            </div>
-            <div class="control" id="depth-ctrl">
-                <label>სიღრმე: <b><span id="depth-val">5</span></b></label>
-                <input type="range" id="depth" min="1" max="10" value="5">
-            </div>
-            <div class="control" id="angle-ctrl" style="display:none;">
-                <label>ტოტის კუთხე: <b><span id="angle-val">25</span>°</b></label>
-                <input type="range" id="branch-angle" min="5" max="60" value="25">
-            </div>
-            <h3 style="color:#06b6d4;">ფერის სქემა</h3>
-            <div class="color-btns" id="color-btns"></div>
-            <button class="draw-btn" onclick="generate()">🎨 დახაზვა</button>
-            <div class="info" id="fractal-info">
-                <b>მანდელბროტი:</b> z = z² + c რეკურსია კომპლექსურ სიბრტყეში. თვით-მსგავსი სტრუქტურა — ზუმის ნებისმიერ დონეზე ახალ დეტალებს ხედავ.
+
+    <!-- WebGL Background -->
+    <canvas id="glcanvas"></canvas>
+
+    <div class="top-left-panel">
+        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+        <div class="header">
+            <h1>🌀 კვანტური სკანერი (60 FPS)</h1>
+            <div class="lvl-text">ანომალია დონე: <span id="lvl-display">1 / 5</span></div>
+        </div>
+    </div>
+
+    <!-- Toggleable Info -->
+    <button class="info-btn" onclick="toggleInfo()">?</button>
+    <div class="info-box" id="info-box">
+        <strong>🔭 რა არის ეს?</strong><br>
+        ეკრანზე ხედავთ სრულ <strong>ჟულიას ფრაქტალს (Julia Set)</strong>. მისი ფორმა დამოკიდებულია ერთ კონკრეტულ <em>C კოორდინატზე</em>.<br><br>
+        <strong>🕹️ როგორ ვითამაშოთ:</strong><br>
+        გამოიყენეთ <em>მანდელბროტის რუკა</em> (მარჯვნივ ქვემოთ). გადააადგილეთ თქვენი თითი/მაუსი, რათა მოძებნოთ ვარდისფერი ვარსკვლავური სამიზნე ანიმაცია. თუ მიუახლოვდებით, ფრაქტალი დასტაბილურდება!
+    </div>
+
+    <!-- Bottom Right Game Panel (Radar) -->
+    <div class="game-panel">
+        <h3>მანდელბროტის რადარი</h3>
+        <div class="coordinate-display">P: <span id="c-real">0.00</span> + <span id="c-imag">0.00</span>i</div>
+        
+        <div class="minimap-container" id="minimap-cont">
+            <canvas id="minimap"></canvas>
+            <div class="target-crosshair" id="target-ui"></div>
+            <div class="crosshair" id="player-ui"></div>
+        </div>
+
+        <div class="progress-box">
+            <div class="progress-text"><span>სტაბილიზაცია:</span> <span id="pct-text">0%</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="prog-fill"></div>
             </div>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+
+    <!-- Win Screen -->
+    <div class="win-screen" id="win-screen">
+        <h2>სტაბილური ფრაქტალი დაფიქსირდა! 🌌</h2>
+        <div class="win-desc">თქვენ იპოვეთ უნიკალური მათემატიკური ანომალია.<br>ჟულიას სიმრავლე ზუსტად ამ კონფიგურაციაში ქმნის ამ ულამაზეს ფორმებს.</div>
+        <button class="btn-large" onclick="nextLevel()" id="btn-next">შემდეგი კოორდინატი ➞</button>
+        <button class="btn-large" onclick="resetGame()" id="btn-finish" style="display:none; background: linear-gradient(135deg, #a855f7, #ec4899); box-shadow: 0 0 20px rgba(168,85,247,0.4); border-color: #ec4899;">ახალი თამაში ↺</button>
+    </div>
+
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const wrap = canvas.parentElement;
-        let W, H;
-        function resize() {
-            canvas.width = wrap.offsetWidth * devicePixelRatio;
-            canvas.height = 500 * devicePixelRatio;
-            ctx.scale(devicePixelRatio, devicePixelRatio);
-            W = wrap.offsetWidth; H = 500;
-        }
-        resize(); window.addEventListener('resize', () => { resize(); generate(); });
-
-        const colorSchemes = [
-            { name: 'ცისარტყელა', fn: (t) => `hsl(${t*360}, 80%, 55%)` },
-            { name: 'ცეცხლი', fn: (t) => `hsl(${t*60}, 90%, ${t*60+10}%)` },
-            { name: 'ოკეანე', fn: (t) => `hsl(${200+t*40}, 80%, ${t*60+10}%)` },
-            { name: 'იისფერი', fn: (t) => `hsl(${270+t*30}, 80%, ${t*50+20}%)` },
-            { name: 'შავ-თეთრი', fn: (t) => `rgb(${t*255},${t*255},${t*255})` },
-        ];
-        let colorScheme = 0;
-        const colorBtns = document.getElementById('color-btns');
-        const sampleColors = ['linear-gradient(90deg,red,orange,yellow,green,blue,violet)','linear-gradient(90deg,#1a0000,#ff3300,#ff9900)','linear-gradient(90deg,#001133,#0066ff,#00ccff)','linear-gradient(90deg,#1a0044,#8833ff,#cc66ff)','linear-gradient(90deg,#000,#fff)'];
-        sampleColors.forEach((bg, i) => {
-            const d = document.createElement('div');
-            d.className = 'color-choice' + (i===0?' active':'');
-            d.style.background = bg; d.style.width = '40px';
-            d.onclick = () => { colorScheme = i; document.querySelectorAll('.color-choice').forEach(x=>x.classList.remove('active')); d.classList.add('active'); generate(); };
-            colorBtns.appendChild(d);
-        });
-
-        let fractal = 'mandelbrot';
-        const iterSlider = document.getElementById('iterations');
-        const depthSlider = document.getElementById('depth');
-        const angleSlider = document.getElementById('branch-angle');
-        iterSlider.oninput = () => document.getElementById('iter-val').textContent = iterSlider.value;
-        depthSlider.oninput = () => { document.getElementById('depth-val').textContent = depthSlider.value; generate(); };
-        angleSlider.oninput = () => { document.getElementById('angle-val').textContent = angleSlider.value; generate(); };
-
-        const descriptions = {
-            mandelbrot: '<b>მანდელბროტი:</b> z = z² + c რეკურსია კომპლექსურ სიბრტყეში. თვით-მსგავსი — ზუმის ნებისმიერ დონეზე ახალ დეტალებს ხედავ. 1980 წელს აღმოაჩინა ბენუა მანდელბროტმა.',
-            julia: '<b>ჟულიას სიმრავლე:</b> მანდელბროტის „ბიძაშვილი". ფიქსირებული c-სთვის z = z² + c. ყველა c-ს განსხვავებული ფორმა შეესაბამება.',
-            koch: '<b>კოხის ფიფქი:</b> ხაზს ყოფ 3 ნაწილად, შუა ნაწილს სამკუთხედით ცვლი. უსასრულო პერიმეტრი, სასრული ფართობი! ფრაქტალური განზომილება ≈ 1.26.',
-            sierpinski: '<b>სიერპინსკის სამკუთხედი:</b> სამკუთხედიდან შუა სამკუთხედს ამოჭრი, დანარჩენ 3-ზე მეორდება. ფრაქტალური განზომილება ≈ 1.585.',
-            tree: '<b>ფრაქტალური ხე:</b> ტოტი ორ ახალ ტოტად იყოფა — ბუნებაში გავრცელებული სტრუქტურა. ტოტის კუთხით სხვადასხვა ფორმა მიიღება.'
-        };
-
-        function setFractal(f) {
-            fractal = f;
-            document.querySelectorAll('.frac-btn').forEach(b=>b.classList.remove('active'));
-            document.getElementById('fb-'+f).classList.add('active');
-            document.getElementById('fractal-info').innerHTML = descriptions[f];
-            const isMandel = f==='mandelbrot' || f==='julia';
-            document.getElementById('depth-ctrl').style.display = isMandel ? 'none' : 'block';
-            document.getElementById('angle-ctrl').style.display = f==='tree' ? 'block' : 'none';
-            generate();
+        function toggleInfo() {
+            document.getElementById('info-box').classList.toggle('show');
         }
 
-        function generate() {
-            ctx.clearRect(0, 0, W, H);
-            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-            const maxIter = +iterSlider.value;
-            const depth = +depthSlider.value;
-            const colFn = colorSchemes[colorScheme].fn;
+        // --- WebGL Context & Shaders for Fullscreen Julia Set ---
+        const canvas = document.getElementById('glcanvas');
+        const gl = canvas.getContext('webgl', { alpha: false, preserveDrawingBuffer: false, antialias: false });
 
-            if (fractal === 'mandelbrot' || fractal === 'julia') {
-                const imgData = ctx.createImageData(W, H);
-                const cJulia = { r: -0.7, i: 0.27015 };
-                for (let px = 0; px < W; px++) {
-                    for (let py = 0; py < H; py++) {
-                        let zr, zi, cr, ci;
-                        if (fractal === 'mandelbrot') {
-                            cr = (px / W) * 3.5 - 2.5; ci = (py / H) * 2.4 - 1.2;
-                            zr = 0; zi = 0;
-                        } else {
-                            zr = (px / W) * 3.5 - 1.75; zi = (py / H) * 2.4 - 1.2;
-                            cr = cJulia.r; ci = cJulia.i;
-                        }
-                        let iter = 0;
-                        while (zr*zr + zi*zi < 4 && iter < maxIter) {
-                            const tmp = zr*zr - zi*zi + cr;
-                            zi = 2*zr*zi + ci;
-                            zr = tmp;
-                            iter++;
-                        }
-                        const idx = (py * W + px) * 4;
-                        if (iter === maxIter) {
-                            imgData.data[idx] = imgData.data[idx+1] = imgData.data[idx+2] = 0;
-                        } else {
-                            const t = iter / maxIter;
-                            const hue = t * 360;
-                            const [r, g, b] = hslToRgb(colorScheme===0?t*360: colorScheme===1?t*60: colorScheme===2?200+t*40: colorScheme===3?270+t*30:0, colorScheme===4?0:80, colorScheme===4?t*100:t*60+10);
-                            imgData.data[idx] = r; imgData.data[idx+1] = g; imgData.data[idx+2] = b;
-                        }
-                        imgData.data[idx+3] = 255;
-                    }
+        if (!gl) { alert('თქვენი ბრაუზერი არ უჭერს მხარს WebGL-ს. თამაში ვერ ჩაიტვირთება.'); }
+
+        // Vertex Shader
+        const vsSource = `
+            attribute vec2 aVertexPosition;
+            void main() {
+                gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+            }
+        `;
+
+        // Fragment Shader
+        const fsSource = `
+            precision highp float;
+            uniform vec2 uResolution;
+            uniform vec2 uC;
+            uniform float uZoom;
+            uniform float uTime;
+
+            void main() {
+                vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.x, uResolution.y);
+                vec2 z = uv * uZoom;
+                
+                // Add a very subtle breath effect to zoom
+                z *= 1.0 + 0.05 * sin(uTime * 1.5);
+
+                float iter = 0.0;
+                const float max_iter = 100.0;
+                
+                for(float i = 0.0; i < 100.0; i++) {
+                    if(dot(z, z) > 6.0) break;
+                    z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + uC;
+                    iter += 1.0;
                 }
-                ctx.putImageData(imgData, 0, 0);
-            } else if (fractal === 'koch') {
-                ctx.strokeStyle = colFn(0.5); ctx.lineWidth = 1.5;
-                const s = W * 0.7;
-                const h = s * Math.sin(Math.PI/3);
-                const x0 = W/2 - s/2, y0 = H/2 + h/3;
-                kochLine(x0, y0, x0+s, y0, depth);
-                kochLine(x0+s, y0, x0+s/2, y0-h, depth);
-                kochLine(x0+s/2, y0-h, x0, y0, depth);
-            } else if (fractal === 'sierpinski') {
-                const s = W * 0.7;
-                const h = s * Math.sin(Math.PI/3);
-                const x0 = W/2 - s/2, y0 = H/2 + h/2;
-                sierpinski(x0, y0, s, depth);
-            } else if (fractal === 'tree') {
-                drawTree(W/2, H*0.85, H*0.25, -Math.PI/2, depth, depth);
+                
+                if(iter == max_iter) {
+                    float pulse = 0.03 + 0.03 * sin(uTime * 2.0);
+                    gl_FragColor = vec4(vec3(pulse, 0.0, pulse * 0.3), 1.0);
+                } else {
+                    float smooth_iter = iter + 1.0 - log(log(length(z))) / log(2.0);
+                    float t = smooth_iter / max_iter;
+                    
+                    // Neon flowing color palette
+                    vec3 col = 0.5 + 0.5 * cos(3.0 + t * 12.0 - uTime + vec3(0.0, 0.33, 0.67));
+                    
+                    float glow = 1.0 - (iter / max_iter);
+                    col *= glow * 1.3;
+                    
+                    gl_FragColor = vec4(col, 1.0);
+                }
+            }
+        `;
+
+        function compileShader(gl, source, type) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error("Shader syntax error:", gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader); return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = compileShader(gl, vsSource, gl.VERTEX_SHADER);
+        const fragmentShader = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
+
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+        gl.useProgram(shaderProgram);
+
+        // A simple full-screen quad
+        const vertices = new Float32Array([-1,-1,  1,-1,  -1,1,  1,1]);
+        const vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        const positionLocation = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const uResLocation = gl.getUniformLocation(shaderProgram, 'uResolution');
+        const uCLocation = gl.getUniformLocation(shaderProgram, 'uC');
+        const uZoomLocation = gl.getUniformLocation(shaderProgram, 'uZoom');
+        const uTimeLocation = gl.getUniformLocation(shaderProgram, 'uTime');
+
+        function resizeWebGL() {
+            canvas.width = window.innerWidth * window.devicePixelRatio;
+            canvas.height = window.innerHeight * window.devicePixelRatio;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.uniform2f(uResLocation, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resizeWebGL);
+
+        // --- Game Logic ---
+        const levels = [
+            { cx: -0.8, cy: 0.156, zoom: 3.5 },
+            { cx: 0.285, cy: 0.01, zoom: 3.0 },
+            { cx: -0.4, cy: 0.6, zoom: 3.2 },
+            { cx: -0.835, cy: 0.2321, zoom: 3.0 },
+            { cx: 0.355, cy: 0.355, zoom: 3.5 }
+        ];
+
+        let currentLevel = 0;
+        let cReal = 0.0, cImag = 0.0;
+        let tReal = 0.0, tImag = 0.0;
+        
+        // Minimap bounds (Mandelbrot coordinate space)
+        const M_MIN_X = -2.0, M_MAX_X = 1.0;
+        const M_MIN_Y = -1.2, M_MAX_Y = 1.2;
+
+        const mCanvas = document.getElementById('minimap');
+        const mCtx = mCanvas.getContext('2d');
+        const mCont = document.getElementById('minimap-cont');
+        
+        let stabilization = 0; // 0 to 100
+        let isComplete = false;
+        let startTime = Date.now();
+
+        // Generate 2D Mandelbrot background for minimap ONCE
+        function generateMinimap() {
+            mCanvas.width = mCont.offsetWidth;
+            mCanvas.height = mCont.offsetHeight;
+            const w = mCanvas.width, h = mCanvas.height;
+            const imgData = mCtx.createImageData(w, h);
+            
+            for(let px = 0; px < w; px++) {
+                for(let py = 0; py < h; py++) {
+                    let cr = M_MIN_X + (px/w) * (M_MAX_X - M_MIN_X);
+                    let ci = M_MIN_Y + (py/h) * (M_MAX_Y - M_MIN_Y);
+                    let zr = 0, zi = 0, iter = 0;
+                    
+                    while(zr*zr + zi*zi < 4 && iter < 25) {
+                        let tmp = zr*zr - zi*zi + cr;
+                        zi = 2*zr*zi + ci;
+                        zr = tmp;
+                        iter++;
+                    }
+                    
+                    let idx = (py * w + px) * 4;
+                    if(iter === 25) {
+                        imgData.data[idx] = imgData.data[idx+1] = imgData.data[idx+2] = 20; 
+                    } else {
+                        imgData.data[idx] = 14; imgData.data[idx+1] = 165; imgData.data[idx+2] = 233; 
+                    }
+                    imgData.data[idx+3] = 255;
+                }
+            }
+            mCtx.putImageData(imgData, 0, 0);
+        }
+
+        // Map coordinates C to Pixel (px)
+        function coordToPx(cx, cy) {
+            let px = ((cx - M_MIN_X) / (M_MAX_X - M_MIN_X)) * mCanvas.width;
+            let py = ((cy - M_MIN_Y) / (M_MAX_Y - M_MIN_Y)) * mCanvas.height;
+            return {x: px, y: py};
+        }
+        
+        // Map Pixel (px) to coordinates C
+        function pxToCoord(px, py) {
+            let cx = M_MIN_X + (px / mCanvas.width) * (M_MAX_X - M_MIN_X);
+            let cy = M_MIN_Y + (py / mCanvas.height) * (M_MAX_Y - M_MIN_Y);
+            return {r: cx, i: cy};
+        }
+
+        let isDragging = false;
+        mCont.addEventListener('mousedown', (e) => { isDragging = true; updateCFromMouse(e); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        mCont.addEventListener('mousemove', (e) => { if(isDragging) updateCFromMouse(e); });
+
+        // Touch support
+        mCont.addEventListener('touchstart', (e) => { isDragging = true; updateCFromMouse(e.touches[0]); e.preventDefault();});
+        mCont.addEventListener('touchmove', (e) => { if(isDragging) updateCFromMouse(e.touches[0]); e.preventDefault();});
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        function updateCFromMouse(e) {
+            if(isComplete) return;
+            const rect = mCont.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            x = Math.max(0, Math.min(x, rect.width));
+            y = Math.max(0, Math.min(y, rect.height));
+
+            let c = pxToCoord(x, y);
+            cReal = c.r;
+            cImag = c.i;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('c-real').innerText = cReal.toFixed(2);
+            document.getElementById('c-imag').innerText = cImag.toFixed(2);
+            
+            let pPos = coordToPx(cReal, cImag);
+            const pUI = document.getElementById('player-ui');
+            pUI.style.left = pPos.x + 'px';
+            pUI.style.top = pPos.y + 'px';
+            
+            let tPos = coordToPx(tReal, tImag);
+            const tUI = document.getElementById('target-ui');
+            tUI.style.left = tPos.x + 'px';
+            tUI.style.top = tPos.y + 'px';
+        }
+
+        function initLevel() {
+            isComplete = false;
+            stabilization = 0;
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('lvl-display').innerText = `${currentLevel + 1} / ${levels.length}`;
+
+            let lvl = levels[currentLevel];
+            tReal = lvl.cx; tImag = lvl.cy;
+            gl.uniform1f(uZoomLocation, lvl.zoom); 
+            
+            cReal = 0.0; cImag = 0.0;
+            generateMinimap(); // Re-size map appropriately
+            updateUI();
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            if(currentLevel >= levels.length) {
+                document.getElementById('win-screen').style.display = 'flex';
+                document.querySelector('.win-desc').innerHTML = "თქვენ დაასრულეთ ყველა დონე!<br>კვანტური ფრაქტალების გალაქტიკა სრულად დასკანერებულია.";
+                document.getElementById('btn-next').style.display = 'none';
+                document.getElementById('btn-finish').style.display = 'inline-block';
+            } else {
+                initLevel();
             }
         }
 
-        function hslToRgb(h, s, l) {
-            s /= 100; l /= 100;
-            const c = (1 - Math.abs(2*l-1)) * s;
-            const x = c * (1 - Math.abs((h/60)%2-1));
-            const m = l - c/2;
-            let r,g,b;
-            if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}else if(h<180){r=0;g=c;b=x}else if(h<240){r=0;g=x;b=c}else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
-            return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+        function resetGame() {
+            currentLevel = 0;
+            document.getElementById('btn-next').style.display = 'inline-block';
+            document.getElementById('btn-finish').style.display = 'none';
+            initLevel();
         }
 
-        function kochLine(x1,y1,x2,y2,d) {
-            if(d===0) { ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); return; }
-            const dx = x2-x1, dy = y2-y1;
-            const ax = x1+dx/3, ay = y1+dy/3;
-            const bx = x1+dx*2/3, by = y1+dy*2/3;
-            const px = (ax+bx)/2 - (by-ay)*Math.sqrt(3)/2;
-            const py = (ay+by)/2 + (bx-ax)*Math.sqrt(3)/2;
-            kochLine(x1,y1,ax,ay,d-1);
-            kochLine(ax,ay,px,py,d-1);
-            kochLine(px,py,bx,by,d-1);
-            kochLine(bx,by,x2,y2,d-1);
-        }
+        function gameLoop() {
+            if(!isComplete) {
+                let dist = Math.sqrt(Math.pow(cReal - tReal, 2) + Math.pow(cImag - tImag, 2));
+                
+                if(dist < 0.04) {
+                    stabilization += 2.0;
+                    document.getElementById('player-ui').style.borderColor = '#10b981';
+                    document.getElementById('player-ui').style.boxShadow = '0 0 20px #10b981';
+                } else {
+                    stabilization -= 1.0;
+                    document.getElementById('player-ui').style.borderColor = '#facc15';
+                    document.getElementById('player-ui').style.boxShadow = '0 0 10px #facc15';
+                }
+                
+                stabilization = Math.max(0, Math.min(100, stabilization)); 
+                
+                document.getElementById('pct-text').innerText = Math.floor(stabilization) + '%';
+                document.getElementById('prog-fill').style.width = stabilization + '%';
+                
+                if(stabilization > 0) document.getElementById('prog-fill').style.boxShadow = '0 0 15px #10b981';
+                else document.getElementById('prog-fill').style.boxShadow = 'none';
 
-        function sierpinski(x,y,s,d) {
-            if(d===0) {
-                const h = s*Math.sin(Math.PI/3);
-                ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+s,y); ctx.lineTo(x+s/2,y-h); ctx.closePath();
-                const t = 1-d/+depthSlider.value;
-                ctx.fillStyle = colorSchemes[colorScheme].fn(Math.random()*0.5+0.3);
-                ctx.fill();
-                return;
+                if(stabilization >= 100) {
+                    isComplete = true;
+                    cReal = tReal; cImag = tImag;
+                    updateUI();
+                    setTimeout(() => { document.getElementById('win-screen').style.display = 'flex'; }, 800);
+                }
             }
-            const ns = s/2;
-            const h = ns*Math.sin(Math.PI/3);
-            sierpinski(x,y,ns,d-1);
-            sierpinski(x+ns,y,ns,d-1);
-            sierpinski(x+ns/2,y-h,ns,d-1);
+
+            gl.uniform2f(uCLocation, cReal, cImag);
+            gl.uniform1f(uTimeLocation, (Date.now() - startTime) / 1000.0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            requestAnimationFrame(gameLoop);
         }
 
-        function drawTree(x,y,len,angle,d,maxD) {
-            if(d===0||len<2) return;
-            const endX = x + len*Math.cos(angle);
-            const endY = y + len*Math.sin(angle);
-            const t = 1 - d/maxD;
-            ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(endX,endY);
-            ctx.strokeStyle = colorSchemes[colorScheme].fn(t);
-            ctx.lineWidth = Math.max(1, d*1.5);
-            ctx.stroke();
-            const branchAngle = (+angleSlider.value)*Math.PI/180;
-            drawTree(endX,endY,len*0.7,angle-branchAngle,d-1,maxD);
-            drawTree(endX,endY,len*0.7,angle+branchAngle,d-1,maxD);
-        }
+        // INIT delays for proper element sizing
+        setTimeout(() => {
+            resizeWebGL();
+            initLevel();
+            requestAnimationFrame(gameLoop);
+        }, 100);
 
-        generate();
     </script>
 </body>
 </html>

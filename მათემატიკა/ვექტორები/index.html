@@ -1,238 +1,385 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — ვექტორები</title>
+    <title>მათემატიკა — ვექტორული ნავიგატორი</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #06b6d4, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; height: 500px; cursor: grab; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 12px; }
-        .vec-group { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .vec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
-        .vec-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .vec-input { display: flex; align-items: center; gap: 5px; }
-        .vec-input label { font-size: 0.8rem; color: #94a3b8; width: 15px; }
-        .vec-input input { width: 100%; padding: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f8fafc; font-family: 'Courier New'; font-size: 1rem; text-align: center; outline: none; }
-        .vec-input input:focus { border-color: #06b6d4; }
-        .op-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .op-btn { padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: bold; transition: 0.2s; text-align: center; }
-        .op-btn:hover { background: #334155; }
-        .op-btn.active { background: linear-gradient(135deg, #06b6d4, #22c55e); border-color: #06b6d4; }
-        .result-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .result-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.8rem; }
-        .result-label { color: #94a3b8; }
-        .result-val { font-family: 'Courier New'; font-weight: bold; }
-        .formula { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.73rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #06b6d4; }
-        .formula b { color: #67e8f9; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #070a13; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #06b6d4, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(6,182,212,0.3);}
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (max-width: 800px) { .container { grid-template-columns: 1fr; } }
+
+        .game-area {
+            background: #0d1326; border-radius: 16px; position: relative; overflow: hidden; height: 500px; 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .floating-ui {
+            position: absolute; top: 15px; left: 15px; z-index: 5; background: rgba(13,19,38,0.8);
+            border: 1px solid #06b6d4; padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(6,182,212,0.2);
+        }
+        .floating-ui .lvl { font-size: 0.8rem; color: #67e8f9; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .floating-ui .target { font-size: 1.1rem; font-weight: bold; color: #fff;}
+        .target-coord { font-size: 1.3rem; color: #facc15; font-family: 'Courier New', monospace; font-weight:bold; text-shadow: 0 0 10px rgba(250,204,21,0.5);}
+
+        .result-overlay {
+            position: absolute; inset: 0; background: rgba(13,19,38,0.85); backdrop-filter: blur(4px);
+            z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .result-overlay h2 { font-size: 2.5rem; margin-bottom: 10px; color: #22c55e; text-shadow: 0 0 20px rgba(34,197,94,0.5);}
+        .fail-reason { color: #cbd5e1; font-size: 1.1rem; margin-bottom: 15px;}
+        
+        .btn-large {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; padding: 12px 40px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 15px;
+            box-shadow: 0 0 20px rgba(14,165,233,0.4);
+        }
+        .btn-large:hover { transform: scale(1.05); }
+
+        .panel { background: #131c33; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 5;}
+        
+        .control-group { background: #070a13; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;}
+        .control-group label { display: flex; justify-content: space-between; font-size: 0.9rem; color: #cbd5e1; margin-bottom: 10px; font-weight: bold; align-items:center;}
+        .val-span { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight:bold;}
+        
+        .val-a { color: #ef4444; }
+        .val-b { color: #3b82f6; }
+
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #334155; outline: none; margin-bottom: 15px;}
+        
+        #sl-a::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(239,68,68,0.5);}
+        #sl-b::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(59,130,246,0.5);}
+
+        .math-box { background: #070a13; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 1.1rem; line-height: 1.6; border-left: 4px solid #facc15; text-align: center; }
+        .vol-val { font-size: 1.5rem; font-weight: bold; color: #facc15; margin-top: 5px; text-shadow: 0 0 10px rgba(250,204,21,0.3); }
+
+        .info-panel { grid-column: 1 / -1; background: #131c33; border-left: 4px solid #06b6d4; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>➡️ 2D ვექტორები</h1>
-    <p class="subtitle">გადაათრიე ვექტორების წვერები ან შეცვალე კომპონენტები — ნახე შეკრება, გამოკლება, სკალარული ნამრავლი</p>
-    <div class="app">
-        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+    <h1>🚀 ვექტორული ნავიგატორი</h1>
+    <p class="subtitle">დაარეგულირე ძრავების სიმძლავრე (სკალარები), რომ ვექტორების ჯამმა მიგიყვანოს პლანეტამდე!</p>
+
+    <div class="container">
+        <!-- Game Canvas -->
+        <div class="game-area" id="game-area">
+            <div class="floating-ui">
+                <div class="lvl" id="lvl-display">დონე 1</div>
+                <div class="target">სამიზნე კოორდინატი:</div>
+                <div class="target-coord" id="target-coord">T (x, y)</div>
+            </div>
+
+            <div class="result-overlay" id="result-screen">
+                <h2>მიზანი მიღწეულია! 🛸</h2>
+                <div class="fail-reason" id="win-desc">თქვენ იპოვეთ ხაზოვანი კომბინაცია.</div>
+                <button class="btn-large" onclick="nextLevel()">შემდეგი მისია ➞</button>
+            </div>
+
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Engine Controls -->
         <div class="panel">
-            <div class="vec-group">
-                <div class="vec-header"><span style="color:#ef4444;">→ A ვექტორი</span></div>
-                <div class="vec-inputs">
-                    <div class="vec-input"><label>x</label><input type="number" id="ax" value="3"></div>
-                    <div class="vec-input"><label>y</label><input type="number" id="ay" value="4"></div>
-                </div>
+            <div style="font-size:0.85rem; color:#94a3b8; font-weight:bold; margin-bottom:-5px; text-transform:uppercase;">ძრავის მართვა (სკალარები):</div>
+            
+            <div class="control-group" style="border-left: 4px solid #ef4444;">
+                <label><span>🔴 წითელი ვექტორი (<span id="vec-a-def">A</span>) მულტიპლიკატორი:</span> <span class="val-span val-a" id="val-a">1</span></label>
+                <input type="range" id="sl-a" min="-5" max="5" value="1" oninput="updateState()">
             </div>
-            <div class="vec-group">
-                <div class="vec-header"><span style="color:#3b82f6;">→ B ვექტორი</span></div>
-                <div class="vec-inputs">
-                    <div class="vec-input"><label>x</label><input type="number" id="bx" value="5"></div>
-                    <div class="vec-input"><label>y</label><input type="number" id="by" value="-2"></div>
-                </div>
+            
+            <div class="control-group" style="border-left: 4px solid #3b82f6;">
+                <label><span>🔵 ლურჯი ვექტორი (<span id="vec-b-def">B</span>) მულტიპლიკატორი:</span> <span class="val-span val-b" id="val-b">1</span></label>
+                <input type="range" id="sl-b" min="-5" max="5" value="1" oninput="updateState()">
             </div>
-            <div style="font-weight:bold; color:#22c55e; font-size:0.85rem;">ოპერაცია</div>
-            <div class="op-btns">
-                <button class="op-btn active" id="op-add" onclick="setOp('add')">A + B</button>
-                <button class="op-btn" id="op-sub" onclick="setOp('sub')">A − B</button>
-                <button class="op-btn" id="op-dot" onclick="setOp('dot')">A · B</button>
-                <button class="op-btn" id="op-cross" onclick="setOp('cross')">|A × B|</button>
+
+            <div class="math-box">
+                <div style="font-size:0.8rem; color:#94a3b8; font-family:'Noto Sans Georgian'; text-transform:uppercase; margin-bottom:5px;">ხაზოვანი კომბინაცია (შედეგი)</div>
+                <div id="current-formula">c₁A + c₂B = R</div>
+                <div class="vol-val" id="current-res">R (x, y)</div>
             </div>
-            <div style="font-weight:bold; color:#f59e0b; font-size:0.85rem;">შედეგი</div>
-            <div class="result-card" id="results"></div>
-            <div class="formula">
-                <b>|A| = √(x²+y²)</b><br>
-                <b>A+B = (Ax+Bx, Ay+By)</b><br>
-                <b>A·B = Ax·Bx + Ay·By</b><br>
-                <b>θ = arccos(A·B / |A|·|B|)</b>
-            </div>
+            
+            <button onclick="checkMatch()" id="btn-check" style="padding:15px; background:#070a13; border:2px solid #facc15; border-radius:8px; color:#facc15; font-weight:bold; font-size:1.1rem; font-family:inherit; cursor:pointer; margin-top:auto; transition:0.2s; box-shadow: 0 0 15px rgba(250,204,21,0.2);" onmouseover="this.style.background='#facc15'; this.style.color='#000';" onmouseout="this.style.background='#070a13'; this.style.color='#facc15';">🚀 ფრენა (შემოწმება)</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 რა არის ხაზოვანი კომბინაცია?</strong><br>
+            ნებისმიერი წერტილის მიღწევა სივრცეში შესაძლებელია ორი არაპარალელური (ბაზისური) ვექტორის გამოყენებით.<br>
+            ფორმულა: <strong>R = c₁ · A + c₂ · B</strong><br>
+            • <code>c₁</code> და <code>c₂</code> არიან სკალარები (რიცხვები, რომლებსაც თქვენ ცვლით სლაიდერით).<br>
+            • ისინი ზრდიან, ამოკლებენ ან აბრუნებენ საწყის A და B ვექტორებს. მათი შეკრებით (პარალელოგრამის წესი) კი ვიღებთ ახალ მიმართულებას!
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const wrap = canvas.parentElement;
-        let W, H, CX, CY, SCALE;
-
+        const gameArea = document.getElementById('game-area');
+        let W, H;
+        const GRID_SIZE = 40; // Pixels per unit
+        
         function resize() {
-            canvas.width = wrap.offsetWidth * devicePixelRatio;
-            canvas.height = 500 * devicePixelRatio;
+            canvas.width = gameArea.offsetWidth * devicePixelRatio;
+            canvas.height = gameArea.offsetHeight * devicePixelRatio;
             ctx.scale(devicePixelRatio, devicePixelRatio);
-            W = wrap.offsetWidth; H = 500;
-            CX = W / 2; CY = H / 2;
-            SCALE = Math.min(W, H) / 20;
+            W = gameArea.offsetWidth; H = gameArea.offsetHeight;
             draw();
         }
-        resize(); window.addEventListener('resize', resize);
+        window.addEventListener('resize', resize);
 
-        let op = 'add';
-        const inputs = { ax: document.getElementById('ax'), ay: document.getElementById('ay'), bx: document.getElementById('bx'), by: document.getElementById('by') };
-        Object.values(inputs).forEach(inp => inp.addEventListener('input', () => draw()));
+        // --- Game State ---
+        let level = 1;
+        let isComplete = false;
+        
+        const levelsInfo = [
+            { a: {x: 2, y: 0}, b: {x: 0, y: 2}, t: {x: 6, y: 4} },   // Classic Cartesian
+            { a: {x: 1, y: 1}, b: {x: -1, y: 1}, t: {x: 4, y: 0} },  // Diagonal basis
+            { a: {x: 3, y: -1}, b: {x: 1, y: 2}, t: {x: 7, y: 0} },  // Arbitrary basis
+            { a: {x: -2, y: -2}, b: {x: 3, y: 0}, t: {x: 4, y: 6} }, // Negative scaling needed
+            { a: {x: 1, y: -3}, b: {x: 2, y: 2}, t: {x: -3, y: -7} } // Hard
+        ];
 
-        function setOp(o) {
-            op = o;
-            document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('op-' + o).classList.add('active');
+        let currentLvlObj;
+        let c1 = 1, c2 = 1;
+        let vA, vB, target;
+        let particles = [];
+        let time = 0;
+
+        function initLevel() {
+            isComplete = false;
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('lvl-display').innerText = `მისია ${level}`;
+            
+            // Loop levels if exceeded
+            let rawObj = levelsInfo[(level - 1) % levelsInfo.length];
+            vA = rawObj.a; vB = rawObj.b; target = rawObj.t;
+
+            // Randomize starting sliders so it's not pre-solved
+            c1 = Math.floor(Math.random() * 3) + 1;
+            c2 = Math.floor(Math.random() * 3) - 1;
+            document.getElementById('sl-a').value = c1;
+            document.getElementById('sl-b').value = c2;
+            
+            document.getElementById('target-coord').innerText = `T (${target.x}, ${target.y})`;
+            document.getElementById('vec-a-def').innerText = `${vA.x}, ${vA.y}`;
+            document.getElementById('vec-b-def').innerText = `${vB.x}, ${vB.y}`;
+
+            let btn = document.getElementById('btn-check');
+            btn.innerText = "🚀 ფრენა (შემოწმება)";
+            btn.style.borderColor = '#facc15'; btn.style.color = '#facc15';
+
+            particles = [];
+            updateState();
+            if(!isAnimating) startAnimation();
+        }
+
+        function updateState() {
+            if(isComplete) return;
+            c1 = parseFloat(document.getElementById('sl-a').value);
+            c2 = parseFloat(document.getElementById('sl-b').value);
+
+            document.getElementById('val-a').innerText = c1;
+            document.getElementById('val-b').innerText = c2;
+
+            let rx = c1 * vA.x + c2 * vB.x;
+            let ry = c1 * vA.y + c2 * vB.y;
+
+            document.getElementById('current-formula').innerHTML = 
+                `<span class="val-a">${c1}</span>(${vA.x}, ${vA.y}) + <span class="val-b">${c2}</span>(${vB.x}, ${vB.y})`;
+            document.getElementById('current-res').innerText = `R (${rx}, ${ry})`;
+
             draw();
         }
 
-        let dragging = null;
-        canvas.addEventListener('mousedown', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-            const ax = CX + getV('ax') * SCALE, ay = CY - getV('ay') * SCALE;
-            const bx = CX + getV('bx') * SCALE, by = CY - getV('by') * SCALE;
-            if (Math.sqrt((mx-ax)**2 + (my-ay)**2) < 15) dragging = 'a';
-            else if (Math.sqrt((mx-bx)**2 + (my-by)**2) < 15) dragging = 'b';
-        });
-        canvas.addEventListener('mousemove', e => {
-            if (!dragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-            const vx = Math.round((mx - CX) / SCALE);
-            const vy = Math.round((CY - my) / SCALE);
-            if (dragging === 'a') { inputs.ax.value = vx; inputs.ay.value = vy; }
-            else { inputs.bx.value = vx; inputs.by.value = vy; }
-            draw();
-        });
-        canvas.addEventListener('mouseup', () => dragging = null);
-        canvas.addEventListener('mouseleave', () => dragging = null);
-        // Touch
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); const t=e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
-        canvas.addEventListener('touchmove', e => { e.preventDefault(); const t=e.touches[0]; canvas.dispatchEvent(new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY})); }, {passive:false});
-        canvas.addEventListener('touchend', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup')); }, {passive:false});
+        function checkMatch() {
+            if(isComplete) return;
+            let rx = c1 * vA.x + c2 * vB.x;
+            let ry = c1 * vA.y + c2 * vB.y;
 
-        function getV(id) { return parseFloat(inputs[id].value) || 0; }
+            let btn = document.getElementById('btn-check');
+            
+            if (rx === target.x && ry === target.y) {
+                isComplete = true;
+                btn.innerText = "⭐ ზუსტია!";
+                btn.style.borderColor = '#10b981'; btn.style.color = '#10b981';
+                
+                document.getElementById('win-desc').innerHTML = `წარმატებული ტრაექტორია:<br><b>${c1}</b>·A + <b>${c2}</b>·B = T!`;
+                
+                // Explode particles!
+                let cx = W/2, cy = H/2;
+                let txPix = cx + target.x * GRID_SIZE;
+                let tyPix = cy - target.y * GRID_SIZE;
+                
+                for(let i=0; i<80; i++) {
+                    particles.push({
+                        x: txPix, y: tyPix,
+                        vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25,
+                        life: 1, c: (Math.random()>0.5)? '#10b981' : '#facc15'
+                    });
+                }
+                
+                setTimeout(() => { document.getElementById('result-screen').style.display = 'flex'; }, 1000);
+            } else {
+                // Shake button
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#ef4444';
+                btn.innerText = "❌ აცდა მიზანს!";
+                setTimeout(() => {
+                    btn.style.borderColor = '#facc15';
+                    btn.style.color = '#facc15';
+                    btn.innerText = "🚀 ფრენა (შემოწმება)";
+                }, 1000);
+            }
+        }
 
-        function drawArrow(fx, fy, tx, ty, color, label, lineWidth) {
+        function nextLevel() { level++; initLevel(); }
+
+        // --- Drawing ---
+        function drawArrow(fx, fy, tx, ty, color, lineWidth, pulse) {
             ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty);
-            ctx.strokeStyle = color; ctx.lineWidth = lineWidth || 3; ctx.stroke();
+            ctx.strokeStyle = color; ctx.lineWidth = lineWidth || 3; 
+            
+            if(pulse) {
+                ctx.shadowBlur = 10 + Math.sin(time*5)*5;
+                ctx.shadowColor = color;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            ctx.stroke();
+            
             // Arrowhead
             const angle = Math.atan2(ty - fy, tx - fx);
-            const headLen = 12;
+            const headLen = 14;
             ctx.beginPath();
             ctx.moveTo(tx, ty);
             ctx.lineTo(tx - headLen * Math.cos(angle - 0.4), ty - headLen * Math.sin(angle - 0.4));
             ctx.lineTo(tx - headLen * Math.cos(angle + 0.4), ty - headLen * Math.sin(angle + 0.4));
             ctx.closePath(); ctx.fillStyle = color; ctx.fill();
-            // Label
-            if (label) {
-                ctx.fillStyle = color; ctx.font = 'bold 14px Courier New'; ctx.textAlign = 'center';
-                const mx = (fx + tx) / 2, my = (fy + ty) / 2;
-                ctx.fillText(label, mx + 15 * Math.cos(angle + Math.PI/2), my + 15 * Math.sin(angle + Math.PI/2));
-            }
-            // Draggable dot
-            ctx.beginPath(); ctx.arc(tx, ty, 6, 0, Math.PI * 2);
-            ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.shadowBlur = 0;
         }
 
         function draw() {
-            ctx.clearRect(0, 0, W, H);
-            // Grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
-            for (let i = -10; i <= 10; i++) {
-                ctx.beginPath(); ctx.moveTo(CX + i * SCALE, 0); ctx.lineTo(CX + i * SCALE, H); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, CY + i * SCALE); ctx.lineTo(W, CY + i * SCALE); ctx.stroke();
+            ctx.clearRect(0,0,W,H);
+            
+            const cx = W/2, cy = H/2;
+
+            // 1. Grid & Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+            for(let i = -15; i <= 15; i++) {
+                if(i===0) continue;
+                ctx.beginPath(); ctx.moveTo(cx + i*GRID_SIZE, 0); ctx.lineTo(cx + i*GRID_SIZE, H); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, cy - i*GRID_SIZE); ctx.lineTo(W, cy - i*GRID_SIZE); ctx.stroke();
             }
-            // Axes
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(0, CY); ctx.lineTo(W, CY); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(CX, 0); ctx.lineTo(CX, H); ctx.stroke();
-            ctx.fillStyle = '#64748b'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
-            for (let i = -9; i <= 9; i++) {
-                if (i !== 0) {
-                    ctx.fillText(i, CX + i * SCALE, CY + 14);
-                    ctx.fillText(i, CX - 14, CY - i * SCALE + 4);
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke(); // X
+            ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke(); // Y
+            
+            ctx.fillStyle = '#64748b'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
+            for(let i = -15; i <= 15; i++) if(i!==0 && i%2===0) {
+                ctx.fillText(i, cx + i*GRID_SIZE, cy + 15);
+                ctx.fillText(i, cx - 10, cy - i*GRID_SIZE + 4);
+            }
+
+            // Calculations
+            let apx = cx + (c1 * vA.x) * GRID_SIZE;
+            let apy = cy - (c1 * vA.y) * GRID_SIZE;
+            
+            let bpx = cx + (c2 * vB.x) * GRID_SIZE;
+            let bpy = cy - (c2 * vB.y) * GRID_SIZE;
+            
+            let rx = c1 * vA.x + c2 * vB.x;
+            let ry = c1 * vA.y + c2 * vB.y;
+            let rpx = cx + rx * GRID_SIZE;
+            let rpy = cy - ry * GRID_SIZE;
+
+            let txPix = cx + target.x * GRID_SIZE;
+            let tyPix = cy - target.y * GRID_SIZE;
+
+            // 2. Base Vectors (Ghosted if c!=1)
+            ctx.setLineDash([4,4]);
+            drawArrow(cx, cy, cx + vA.x * GRID_SIZE, cy - vA.y * GRID_SIZE, 'rgba(239, 68, 68, 0.3)', 2);
+            drawArrow(cx, cy, cx + vB.x * GRID_SIZE, cy - vB.y * GRID_SIZE, 'rgba(59, 130, 246, 0.3)', 2);
+            ctx.setLineDash([]);
+
+            // 3. Scaled Vectors (c1*A, c2*B)
+            drawArrow(cx, cy, apx, apy, '#ef4444', 4);
+            drawArrow(cx, cy, bpx, bpy, '#3b82f6', 4);
+
+            // 4. Parallelogram Addition Lines
+            ctx.beginPath(); ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+            ctx.moveTo(apx, apy); ctx.lineTo(rpx, rpy);
+            ctx.moveTo(bpx, bpy); ctx.lineTo(rpx, rpy);
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // 5. Result Vector R
+            drawArrow(cx, cy, rpx, rpy, isComplete ? '#10b981' : '#facc15', 5, true);
+
+            // 6. Target Star/Planet
+            ctx.beginPath(); ctx.arc(txPix, tyPix, 8 + Math.sin(time*4)*2, 0, Math.PI*2);
+            ctx.fillStyle = '#fff'; ctx.shadowBlur = 15; ctx.shadowColor = '#fff'; ctx.fill(); 
+            ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 3; ctx.stroke(); ctx.shadowBlur = 0;
+            ctx.fillStyle = '#22d3ee'; ctx.font = 'bold 14px Arial'; ctx.fillText('T', txPix + 15, tyPix - 15);
+
+            // Draw Particles
+            if (particles.length > 0) {
+                for(let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.5; // Gravity
+                    p.life -= 0.02;
+                    
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.c;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+                    
+                    if(p.life <= 0) particles.splice(i,1);
                 }
-            }
-
-            const ax = getV('ax'), ay = getV('ay'), bx = getV('bx'), by = getV('by');
-            const apx = CX + ax * SCALE, apy = CY - ay * SCALE;
-            const bpx = CX + bx * SCALE, bpy = CY - by * SCALE;
-
-            // Vector A
-            drawArrow(CX, CY, apx, apy, '#ef4444', 'A');
-            // Vector B
-            drawArrow(CX, CY, bpx, bpy, '#3b82f6', 'B');
-
-            // Result based on operation
-            const res = document.getElementById('results');
-            if (op === 'add') {
-                const rx = ax + bx, ry = ay + by;
-                const rpx = CX + rx * SCALE, rpy = CY - ry * SCALE;
-                // Parallelogram dashes
-                ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.moveTo(apx, apy); ctx.lineTo(rpx, rpy); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(bpx, bpy); ctx.lineTo(rpx, rpy); ctx.stroke();
-                ctx.setLineDash([]);
-                drawArrow(CX, CY, rpx, rpy, '#22c55e', 'A+B', 4);
-                const mag = Math.sqrt(rx*rx+ry*ry);
-                res.innerHTML = `
-                    <div class="result-row"><span class="result-label">A+B =</span><span class="result-val" style="color:#22c55e">(${rx}, ${ry})</span></div>
-                    <div class="result-row"><span class="result-label">|A+B| =</span><span class="result-val">${mag.toFixed(2)}</span></div>
-                    <div class="result-row"><span class="result-label">|A| =</span><span class="result-val">${Math.sqrt(ax*ax+ay*ay).toFixed(2)}</span></div>
-                    <div class="result-row"><span class="result-label">|B| =</span><span class="result-val">${Math.sqrt(bx*bx+by*by).toFixed(2)}</span></div>`;
-            } else if (op === 'sub') {
-                const rx = ax - bx, ry = ay - by;
-                const rpx = CX + rx * SCALE, rpy = CY - ry * SCALE;
-                drawArrow(bpx, bpy, apx, apy, '#f59e0b', 'A−B', 4);
-                drawArrow(CX, CY, rpx, rpy, '#f59e0b', '', 2);
-                res.innerHTML = `
-                    <div class="result-row"><span class="result-label">A−B =</span><span class="result-val" style="color:#f59e0b">(${rx}, ${ry})</span></div>
-                    <div class="result-row"><span class="result-label">|A−B| =</span><span class="result-val">${Math.sqrt(rx*rx+ry*ry).toFixed(2)}</span></div>`;
-            } else if (op === 'dot') {
-                const dot = ax*bx + ay*by;
-                const magA = Math.sqrt(ax*ax+ay*ay), magB = Math.sqrt(bx*bx+by*by);
-                const angle = (magA > 0 && magB > 0) ? Math.acos(Math.max(-1, Math.min(1, dot / (magA * magB)))) * 180 / Math.PI : 0;
-                // Show angle arc
-                const angA = Math.atan2(ay, ax), angB = Math.atan2(by, bx);
-                ctx.beginPath(); ctx.arc(CX, CY, SCALE*1.5, -angA, -angB, angA > angB);
-                ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.stroke();
-                ctx.fillStyle = '#ec4899'; ctx.font = 'bold 12px Courier New'; ctx.textAlign = 'center';
-                ctx.fillText(`${angle.toFixed(1)}°`, CX + SCALE*2*Math.cos(-(angA+angB)/2), CY + SCALE*2*Math.sin(-(angA+angB)/2));
-                res.innerHTML = `
-                    <div class="result-row"><span class="result-label">A · B =</span><span class="result-val" style="color:#ec4899">${dot}</span></div>
-                    <div class="result-row"><span class="result-label">კუთხე (θ) =</span><span class="result-val" style="color:#ec4899">${angle.toFixed(2)}°</span></div>
-                    <div class="result-row"><span class="result-label">⊥ პერპენდიკულარი?</span><span class="result-val">${dot===0?'✅ დიახ':'❌ არა'}</span></div>`;
-            } else if (op === 'cross') {
-                const cross = ax*by - ay*bx;
-                // Shade parallelogram
-                ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(apx,apy); ctx.lineTo(apx+(bpx-CX),apy+(bpy-CY)); ctx.lineTo(bpx,bpy); ctx.closePath();
-                ctx.fillStyle = 'rgba(168,85,247,0.15)'; ctx.fill();
-                ctx.strokeStyle = 'rgba(168,85,247,0.5)'; ctx.lineWidth = 1; ctx.stroke();
-                res.innerHTML = `
-                    <div class="result-row"><span class="result-label">|A × B| =</span><span class="result-val" style="color:#a855f7">${Math.abs(cross)}</span></div>
-                    <div class="result-row"><span class="result-label">= პარალელოგრამის ფართობი</span></div>
-                    <div class="result-row"><span class="result-label">მიმართულება</span><span class="result-val">${cross>0?'⬆ z+':'⬇ z−'}</span></div>`;
+                ctx.globalAlpha = 1;
             }
         }
-        draw();
+
+        let isAnimating = false;
+        function startAnimation() {
+            if(isAnimating) return;
+            isAnimating = true;
+            let lastT = Date.now();
+            
+            function loop() {
+                let now = Date.now();
+                let dt = (now - lastT)/1000;
+                lastT = now;
+                time += dt;
+                
+                draw();
+                
+                requestAnimationFrame(loop);
+            }
+            requestAnimationFrame(loop);
+        }
+
+        // INIT
+        initLevel();
+        resize();
+
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,241 +7,416 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
 
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; width: 100%; max-width: 1050px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
 
-        .sim-area { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; position: relative; height: 400px; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); }
-        canvas { display: block; width: 100%; height: 100%; }
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
         
-        .hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); }
-        .val-hl { color: #ec4899; font-weight: bold; font-size: 1.1rem; }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
 
-        .controls { background: #111827; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        .panel { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        button { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; color: white; }
-        button:hover { transform: translateY(-2px); }
+        label { font-size: 0.85rem; color: #cbd5e1; font-weight: 600; margin-bottom: 5px; display: block; }
         
-        .btn-start { background: linear-gradient(135deg, #ec4899, #8b5cf6); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
-        .btn-reset { background: #334155; }
+        select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: #fff; font-family: inherit; font-size: 0.9rem;
+        }
 
-        .info-panel { background: #1e293b; border-left: 3px solid #ec4899; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dropdown-group { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .btn-add { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-add:hover { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+        
+        .btn-catalyst { background: linear-gradient(135deg, #ec4899, #be185d); }
+        .btn-catalyst:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(236, 72, 153, 0.3); }
+        .btn-catalyst:disabled { opacity: 0.5; cursor: not-allowed; background: #64748b; }
+
+        .btn-crosslink { background: linear-gradient(135deg, #eab308, #ca8a04); }
+        .btn-crosslink:hover { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(234, 179, 8, 0.3); }
+
+        .btn-clear { background: #334155; }
+        .btn-clear:hover { background: #475569; }
+
+        .stats-box { background: #0b1120; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
+        .stat-item { display: flex; flex-direction: column; align-items: center; text-align: center;}
+        .m-title { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .m-val { font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: bold; color: #ec4899; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #ec4899; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
 
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
     <h1>🔗 პოლიმერები (პოლიმერიზაცია)</h1>
-    <p class="subtitle">დააკვირდი როგორ ერთდება მცირე მოლეკულები (მონომერები) დიდ ჯაჭვად (პოლიმერი)</p>
+    <p class="subtitle">დააკვირდი როგორ იქმნება გიგანტური მაკრომოლეკულები და მართე მათი თვისებები</p>
 
     <div class="container">
-        <div class="sim-area" id="sim-area">
+        <div class="sim-area">
             <canvas id="canvas"></canvas>
-            <div class="hud">
-                <div>თავისუფალი მონომერები: <span class="val-hl" id="count-free" style="color:#0ea5e9;">20</span></div>
-                <div>პოლიმერის ჯაჭვის სიგრძე: <span class="val-hl" id="count-chain">0</span></div>
-            </div>
         </div>
 
-        <div class="controls">
-            <button class="btn-start" id="btn-start" onclick="startPoly()">⚡ პოლიმერიზაციის დაწყება</button>
-            <button class="btn-reset" onclick="resetSim()">↺ განულება</button>
+        <div class="panel">
+            <div class="dropdown-group">
+                <label>პოლიმერიზაციის ტიპი:</label>
+                <select id="poly-type" onchange="resetSim()">
+                    <option value="addition">მატებითი (ორმაგი ბმების გაწყვეტა, PE)</option>
+                    <option value="condensation">კონდენსაციური (გამოიყოფა წყალი, ცილები)</option>
+                </select>
+            </div>
+
+            <div class="stats-box">
+                <div class="stat-item">
+                    <div class="m-title">მონომერები</div>
+                    <div class="m-val" id="val-monos">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="m-title">ჯაჭვები</div>
+                    <div class="m-val" id="val-chains" style="color:#10b981;">0</div>
+                </div>
+            </div>
+
+            <button class="btn btn-add" onclick="spawnMonomers()">➕ დაამატე მონომერები</button>
+            <button class="btn btn-catalyst" id="btnCatalyst" onclick="addCatalyst()">⚡ შეიყვანე კატალიზატორი</button>
+            <button class="btn btn-crosslink" onclick="addCrosslinker()">🛡️ ჯვარედინი ბმები (გამაგრება)</button>
+            <button class="btn btn-clear" onclick="resetSim()">↺ რეზერვუარის გასუფთავება</button>
         </div>
 
         <div class="info-panel">
-            <strong>🔬 პოლიმერები:</strong> გიგანტური მოლეკულები (მაკრომოლეკულები), რომლებიც შედგება ბევრი მცირე განმეორებადი ერთეულისგან (მონომერებისგან).<br>
-            • <strong>პოლიმერიზაციის რეაქცია:</strong> ორმაგი ბმების ($C=C$) გაწყვეტა და მათი მეშვეობით მონომერების გადაბმა ერთ გრძელ ჯაჭვად.<br>
-            • <strong>მაგალითები:</strong> ეთილენი $\rightarrow$ პოლიეთილენი (პლასტმასი), ამინომჟავები $\rightarrow$ ცილები, ნუკლეოტიდები $\rightarrow$ დნმ.
+            <strong>🔬 რა არის პოლიმერები?</strong><br>
+            • <strong>მატებითი პოლიმერიზაცია:</strong> მონომერები (როგორიცაა ეთილენი $C=C$) კატალიზატორის დახმარებით წყვეტენ ორმაგ ბმას და უკავშირდებიან ერთმანეთს, იქმნება <strong>პოლიეთილენი (პლასტმასი)</strong>.<br>
+            • <strong>კონდენსაციური:</strong> მონომერების შეერთებისას ბოლოებიდან სცილდებათ მოლეკულები (ხშირად <strong>წყალი $H_2O$</strong>). ასე იქმნება <strong>ცილები და ნეილონი</strong>.<br>
+            • <strong>ჯვარედინი ბმები (Cross-linking):</strong> როცა გრძელ ჯაჭვებს შორის იქმნება ხიდები (მაგ. გოგირდით - ვულკანიზაცია). ეს პოლიმერს ხდის ხისტს, დრეკადს და გამძლეს (მაგ. საბურავის რეზინა).
         </div>
-        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
     </div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
 
     <script>
         const canvas = document.getElementById('canvas');
-        const simArea = document.getElementById('sim-area');
         const ctx = canvas.getContext('2d');
         let W, H;
-        function resize() { canvas.width = simArea.offsetWidth * devicePixelRatio; canvas.height = simArea.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = simArea.offsetWidth; H = simArea.offsetHeight; }
-        resize(); window.addEventListener('resize', resize);
 
         let monomers = [];
-        let polymerChain = [];
-        let running = false;
-        let catalyst = null;
+        let chains = [];
+        let catalysts = [];
+        let waterDrops = [];
+        let crosslinkers = [];
+
+        let currentType = 'addition';
+        let isCrosslinking = false;
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        function distance(p1, p2) { return Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2); }
 
         function resetSim() {
-            monomers = [];
-            polymerChain = [];
-            running = false;
-            catalyst = null;
-            document.getElementById('btn-start').disabled = false;
-            document.getElementById('btn-start').style.opacity = '1';
+            monomers = []; chains = []; catalysts = []; waterDrops = []; crosslinkers = [];
+            isCrosslinking = false;
+            currentType = document.getElementById('poly-type').value;
+            document.getElementById('btnCatalyst').disabled = false;
+            updateStats();
+        }
 
+        function spawnMonomers() {
             for(let i=0; i<30; i++) {
                 monomers.push({
-                    id: i,
-                    x: 30 + Math.random() * (W - 60),
-                    y: 30 + Math.random() * (H - 60),
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    angle: Math.random() * Math.PI,
-                    va: (Math.random() - 0.5) * 0.1
+                    x: Math.random()*(W-40)+20, y: Math.random()*(H-40)+20,
+                    vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+                    angle: Math.random()*Math.PI*2,
+                    va: (Math.random()-0.5)*0.1,
+                    type: currentType,
+                    id: Math.random()
                 });
             }
-            updateHUD();
+            updateStats();
         }
 
-        function startPoly() {
-            if(running) return;
-            running = true;
-            document.getElementById('btn-start').disabled = true;
-            document.getElementById('btn-start').style.opacity = '0.5';
-
-            // Add radical/catalyst
-            catalyst = { x: 50, y: H/2, vx: 4, vy: 0 };
+        function addCatalyst() {
+            // Adds active radical that seeks monomers
+            catalysts.push({ x: W/2, y: H/2, vx: 5, vy: 5 });
+            document.getElementById('btnCatalyst').disabled = true; // Only 1 or 2 at a time is enough
+            setTimeout(() => { document.getElementById('btnCatalyst').disabled = false; }, 2000);
         }
 
-        function updateHUD() {
-            document.getElementById('count-free').textContent = monomers.length;
-            document.getElementById('count-chain').textContent = polymerChain.length;
+        function addCrosslinker() {
+            // Shoots crosslinkers to bind chains together
+            if(chains.length < 2) return alert("ჯერ შექმენით მინიმუმ 2 პოლიმერული ჯაჭვი!");
+            isCrosslinking = true;
+            for(let i=0; i<10; i++) {
+                crosslinkers.push({
+                    x: Math.random()*W, y: -20,
+                    vx: (Math.random()-0.5)*2, vy: 3 + Math.random()*2,
+                    bound1: null, bound2: null
+                });
+            }
         }
 
-        function drawMonomer(x, y, a, isPoly) {
+        function updateStats() {
+            document.getElementById('val-monos').innerText = monomers.length;
+            document.getElementById('val-chains').innerText = chains.length;
+        }
+
+        function drawMolecule(ctx, x, y, angle, type, isBondedLeft, isBondedRight) {
             ctx.save();
             ctx.translate(x, y);
-            ctx.rotate(a);
+            ctx.rotate(angle);
 
-            // Draw C=C or C-C
-            ctx.strokeStyle = '#fff';
             ctx.lineWidth = 3;
-            if(!isPoly) {
-                // Double bond
-                ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(10, -3); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(-10, 3); ctx.lineTo(10, 3); ctx.stroke();
-            } else {
-                // Single bond + connectors
-                ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
+            // Bonds
+            if (type === 'addition') {
+                if (!isBondedLeft && !isBondedRight) {
+                    // Double bond 
+                    ctx.strokeStyle = '#fff';
+                    ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(10, -3); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-10, 3); ctx.lineTo(10, 3); ctx.stroke();
+                    // Basic Carbon endpoints
+                    ctx.fillStyle = '#64748b';
+                    ctx.beginPath(); ctx.arc(-10, 0, 7, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(10, 0, 7, 0, Math.PI*2); ctx.fill();
+                } else {
+                    // Single bond backbone
+                    ctx.strokeStyle = 'rgba(236, 72, 153, 0.8)';
+                    ctx.beginPath();
+                    if(isBondedLeft) { ctx.moveTo(-20, 0); ctx.lineTo(0, 0); }
+                    if(isBondedRight) { ctx.moveTo(0, 0); ctx.lineTo(20, 0); }
+                    ctx.stroke();
+                    ctx.fillStyle = '#ec4899';
+                    ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+                }
+            } else { // condensation
+                // Distinct shape with ends (e.g., Amino acid: Amine to Carboxyl)
+                if(!isBondedLeft && !isBondedRight) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.stroke();
+                    // ends (e.g. OH and H)
+                    ctx.fillStyle = '#38bdf8'; // OH
+                    ctx.beginPath(); ctx.arc(-15, 0, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#a3e635'; // H
+                    ctx.beginPath(); ctx.arc(15, 0, 3, 0, Math.PI*2); ctx.fill();
+                    // Center
+                    ctx.fillStyle = '#64748b';
+                    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+                } else {
+                    // Polymer back bone connected via Peptide bond
+                    ctx.strokeStyle = '#10b981';
+                    ctx.beginPath();
+                    if(isBondedLeft) { ctx.moveTo(-20, 0); ctx.lineTo(0, 0); }
+                    if(isBondedRight) { ctx.moveTo(0, 0); ctx.lineTo(20, 0); }
+                    ctx.stroke();
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+                }
             }
-            
-            // C atoms
-            ctx.fillStyle = '#333';
-            ctx.beginPath(); ctx.arc(-10, 0, 8, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(10, 0, 8, 0, Math.PI*2); ctx.fill();
-
-            // H bonds & atoms
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-15, -12); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-15, 12); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(15, -12); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(15, 12); ctx.stroke();
-            
-            ctx.fillStyle = '#f8fafc';
-            ctx.beginPath(); ctx.arc(-15, -12, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(-15, 12, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(15, -12, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(15, 12, 4, 0, Math.PI*2); ctx.fill();
             
             ctx.restore();
         }
 
-        function animate() {
-            ctx.clearRect(0,0,W,H);
-
-            // Polymer chain logic
-            if(running && catalyst) {
-                // Determine target - tip of the chain or catalyst
-                let targetX = catalyst.x;
-                let targetY = catalyst.y;
-                if(polymerChain.length > 0) {
-                    let last = polymerChain[polymerChain.length - 1];
-                    targetX = last.x + Math.cos(last.angle) * 30; // End of bond
-                    targetY = last.y + Math.sin(last.angle) * 30;
-                }
-
-                // Check collision with nearest monomer
-                let closestIndex = -1;
-                let minDist = 40;
-                for(let i=0; i<monomers.length; i++) {
-                    let m = monomers[i];
-                    let d = Math.sqrt((m.x - targetX)**2 + (m.y - targetY)**2);
-                    if(d < minDist) { minDist = d; closestIndex = i; }
-                }
-
-                if(closestIndex !== -1) {
-                    // Attach to chain
-                    let m = monomers.splice(closestIndex, 1)[0];
-                    
-                    // Simple ik-like attachment
-                    let newAngle = 0;
-                    if(polymerChain.length > 0) {
-                        let prev = polymerChain[polymerChain.length-1];
-                        // wiggle a bit
-                        newAngle = prev.angle + (Math.random() * 0.5 - 0.25);
-                        m.x = prev.x + Math.cos(newAngle) * 35;
-                        m.y = prev.y + Math.sin(newAngle) * 35;
-                    } else {
-                        m.x = catalyst.x;
-                        m.y = catalyst.y;
-                    }
-                    m.angle = newAngle;
-                    
-                    polymerChain.push(m);
-
-                    // Catalyst moves forward
-                    catalyst.x += 1;
-                    if(catalyst.x > W) running = false; // hit end
-                    updateHUD();
-                } else {
-                    // Catalyst auto-moves to find monomers
-                    catalyst.x += 1;
-                    if(catalyst.y < H/2) catalyst.y += 0.5; else catalyst.y -= 0.5;
-                }
-
-                // Catalyst glow
-                ctx.beginPath(); ctx.arc(targetX, targetY, 15, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(236, 72, 153, 0.5)'; ctx.fill();
-            }
-
-            // Draw Chain
-            if(polymerChain.length > 0) {
-                // Draw backbone
-                ctx.beginPath();
-                ctx.moveTo(polymerChain[0].x, polymerChain[0].y);
-                for(let i=1; i<polymerChain.length; i++) {
-                    ctx.lineTo(polymerChain[i].x, polymerChain[i].y);
-                }
-                ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
-                ctx.lineWidth = 15;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-
-                // Draw units
-                polymerChain.forEach((p, i) => {
-                    // Wiggle chain slightly
-                    p.y += Math.sin(Date.now() * 0.003 + i) * 0.5;
-                    drawMonomer(p.x, p.y, p.angle, true);
-                });
-            }
-
-            // Move and draw free monomers
+        function updateSim() {
+            // Move Monomers
             monomers.forEach(m => {
                 m.x += m.vx; m.y += m.vy; m.angle += m.va;
-                if(m.x < 20 || m.x > W-20) m.vx *= -1;
-                if(m.y < 20 || m.y > H-20) m.vy *= -1;
-                drawMonomer(m.x, m.y, m.angle, false);
+                if(m.x < 15 || m.x > W-15) m.vx *= -1;
+                if(m.y < 15 || m.y > H-15) m.vy *= -1;
             });
 
-            requestAnimationFrame(animate);
+            // Catalyst logic -> builds chain
+            for(let c of catalysts) {
+                // Find nearest monomer
+                let closest = null, minDist = 60, closestIdx = -1;
+                monomers.forEach((m, idx) => {
+                    let d = distance(c, m);
+                    if(d < minDist) { minDist = d; closest = m; closestIdx = idx; }
+                });
+
+                if(closest) {
+                    monomers.splice(closestIdx, 1);
+                    // If catalyst doesn't have a chain, make one
+                    if(!c.chain) {
+                        c.chain = [closest];
+                        chains.push(c.chain);
+                    } else {
+                        // attach
+                        c.chain.push(closest);
+                        // Condensation water drop
+                        if(currentType === 'condensation') {
+                            waterDrops.push({ x: c.x, y: c.y, vy: 2 + Math.random(), life: 1 });
+                        }
+                    }
+                    updateStats();
+                }
+
+                if(c.chain && c.chain.length > 0) {
+                    let head = c.chain[c.chain.length-1];
+                    c.x = head.x; c.y = head.y;
+                } else {
+                    c.x += c.vx; c.y += c.vy;
+                    if(c.x < 15 || c.x > W-15) c.vx *= -1;
+                    if(c.y < 15 || c.y > H-15) c.vy *= -1;
+                }
+            }
+
+            // Chain Physics (spring-like resolution + crosslinking limits)
+            chains.forEach(chain => {
+                for(let i=1; i<chain.length; i++) {
+                    let p1 = chain[i-1]; let p2 = chain[i];
+                    let d = distance(p1, p2);
+                    let targetD = 20; // Bond length
+                    if(d !== targetD && d > 0) {
+                        let diff = (d - targetD)/d * 0.5;
+                        let dx = (p2.x - p1.x) * diff;
+                        let dy = (p2.y - p1.y) * diff;
+                        p1.x += dx; p1.y += dy;
+                        p2.x -= dx; p2.y -= dy;
+                    }
+                }
+                // Random floating for chain
+                chain.forEach((p, i) => {
+                    if (isCrosslinking) {
+                        p.y += 0.2; // Gravity effect when crosslinked
+                    } else {
+                        p.x += (Math.random()-0.5)*1.5;
+                        p.y += (Math.random()-0.5)*1.5;
+                    }
+                    if(p.x < 10) p.x=10; if(p.x > W-10) p.x=W-10;
+                    if(p.y < 10) p.y=10; if(p.y > H-10) p.y=H-10;
+                });
+            });
+
+            // Crosslinkers
+            for(let i = crosslinkers.length-1; i>=0; i--) {
+                let cl = crosslinkers[i];
+                if (!cl.bound1) {
+                    cl.x += cl.vx; cl.y += cl.vy;
+                    // search for chain node
+                    let found = false;
+                    for(let ch of chains) {
+                        for(let nd of ch) {
+                            if(distance(cl, nd) < 20) {
+                                cl.bound1 = nd; found=true; break;
+                            }
+                        }
+                        if(found) break;
+                    }
+                } else if (!cl.bound2) {
+                    // search for different chain node
+                    cl.x = cl.bound1.x; cl.y = cl.bound1.y; // Ride the first node
+                    let found = false;
+                    for(let ch of chains) {
+                        if (ch.includes(cl.bound1)) continue; // must be different chain
+                        for(let nd of ch) {
+                            if(distance(cl, nd) < 40) { // Catch radius
+                                cl.bound2 = nd; found=true; break;
+                            }
+                        }
+                        if(found) break;
+                    }
+                } else {
+                    // Fully bound crosslink! Pull them together like strong springs
+                    cl.x = (cl.bound1.x + cl.bound2.x)/2;
+                    cl.y = (cl.bound1.y + cl.bound2.y)/2;
+
+                    let d = distance(cl.bound1, cl.bound2);
+                    let targetD = 30; // Solid distance
+                    if(d > targetD) {
+                        let diff = (d - targetD)/d * 0.1; // Strong pull
+                        let dx = (cl.bound2.x - cl.bound1.x) * diff;
+                        let dy = (cl.bound2.y - cl.bound1.y) * diff;
+                        cl.bound1.x += dx; cl.bound1.y += dy;
+                        cl.bound2.x -= dx; cl.bound2.y -= dy;
+                    }
+                }
+                
+                // Out of bounds remove
+                if(cl.y > H + 50) crosslinkers.splice(i, 1);
+            }
+
+            // Water drops (condensation)
+            for(let i = waterDrops.length-1; i>=0; i--) {
+                let w = waterDrops[i];
+                w.y += w.vy; w.life -= 0.01;
+                if(w.life <= 0 || w.y > H) waterDrops.splice(i, 1);
+            }
         }
 
-        resetSim();
-        animate();
+        function drawSim() {
+            ctx.clearRect(0,0,W,H);
+
+            // Draw Crosslinkers Behind
+            crosslinkers.forEach(cl => {
+                ctx.strokeStyle = '#eab308';
+                ctx.lineWidth = 4;
+                if(cl.bound1 && cl.bound2) {
+                    ctx.beginPath(); ctx.moveTo(cl.bound1.x, cl.bound1.y); ctx.lineTo(cl.bound2.x, cl.bound2.y); ctx.stroke();
+                }
+                ctx.fillStyle = '#ca8a04';
+                ctx.beginPath(); ctx.arc(cl.x, cl.y, 4, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Draw Chains
+            chains.forEach(chain => {
+                // Backbone
+                ctx.beginPath();
+                ctx.moveTo(chain[0].x, chain[0].y);
+                for(let i=1; i<chain.length; i++) ctx.lineTo(chain[i].x, chain[i].y);
+                ctx.strokeStyle = currentType === 'addition' ? 'rgba(236, 72, 153, 0.5)' : 'rgba(16, 185, 129, 0.5)';
+                ctx.lineWidth = 12; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+
+                // Nodes
+                chain.forEach((p, i) => {
+                    let ang = 0;
+                    if(i < chain.length-1) ang = Math.atan2(chain[i+1].y - p.y, chain[i+1].x - p.x);
+                    drawMolecule(ctx, p.x, p.y, ang, currentType, i>0, i<chain.length-1);
+                });
+            });
+
+            // Draw Monomers
+            monomers.forEach(m => drawMolecule(ctx, m.x, m.y, m.angle, currentType, false, false));
+
+            // Draw Catalysts
+            catalysts.forEach(c => {
+                ctx.fillStyle = c.chain ? 'rgba(236,72,153,0.3)' : 'rgba(236,72,153,0.8)';
+                ctx.beginPath(); ctx.arc(c.x, c.y, 15, 0, Math.PI*2); ctx.fill();
+                ctx.shadowColor = '#ec4899'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+            });
+
+            // Draw Water Drops (Condensation)
+            waterDrops.forEach(w => {
+                ctx.globalAlpha = w.life;
+                ctx.font = '12px Arial';
+                ctx.fillText('💧 H₂O', w.x, w.y);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function loop() {
+            if(!W) resize();
+            updateSim();
+            drawSim();
+            requestAnimationFrame(loop);
+        }
+
+        setTimeout(() => { spawnMonomers(); loop(); }, 100);
+
     </script>
 </body>
 </html>

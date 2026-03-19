@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,90 +7,424 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #f43f5e, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .timeline { display: flex; gap: 10px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; }
-        .stage-card { min-width: 250px; background: #1e293b; border-radius: 16px; padding: 20px; border: 2px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; scroll-snap-align: center; flex-shrink: 0; }
-        .stage-card:hover { border-color: #ec4899; transform: translateY(-5px); }
-        .stage-card.active { border-color: #ec4899; background: linear-gradient(135deg, rgba(244,63,94,0.1), rgba(236,72,153,0.1)); }
-        .stage-num { font-size: 0.75rem; color: #ec4899; font-weight: bold; margin-bottom: 5px; }
-        .stage-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
-        .stage-time { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
-        .viewer { background: #1e293b; border-radius: 16px; height: 350px; margin-top: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
-        canvas { width: 100%; height: 100%; }
-        .detail-panel { background: #1e293b; border-radius: 12px; padding: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .detail-panel h3 { color: #ec4899; margin-bottom: 10px; }
-        .detail-panel p { color: #94a3b8; font-size: 0.85rem; line-height: 1.6; }
-        .info-panel { background: #111827; border-left: 3px solid #ec4899; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin-top: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #f43f5e, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; width: 100%; max-width: 1000px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background: radial-gradient(circle, #25162a 10%, #0f172a 90%);
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .stage-banner { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(0,0,0,0.7); border: 1px solid #ec4899; padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(5px); font-weight: bold; font-size: 1.1rem; color: #fff; text-shadow: 0 0 10px #f43f5e; box-shadow: 0 0 20px rgba(236,72,153,0.3); white-space: nowrap; transition: 0.5s; }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .instruction-box { background: #0f172a; border-left: 3px solid #ec4899; padding: 15px; border-radius: 8px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
+        .instruction-box h3 { color: #f43f5e; margin-bottom: 5px; font-size: 1rem;}
+
+        .progress-container { display: flex; flex-direction: column; gap: 8px;}
+        .stage-indicator { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #64748b; font-weight: bold; transition: 0.3s;}
+        .stage-indicator.active { color: #ec4899; }
+        .stage-indicator.done { color: #10b981; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #334155; transition: 0.3s; }
+        .active .dot { border-color: #ec4899; background: #f43f5e; box-shadow: 0 0 10px #ec4899;}
+        .done .dot { border-color: #10b981; background: #10b981; }
+
+        .slider-group { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(244,63,94,0.3); display: none; flex-direction: column; gap: 10px; animation: fadeIn 0.5s;}
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        .slider-group label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #e2e8f0; font-weight: bold; }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 8px; background: #334155; border-radius: 4px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #ec4899; cursor: pointer; box-shadow: 0 0 10px #ec4899;}
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #f43f5e; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>🧫 ემბრიოლოგია</h1>
-    <p class="subtitle">ემბრიონის განვითარების ეტაპები — ზიგოტადან ნაყოფამდე</p>
+    <h1>🧫 ემბრიოლოგიის ლაბორატორია</h1>
+    <p class="subtitle">სიცოცხლის დაბადების ინტერაქტიული სიმულატორი</p>
+
     <div class="container">
-        <div class="timeline" id="timeline"></div>
-        <div class="viewer"><canvas id="canvas"></canvas></div>
-        <div class="detail-panel"><h3 id="d-title">აირჩიე ეტაპი</h3><p id="d-text">დააკლიკე ზემოთ ეტაპების ბარათებს.</p></div>
+        <div class="sim-area">
+            <div class="stage-banner" id="banner">ეტაპი 1: განაყოფიერება</div>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="panel">
+            <div class="progress-container">
+                <div class="stage-indicator active" id="st-1"><div class="dot"></div> 1. განაყოფიერება</div>
+                <div class="stage-indicator" id="st-2"><div class="dot"></div> 2. მიტოზური გაყოფა</div>
+                <div class="stage-indicator" id="st-3"><div class="dot"></div> 3. ორგანოთა განვითარება</div>
+            </div>
+
+            <div class="instruction-box" id="instruct">
+                <h3>შენი ამოცანა:</h3>
+                <p>მაუსის / თითის მოძრაობით მართე სპერმატოზოიდი. მოიგერიე წინააღმდეგობები და შეაღწიე კვერცხუჯრედში შუაგულში (კოლბაში).</p>
+            </div>
+
+            <div class="slider-group" id="slider-group">
+                <label><span>დროის ხაზი (კვირები):</span> <span id="val-week" style="color:#f43f5e;">4 კვირა</span></label>
+                <input type="range" id="sl-time" min="4" max="40" value="4" oninput="updateFetus()">
+                <div style="font-size:0.75rem; color:#94a3b8; line-height:1.4;">გამოძრავეთ სლაიდერი და დააკვირდით ემბრიონის ნაყოფად გარდაქმნას და გულისცემას.</div>
+            </div>
+            
+            <button onclick="resetGame()" style="padding:10px; background:#334155; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer; font-family:inherit; margin-top:auto;">↺ თავიდან დაწყება</button>
+        </div>
+
         <div class="info-panel">
-            <strong>🔬 ემბრიოლოგია:</strong> შეისწავლის ორგანიზმის ადრეულ განვითარებას განაყოფიერებიდან დაბადებამდე. მსგავსი ეტაპები ყველა ხერხემლიანში — ევოლუციური კავშირის მტკიცებულება.
+            <strong>🔬 როგორ ვითარდება სიცოცხლე:</strong><br>
+            • <strong>ეტაპი 1 (განაყოფიერება):</strong> მილიონობით სპერმატოზოიდიდან მხოლოდ ერთი აღწევს კვერცხუჯრედამდე და ხდება შერწყმა. იქმნება პირველი ერთადერთი უჯრედი — <em>ზიგოტა</em>.<br>
+            • <strong>ეტაპი 2 (გაყოფა / მორულა):</strong> ზიგოტა სწრაფად იყოფა მიტოზით: 2, 4, 8, 16 უჯრედად, ჯამური ზომის გაზრდის გარეშე. ამას მორულა ეწოდება.<br>
+            • <strong>ეტაპი 3 (ორგანოგენეზი და ზრდა):</strong> ყალიბდება სისტემები. 24-ე დღეს იწყებს ფეთქვას პრიმიტიული გული! 40 კვირისთვის ფორმირება სრულდება.
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const viewer = canvas.parentElement;
         let W, H;
-        function resize() { canvas.width = viewer.offsetWidth * devicePixelRatio; canvas.height = viewer.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = viewer.offsetWidth; H = viewer.offsetHeight; drawStage(); }
+        
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight;
+        }
         resize(); window.addEventListener('resize', resize);
 
-        const stages = [
-            { num:1, title:'განაყოფიერება', time:'0 დღე', desc:'სპერმატოზოიდი შეაღწევს კვერცხუჯრედში. იქმნება ზიგოტა — პირველი ერთუჯრედიანი ორგანიზმი 46 ქრომოსომით.',
-              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=3; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,r*0.2,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); const sx=cx-r-20+Math.sin(t*3)*5; ctx.beginPath(); ctx.ellipse(sx,cy,8,4,0,0,Math.PI*2); ctx.fillStyle='#e2e8f0'; ctx.fill(); ctx.beginPath(); ctx.moveTo(sx-8,cy); ctx.quadraticCurveTo(sx-20,cy-8,sx-25,cy); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1.5; ctx.stroke(); }
-            },
-            { num:2, title:'გაყოფა (მორულა)', time:'1-4 დღე', desc:'ზიგოტა იყოფა მიტოზით: 2→4→8→16 უჯრედი. ფორმირდება მორულა — მცირე უჯრედთა ჯგუფი.',
-              draw: (cx,cy,r,t) => { const cells = [ [0,0], [-0.4,-0.3], [0.4,-0.3], [-0.3,0.4], [0.3,0.4], [-0.5,0.1], [0.5,0.1], [0,0.5] ]; cells.forEach(([dx,dy],i) => { const pulse = 1 + Math.sin(t*2 + i)*0.05; ctx.beginPath(); ctx.arc(cx+dx*r*0.6,cy+dy*r*0.6,r*0.28*pulse,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(cx+dx*r*0.6,cy+dy*r*0.6,r*0.08,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); }); }
-            },
-            { num:3, title:'ბლასტულა', time:'5-7 დღე', desc:'უჯრედები წარმოქმნიან ღრუ ბურთს (ბლასტოციტი). შიდა უჯრედთა მასა (ემბრიობლასტი) გარე გარსშია (ტროფობლასტი).',
-              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='rgba(253,230,138,0.2)'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=3; ctx.stroke(); for(let a=0;a<Math.PI*2;a+=Math.PI/10) { const px=cx+Math.cos(a+t*0.5)*r*0.92; const py=cy+Math.sin(a+t*0.5)*r*0.92; ctx.beginPath(); ctx.arc(px,py,r*0.1,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); } ctx.beginPath(); ctx.arc(cx+r*0.3,cy+r*0.1,r*0.35,0,Math.PI*2); ctx.fillStyle='#ec4899'; ctx.globalAlpha=0.5; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText('ემბრიობლასტი',cx+r*0.3,cy+r*0.1+4); }
-            },
-            { num:4, title:'გასტრულაცია', time:'2-3 კვირა', desc:'სამი ჩანასახოვანი ფურცელი ფორმირდება: ექტოდერმა (კანი, ნერვები), მეზოდერმა (კუნთები, ძვლები), ენდოდერმა (ორგანოები).',
-              draw: (cx,cy,r,t) => { const layers = [{color:'#60a5fa',label:'ექტოდერმა',ro:1},{color:'#f97316',label:'მეზოდერმა',ro:0.75},{color:'#22c55e',label:'ენდოდერმა',ro:0.5}]; layers.forEach(l => { ctx.beginPath(); ctx.ellipse(cx,cy,r*l.ro,r*l.ro*0.6,0,0,Math.PI*2); ctx.fillStyle=l.color; ctx.globalAlpha=0.4; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=l.color; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#fff'; ctx.font='10px Arial'; ctx.textAlign='center'; ctx.fillText(l.label,cx,cy-r*l.ro*0.6-8); }); }
-            },
-            { num:5, title:'ორგანოგენეზი', time:'4-8 კვირა', desc:'ორგანოები იწყებს ფორმირებას: გული ცემას იწყებს (22 დღე), ნერვული მილი იკეტება, კიდურების კვირტები ჩნდება.',
-              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.ellipse(cx,cy-r*0.1,r*0.5,r*0.8,0.1,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.stroke(); const heartBeat = 1 + Math.sin(t*6)*0.15; ctx.beginPath(); ctx.arc(cx-r*0.1,cy-r*0.2,r*0.1*heartBeat,0,Math.PI*2); ctx.fillStyle='#ef4444'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='8px Arial'; ctx.textAlign='center'; ctx.fillText('❤',cx-r*0.1,cy-r*0.18); ctx.strokeStyle='#60a5fa'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy-r*0.7); ctx.quadraticCurveTo(cx+r*0.1,cy-r*0.4,cx,cy+r*0.3); ctx.stroke(); ctx.fillStyle='#fff'; ctx.font='8px Arial'; ctx.fillText('ნერვული მილი',cx+r*0.25,cy-r*0.5); ctx.fillStyle='#fde68a'; ctx.beginPath(); ctx.ellipse(cx-r*0.5,cy,r*0.12,r*0.05,0.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx+r*0.5,cy,r*0.12,r*0.05,-0.5,0,Math.PI*2); ctx.fill(); }
-            },
-            { num:6, title:'ნაყოფი', time:'9-40 კვირა', desc:'ყველა ორგანო აქვს. ნაყოფი იზრდება, იწონით, მატურირდება. რეაგირებს ხმაზე, სინათლეზე. 40 კვირის ბოლოს — დაბადება.',
-              draw: (cx,cy,r,t) => { ctx.beginPath(); ctx.ellipse(cx,cy,r*0.9,r,0,0,Math.PI*2); ctx.fillStyle='rgba(236,72,153,0.1)'; ctx.fill(); ctx.strokeStyle='rgba(236,72,153,0.3)'; ctx.lineWidth=3; ctx.stroke(); const b = Math.sin(t*0.5)*0.02; ctx.save(); ctx.translate(cx,cy); ctx.rotate(b); ctx.beginPath(); ctx.ellipse(0,-r*0.25,r*0.25,r*0.3,0,0,Math.PI*2); ctx.fillStyle='#fde68a'; ctx.fill(); ctx.beginPath(); ctx.ellipse(0,r*0.15,r*0.35,r*0.35,-0.1,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(-r*0.4,r*0.0,r*0.08,r*0.25,0.3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(r*0.35,r*0.1,r*0.08,r*0.25,-0.2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(-r*0.15,r*0.5,r*0.08,r*0.2,0.2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(r*0.1,r*0.5,r*0.08,r*0.2,-0.1,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(-r*0.1,-r*0.3,2,0,Math.PI*2); ctx.arc(r*0.05,-r*0.3,2,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+        // State Machine
+        let currentStage = 1; 
+        // 1 = Fertilization, 2 = Cleavage, 3 = Organogenesis
+        
+        // Stage 1 variables
+        let egg = { x: 0, y: 0, r: 80, pulse: 0 };
+        let sperm = { x: 50, y: 50, vx: 0, vy: 0, tail: 0 };
+        let mouse = { x: 50, y: 50 };
+        let obstacles = [];
+        let otherSperms = [];
+        
+        // Stage 2 variables
+        let cells = 1;
+        
+        // Stage 3 variables
+        let fetusWeek = 4;
+
+        function initStage1() {
+            egg.x = W/2; egg.y = H/2;
+            sperm.x = 20; sperm.y = 20;
+            obstacles = [];
+            for(let i=0; i<15; i++) {
+                obstacles.push({
+                    x: Math.random()*W, y: Math.random()*H,
+                    r: 10 + Math.random()*20,
+                    vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2
+                });
             }
-        ];
-
-        let currentStage = 0;
-        const tl = document.getElementById('timeline');
-        stages.forEach((s, i) => {
-            const card = document.createElement('div');
-            card.className = 'stage-card' + (i===0?' active':'');
-            card.id = 'card-'+i;
-            card.innerHTML = `<div class="stage-num">ეტაპი ${s.num}</div><div class="stage-title">${s.title}</div><div class="stage-time">⏱ ${s.time}</div>`;
-            card.onclick = () => { currentStage = i; document.querySelectorAll('.stage-card').forEach(c=>c.classList.remove('active')); card.classList.add('active'); document.getElementById('d-title').textContent = s.title; document.getElementById('d-text').textContent = s.desc; };
-            tl.appendChild(card);
-        });
-        document.getElementById('d-title').textContent = stages[0].title;
-        document.getElementById('d-text').textContent = stages[0].desc;
-
-        function drawStage() {
-            ctx.clearRect(0,0,W,H);
-            const cx = W/2, cy = H/2, r = Math.min(W,H)*0.3;
-            const t = Date.now() * 0.001;
-            stages[currentStage].draw(cx, cy, r, t);
-            requestAnimationFrame(drawStage);
+            otherSperms = [];
+            for(let i=0; i<30; i++) {
+                otherSperms.push({
+                    x: Math.random()*W, y: Math.random()*H,
+                    vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3,
+                    tail: Math.random()*10
+                });
+            }
         }
-        drawStage();
+
+        function resetGame() {
+            currentStage = 1;
+            document.getElementById('st-1').className = 'stage-indicator active';
+            document.getElementById('st-2').className = 'stage-indicator';
+            document.getElementById('st-3').className = 'stage-indicator';
+            document.getElementById('banner').innerText = 'ეტაპი 1: განაყოფიერება';
+            document.getElementById('instruct').innerHTML = `<h3>შენი ამოცანა:</h3><p>მაუსის / თითის მოძრაობით მართე სპერმატოზოიდი. მოიგერიე სხვა უჯრედები და შეაღწიე კვერცხუჯრედში!</p>`;
+            document.getElementById('slider-group').style.display = 'none';
+            initStage1();
+            cells = 1;
+        }
+
+        function transitionToStage2() {
+            currentStage = 2;
+            document.getElementById('st-1').className = 'stage-indicator done';
+            document.getElementById('st-2').className = 'stage-indicator active';
+            document.getElementById('banner').innerText = 'ეტაპი 2: მიტოზური გაყოფა (Cleavage)';
+            document.getElementById('instruct').innerHTML = `<h3>შენი ამოცანა:</h3><p>დააკლიკე ზიგოტას ცენტრში, რათა აიძულო ის გაიყოს. მიაღწიე მორულას (16-32 უჯრედი) სტადიას!</p>`;
+        }
+
+        function transitionToStage3() {
+            currentStage = 3;
+            document.getElementById('st-2').className = 'stage-indicator done';
+            document.getElementById('st-3').className = 'stage-indicator active';
+            document.getElementById('banner').innerText = 'ეტაპი 3: განვითარება და ორგანოთა ჩამოყალიბება';
+            document.getElementById('instruct').style.display = 'none';
+            document.getElementById('slider-group').style.display = 'flex';
+            fetusWeek = 4;
+            document.getElementById('sl-time').value = 4;
+            updateFetus();
+        }
+
+        function updateFetus() {
+            fetusWeek = parseInt(document.getElementById('sl-time').value);
+            document.getElementById('val-week').innerText = fetusWeek + ' კვირა';
+        }
+
+        // --- Inputs ---
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            let cx = e.clientX; let cy = e.clientY;
+            if(e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            return { x: (cx - rect.left) / rect.width * W, y: (cy - rect.top) / rect.height * H };
+        }
+        
+        canvas.addEventListener('mousemove', e => { mouse = getCoords(e); });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); mouse = getCoords(e); }, {passive:false});
+        
+        canvas.addEventListener('click', e => {
+            if(currentStage === 2) {
+                // Click to divide
+                cells *= 2;
+                // Add some spark effect
+                let m = getCoords(e);
+                for(let i=0; i<10; i++) particles.push({x:m.x, y:m.y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1, color:'#f43f5e'});
+                
+                if(cells >= 32) transitionToStage3();
+            }
+        });
+
+        let particles = [];
+        let animTime = 0;
+
+        // --- DRAW LOOP ---
+        function drawLoop() {
+            animTime += 0.05;
+            ctx.clearRect(0,0,W,H);
+            
+            // Draw particles (used everywhere)
+            for(let i=particles.length-1; i>=0; i--) {
+                let p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.life -= 0.05;
+                ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+                if(p.life <= 0) particles.splice(i,1);
+            }
+            ctx.globalAlpha = 1;
+
+            if (currentStage === 1) {
+                drawStage1();
+            } else if (currentStage === 2) {
+                drawStage2();
+            } else if (currentStage === 3) {
+                drawStage3();
+            }
+
+            requestAnimationFrame(drawLoop);
+        }
+
+        function drawStage1() {
+            // Egg
+            egg.pulse = Math.sin(animTime) * 5;
+            ctx.shadowColor = '#ec4899'; ctx.shadowBlur = 40 + egg.pulse * 2;
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.4)';
+            ctx.beginPath(); ctx.arc(egg.x, egg.y, egg.r + egg.pulse, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 3; ctx.stroke();
+            // Nucleus
+            ctx.shadowBlur = 0; ctx.fillStyle = '#8b5cf6';
+            ctx.beginPath(); ctx.arc(egg.x, egg.y, 15, 0, Math.PI*2); ctx.fill();
+
+            // Obstacles
+            ctx.fillStyle = 'rgba(51, 65, 85, 0.6)';
+            obstacles.forEach(o => {
+                o.x += o.vx; o.y += o.vy;
+                if(o.x<0||o.x>W) o.vx*=-1; if(o.y<0||o.y>H) o.vy*=-1;
+                ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Other sperms
+            ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+            otherSperms.forEach(os => {
+                os.tail += 0.5;
+                os.vx += (Math.random()-0.5)*0.5; os.vy += (Math.random()-0.5)*0.5;
+                let spd = Math.sqrt(os.vx*os.vx + os.vy*os.vy);
+                if(spd > 2) { os.vx *= 2/spd; os.vy *= 2/spd; }
+                os.x += os.vx; os.y += os.vy;
+                if(os.x<0||os.x>W) os.vx*=-1; if(os.y<0||os.y>H) os.vy*=-1;
+                
+                let ang = Math.atan2(os.vy, os.vx);
+                ctx.save(); ctx.translate(os.x, os.y); ctx.rotate(ang);
+                ctx.beginPath(); ctx.ellipse(0, 0, 4, 3, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-4, 0); ctx.quadraticCurveTo(-15, Math.sin(os.tail)*5, -20, 0); ctx.stroke();
+                ctx.restore();
+            });
+
+            // Main Sperm
+            sperm.tail += 0.8;
+            sperm.vx += (mouse.x - sperm.x) * 0.05;
+            sperm.vy += (mouse.y - sperm.y) * 0.05;
+            sperm.vx *= 0.8; sperm.vy *= 0.8; // Friction
+            sperm.x += sperm.vx; sperm.y += sperm.vy;
+
+            let ang = Math.atan2(sperm.vy, sperm.vx);
+            ctx.save(); ctx.translate(sperm.x, sperm.y); ctx.rotate(ang);
+            ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-8, 0); ctx.quadraticCurveTo(-20, Math.sin(sperm.tail)*8, -35, 0); ctx.stroke();
+            ctx.restore(); ctx.shadowBlur = 0;
+
+            // Hit detection
+            let d2 = (sperm.x - egg.x)**2 + (sperm.y - egg.y)**2;
+            if(d2 < (egg.r)**2) {
+                // Victory spark
+                for(let i=0; i<30; i++) particles.push({x:egg.x, y:egg.y, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:1, color:'#fff'});
+                transitionToStage2();
+            }
+        }
+
+        function drawStage2() {
+            let cx = W/2, cy = H/2, br = 120; // Bound radius
+            
+            // Membrane (Zona Pellucida)
+            ctx.shadowBlur = 30; ctx.shadowColor = '#ec4899';
+            ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(cx, cy, br, 0, Math.PI*2); ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.15)';
+            ctx.beginPath(); ctx.arc(cx, cy, br, 0, Math.PI*2); ctx.fill();
+
+            // Draw Cells inside (Cleavage math approx)
+            // As cells double, their size shrinks to fit inside the zona pellucida.
+            let cellRad = br * Math.pow(0.7, Math.log2(cells)); 
+            
+            ctx.fillStyle = '#fca5a5';
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+
+            if (cells === 1) { // Zygote
+                let p = Math.sin(animTime)*2;
+                ctx.beginPath(); ctx.arc(cx, cy, cellRad+p, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                // Nucleus
+                ctx.fillStyle = '#8b5cf6'; ctx.beginPath(); ctx.arc(cx, cy, cellRad*0.3, 0, Math.PI*2); ctx.fill();
+            } else {
+                // Approximate arrangement in a circle
+                let cols = Math.ceil(Math.sqrt(cells));
+                let offset = cellRad * 1.5;
+                
+                // Pack them mathematically around center using golden ratio spiral
+                const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+                for(let i=0; i<cells; i++) {
+                    let r = Math.sqrt(i) * cellRad * 0.9;
+                    let th = i * goldenAngle + animTime*0.1;
+                    
+                    let dx = cx + Math.cos(th)*r;
+                    let dy = cy + Math.sin(th)*r;
+                    
+                    // Constrain inside membrane just in case
+                    let dist = Math.sqrt((dx-cx)**2 + (dy-cy)**2);
+                    if(dist + cellRad > br) {
+                        dx = cx + (dx-cx)/dist * (br - cellRad);
+                        dy = cy + (dy-cy)/dist * (br - cellRad);
+                    }
+
+                    // Slight wobble
+                    dx += Math.sin(animTime*3 + i)*2;
+                    dy += Math.cos(animTime*3 + i)*2;
+
+                    ctx.fillStyle = `hsl(348, 100%, ${60 + (i%5)*5}%)`;
+                    ctx.beginPath(); ctx.arc(dx, dy, cellRad, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                }
+            }
+            
+            // Text Helper
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 20px Noto Sans Georgian'; ctx.textAlign = 'center';
+            ctx.fillText(`${cells} უჯრედი (დააკლიკე!)`, cx, H - 40);
+        }
+
+        function drawStage3() {
+            let cx = W/2, cy = H/2;
+            
+            // Womb env
+            ctx.fillStyle = 'rgba(236, 72, 153, 0.05)';
+            ctx.beginPath(); ctx.arc(cx, cy, 200, 0, Math.PI*2); ctx.fill();
+
+            // Map week (4 to 40)
+            let rawScale = (fetusWeek - 4) / 36; // 0.0 to 1.0
+            
+            // Fetus body math morphing
+            let sizeScale = 30 + rawScale * 90; // Base radius scale
+            
+            ctx.save();
+            ctx.translate(cx, cy);
+            // Gently bobbing
+            ctx.translate(0, Math.sin(animTime)*10);
+            
+            // Rotate fetus to curve inwards
+            ctx.rotate(0.2); 
+
+            // Base colors become more human-like flesh
+            let fLight = 50 + rawScale*20; // gets lighter
+            ctx.fillStyle = `hsl(10, 60%, ${fLight}%)`;
+            ctx.strokeStyle = `hsl(10, 50%, ${fLight-10}%)`;
+            ctx.lineWidth = 3;
+            
+            // Body (Ellipse that stretches)
+            let torsoL = sizeScale * 1.5;
+            let torsoW = sizeScale * 0.8;
+            ctx.beginPath(); ctx.ellipse(-sizeScale*0.2, sizeScale*0.5, torsoW, torsoL, -0.2, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+            // Head (Gets relatively smaller/defined)
+            let headR = sizeScale * (1.2 - rawScale*0.4); 
+            ctx.beginPath(); ctx.arc(0, -sizeScale*0.8, headR, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            // Eye
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.ellipse(-headR*0.4, -sizeScale*0.8, headR*0.15, headR*0.1, 0.2, 0, Math.PI*2); ctx.fill();
+
+            // Limbs (Grow out)
+            if(fetusWeek > 6) {
+                let limbL = sizeScale * (rawScale + 0.2);
+                // Arm
+                ctx.beginPath(); ctx.ellipse(-sizeScale*0.6, 0, limbL, sizeScale*0.2, 0.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                // Leg
+                ctx.beginPath(); ctx.ellipse(-sizeScale*0.3, sizeScale*1.5, limbL*1.2, sizeScale*0.25, 0.8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            }
+
+            // Beating Heart
+            if (fetusWeek >= 4) {
+                // Heart beat gets slower/steadier as it grows
+                let bps = 10 - rawScale * 5; 
+                let beatFactor = 1 + Math.max(0, Math.sin(animTime * bps) * 0.2);
+                let hX = -sizeScale*0.3; let hY = -sizeScale*0.1;
+                
+                // Show less transparent as it grows skin
+                ctx.globalAlpha = 1 - (rawScale * 0.8);
+                
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(hX, hY, sizeScale*0.2 * beatFactor, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1;
+
+                if(rawScale < 0.5) {
+                    // Indicate heartbeat visually
+                    ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+                    if(beatFactor > 1.1) ctx.fillText('❤', hX, hY-sizeScale*0.3);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        resetGame();
+        drawLoop();
     </script>
 </body>
 </html>

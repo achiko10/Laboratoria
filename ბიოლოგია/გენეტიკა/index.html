@@ -1,134 +1,408 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>გენეტიკური ლაბორატორია</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ბიოლოგია — გენეტიკა</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; text-align: center; padding: 50px; }
-        .ბარათი { background: white; max-width: 600px; margin: auto; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .ღილაკი { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: 0.3s; border: none; cursor: pointer; font-weight: bold; }
-        .ღილაკი:hover { background: #2980b9; transform: scale(1.05); }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
 
-        /* გენეტიკის სიმულატორის სტილები */
-        .ლაბორატორია { background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 12px; padding: 20px; margin: 20px 0; }
-        .მშობლები { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .გენოტიპი-სელექტორი { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background-image: radial-gradient(#1e293b, #0b1120);
+        }
         
-        .პუნეტის-ცხრილი { display: grid; grid-template-columns: 50px 1fr 1fr; grid-template-rows: 50px 1fr 1fr; gap: 5px; max-width: 250px; margin: 20px auto; font-weight: bold; }
-        .უჯრა { background: #fff; border: 2px solid #3498db; display: flex; align-items: center; justify-content: center; border-radius: 5px; min-height: 60px; font-size: 1.2rem; transition: 0.3s; }
-        .უჯრა.header { background: #3498db; color: white; border: none; min-height: 40px; }
-        .უჯრა.შედეგი { cursor: pointer; position: relative; }
-        .უჯრა.შედეგი:hover { background: #e3f2fd; }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .btn-breed { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; padding: 12px 24px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; border: none; border-radius: 30px; font-weight: bold; font-family: inherit; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 20px rgba(245,158,11,0.4); transition: 0.2s; }
+        .btn-breed:hover { transform: translate(-50%, -50%) scale(1.05); }
+        .btn-breed:active { transform: translate(-50%, -50%) scale(0.95); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        .ფენოტიპი-ვიზუალი { font-size: 40px; margin-bottom: 5px; }
-        .სტატისტიკა { display: flex; justify-content: space-around; background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; }
+        .parent-config { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .parent-config h3 { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; }
         
-        .ინფო-პანელი { text-align: left; background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 5px solid #3498db; margin-top: 20px; font-size: 14px; }
-        .დომინანტი { color: #e74c3c; } /* წითელი ყვავილი */
-        .რეცესიული { color: #9b59b6; } /* იასამნისფერი ყვავილი */
+        select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #1e293b; color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: bold; outline: none; cursor: pointer; }
+
+        .punnett-container { margin-top: 10px; isolation: isolate; }
+        .punnett-title { text-align: center; color: #10b981; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; }
+        .punnett-grid { display: grid; grid-template-columns: 40px 1fr 1fr; grid-template-rows: 40px 1fr 1fr; gap: 4px; }
+        
+        .p-cell { background: #0f172a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; font-family: 'Courier New', monospace; position: relative; overflow: hidden; }
+        .p-head { background: #1e293b; color: #cbd5e1; font-size: 1.1rem; }
+        .p-result { background: #334155; height: 60px; color: #fff; border: 2px solid transparent; transition: 0.3s; }
+        
+        .p-result.dom { border-bottom: 3px solid #ef4444; }
+        .p-result.rec { border-bottom: 3px solid #3b82f6; }
+        
+        /* Highlight animation when breeding */
+        .highlight { animation: flashCell 1s ease-out; }
+        @keyframes flashCell { 0% { background: #fbbf24; color: #000; transform: scale(1.05); z-index: 10; } 100% { background: #334155; color: #fff; transform: scale(1); } }
+
+        .stats-box { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; text-align: center; }
+        .stat-col { display: flex; flex-direction: column; }
+        .stat-lbl { font-size: 0.7rem; color: #94a3b8; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; }
+        .v-dom { color: #ef4444; }
+        .v-rec { color: #3b82f6; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #10b981; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <div class="ბარათი">
-        <h1>ბიოლოგია: გენეტიკა</h1>
-        <h2>მენდელის პირველი კანონი</h2>
-        
-        <p>შეაჯვარე მცენარეები და დააკვირდი შთამომავლობას!</p>
+    <h1>🧬 მონსტრების გენეტიკა</h1>
+    <p class="subtitle">მენდელის პირველი კანონი: გამოსცადე პუნეტის ბადე და გამოიყვანე ახალი თაობა</p>
 
-        <div class="ლაბორატორია">
-            <div class="მშობლები">
-                <div class="გენოტიპი-სელექტორი">
-                    <label>მშობელი 1:</label><br>
-                    <select id="p1" onchange="updateGenetics()">
-                        <option value="AA">AA (დომინანტი)</option>
-                        <option value="Aa" selected>Aa (ჰეტეროზიგოტური)</option>
-                        <option value="aa">aa (რეცესიული)</option>
-                    </select>
-                </div>
-                <div class="გენოტიპი-სელექტორი">
-                    <label>მშობელი 2:</label><br>
-                    <select id="p2" onchange="updateGenetics()">
-                        <option value="AA">AA (დომინანტი)</option>
-                        <option value="Aa" selected>Aa (ჰეტეროზიგოტური)</option>
-                        <option value="aa">aa (რეცესიული)</option>
-                    </select>
+    <div class="container">
+        <div class="sim-area">
+            <button class="btn-breed" id="btnBreed" onclick="breed()">🧬 გამოყვანა</button>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="panel">
+            <div class="parent-config">
+                <h3>მშობელი 1 (დედა)</h3>
+                <select id="p1" onchange="updatePunnett()">
+                    <option value="AA" selected>AA — ჰომოზიგოტური დომინანტი (🔴 წითელი)</option>
+                    <option value="Aa">Aa — ჰეტეროზიგოტური (🔴 წითელი)</option>
+                    <option value="aa">aa — ჰომოზიგოტური რეცესიული (🔵 ლურჯი)</option>
+                </select>
+            </div>
+            
+            <div class="parent-config">
+                <h3>მშობელი 2 (მამა)</h3>
+                <select id="p2" onchange="updatePunnett()">
+                    <option value="AA">AA — ჰომოზიგოტური დომინანტი (🔴 წითელი)</option>
+                    <option value="Aa">Aa — ჰეტეროზიგოტური (🔴 წითელი)</option>
+                    <option value="aa" selected>aa — ჰომოზიგოტური რეცესიული (🔵 ლურჯი)</option>
+                </select>
+            </div>
+
+            <div class="punnett-container">
+                <div class="punnett-title">პუნეტის ბადე (ალბათობა)</div>
+                <div class="punnett-grid">
+                    <div></div>
+                    <div class="p-cell p-head" id="h-top1">a</div>
+                    <div class="p-cell p-head" id="h-top2">a</div>
+                    
+                    <div class="p-cell p-head" id="h-left1">A</div>
+                    <div class="p-cell p-result" id="res0">Aa</div>
+                    <div class="p-cell p-result" id="res1">Aa</div>
+                    
+                    <div class="p-cell p-head" id="h-left2">A</div>
+                    <div class="p-cell p-result" id="res2">Aa</div>
+                    <div class="p-cell p-result" id="res3">Aa</div>
                 </div>
             </div>
 
-            <div class="პუნეტის-ცხრილი" id="punnett">
-                <div></div>
-                <div class="უჯრა header" id="p2-a1">-</div>
-                <div class="უჯრა header" id="p2-a2">-</div>
-                
-                <div class="უჯრა header" id="p1-a1">-</div>
-                <div class="უჯრა შედეგი" id="r1"></div>
-                <div class="უჯრა შედეგი" id="r2"></div>
-                
-                <div class="უჯრა header" id="p1-a2">-</div>
-                <div class="უჯრა შედეგი" id="r3"></div>
-                <div class="უჯრა შედეგი" id="r4"></div>
-            </div>
-
-            <div class="სტატისტიკა">
-                <span>წითელი (დომ.): <span id="dom-perc">0</span>%</span>
-                <span>იასამნისფერი (რეც.): <span id="rec-perc">0</span>%</span>
+            <div class="stats-box">
+                <div class="stat-col">
+                    <span class="stat-lbl">წითელი ფენოტიპი (დომ.)</span>
+                    <span class="stat-val v-dom" id="prob-dom">100%</span>
+                </div>
+                <div class="stat-col">
+                    <span class="stat-lbl">ლურჯი ფენოტიპი (რეც.)</span>
+                    <span class="stat-val v-rec" id="prob-rec">0%</span>
+                </div>
             </div>
         </div>
 
-        <div class="ინფო-პანელი">
-            <strong>რას ვხედავთ:</strong> 
-            დიდი ასო (<strong>A</strong>) აღნიშნავს დომინანტურ გენს (წითელი ფერი), პატარა (<strong>a</strong>) — რეცესიულს (იასამნისფერი). 
-            <br><em>გახსოვდეს:</em> იასამნისფერი ყვავილი მხოლოდ მაშინ გამოჩნდება, თუ მცენარეს ორივე რეცესიული გენი (<strong>aa</strong>) ექნება.
+        <div class="info-panel">
+            <strong>🔬 როგორ მუშაობს გენეტიკა?</strong><br>
+            • თითოეულ ორგანიზმს აქვს ერთი ნიშნის განმსაზღვრელი 2 <strong>ალელი</strong> (ერთი დედისგან, ერთი მამისგან).<br>
+            • <strong>დომინანტური ალელი (A - წითელი):</strong> ყოველთვის ვლინდება ފენოტიპში (გარეგნულად), თუ ის არსებობს (AA ან Aa).<br>
+            • <strong>რეცესიული ალელი (a - ლურჯი):</strong> ვლინდება მხოლოდ მაშინ, თუ ორგანიზმს ორივე რეცესიული ალელი აქვს (aa).<br>
+            • როცა მონსტრებს „გამოიყვანთ“, თითოეული მშობელი შემთხვევითად გადასცემს თავისი 2 ალელიდან მხოლოდ 1-ს (მეიოზის პრინციპი). პუნეტის ბადე გიჩვენებთ შთამომავლობის მიღების მათემატიკურ <strong>ალბათობებს.</strong>
         </div>
-
-        <a href="../../index.html" class="ღილაკი">← მთავარზე დაბრუნება</a>
     </div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
 
     <script>
-        function updateGenetics() {
-            const p1 = document.getElementById('p1').value.split('');
-            const p2 = document.getElementById('p2').value.split('');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
 
-            // მშობლების ალელების განაწილება სათაურებში
-            document.getElementById('p1-a1').textContent = p1[0];
-            document.getElementById('p1-a2').textContent = p1[1];
-            document.getElementById('p2-a1').textContent = p2[0];
-            document.getElementById('p2-a2').textContent = p2[1];
+        let parents = { p1: 'AA', p2: 'aa' };
+        let results = []; // Punnett array
+        let offSprings = []; // History of babies
+        
+        let activeAnim = null; // Stores animation state
 
-            const combinations = [
-                combine(p1[0], p2[0]),
-                combine(p1[0], p2[1]),
-                combine(p1[1], p2[0]),
-                combine(p1[1], p2[1])
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+            drawStatic();
+        }
+        resize(); window.addEventListener('resize', resize);
+
+        function getPhenotype(geno) {
+            return geno.includes('A') ? 'red' : 'blue';
+        }
+
+        // Standardize genotype (always put 'A' before 'a')
+        function formatGeno(a, b) {
+            if(a === 'a' && b === 'A') return 'Aa';
+            return a + b;
+        }
+
+        function updatePunnett() {
+            let selectP1 = document.getElementById('p1').value;
+            let selectP2 = document.getElementById('p2').value;
+            parents.p1 = selectP1;
+            parents.p2 = selectP2;
+
+            document.getElementById('h-left1').innerText = selectP1[0];
+            document.getElementById('h-left2').innerText = selectP1[1];
+            
+            document.getElementById('h-top1').innerText = selectP2[0];
+            document.getElementById('h-top2').innerText = selectP2[1];
+
+            results = [
+                formatGeno(selectP1[0], selectP2[0]),
+                formatGeno(selectP1[0], selectP2[1]),
+                formatGeno(selectP1[1], selectP2[0]),
+                formatGeno(selectP1[1], selectP2[1])
             ];
 
-            let dominantCount = 0;
-
-            combinations.forEach((combo, index) => {
-                const cell = document.getElementById(`r${index + 1}`);
-                const isDominant = combo.includes('A');
+            let domCount = 0;
+            results.forEach((r, i) => {
+                let cell = document.getElementById('res'+i);
+                cell.innerText = r;
+                let isDom = r.includes('A');
+                if(isDom) domCount++;
                 
-                if(isDominant) dominantCount++;
-
-                cell.innerHTML = `
-                    <div class="ფენოტიპი-ვიზუალი">${isDominant ? '🌺' : '🪻'}</div>
-                    <div style="font-size: 12px">${combo}</div>
-                `;
-                cell.style.color = isDominant ? '#e74c3c' : '#9b59b6';
+                cell.className = 'p-cell p-result ' + (isDom ? 'dom' : 'rec');
             });
 
-            document.getElementById('dom-perc').textContent = (dominantCount / 4) * 100;
-            document.getElementById('rec-perc').textContent = ((4 - dominantCount) / 4) * 100;
+            document.getElementById('prob-dom').innerText = (domCount/4 * 100) + '%';
+            document.getElementById('prob-rec').innerText = ((4-domCount)/4 * 100) + '%';
+
+            offSprings = []; // clear previous babies on config change
+            drawStatic();
         }
 
-        function combine(a, b) {
-            // ყოველთვის დიდი ასო დაიწეროს პირველი (სტანდარტი)
-            return (a === 'a' && b === 'A') ? 'Aa' : a + b;
+        function breed() {
+            if(activeAnim) return; // Prevent spam
+
+            let btn = document.getElementById('btnBreed');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+
+            // Randomly select alleles
+            let a1_idx = Math.random() > 0.5 ? 1 : 0;
+            let a2_idx = Math.random() > 0.5 ? 1 : 0;
+            
+            let allele1 = parents.p1[a1_idx];
+            let allele2 = parents.p2[a2_idx];
+            let babyGeno = formatGeno(allele1, allele2);
+
+            // Find which cell in Punnett this corresponds to
+            let cellIndex = (a1_idx * 2) + a2_idx;
+            
+            // Animation state
+            activeAnim = {
+                t: 0,
+                a1: allele1, a2: allele2,
+                sx1: W*0.25, sy1: H*0.4,
+                sx2: W*0.75, sy2: H*0.4,
+                baby: babyGeno,
+                cell: cellIndex
+            };
+
+            animateBreed();
         }
 
-        // ინიციალიზაცია
-        updateGenetics();
+        function animateBreed() {
+            activeAnim.t += 0.02;
+            let t = activeAnim.t;
+
+            drawStatic();
+
+            let ex = W*0.5;
+            let ey = H*0.75;
+
+            // Draw alleles falling down
+            if(t < 1) {
+                // Ease function
+                let ease = 1 - Math.pow(1 - t, 3);
+                
+                let curX1 = activeAnim.sx1 + (ex - activeAnim.sx1) * ease;
+                let curY1 = activeAnim.sy1 + (ey - activeAnim.sy1) * ease;
+                
+                let curX2 = activeAnim.sx2 + (ex - activeAnim.sx2) * ease;
+                let curY2 = activeAnim.sy2 + (ey - activeAnim.sy2) * ease;
+
+                ctx.font = 'bold 24px Courier New';
+                ctx.textAlign = 'center'; TextBaseline = 'middle';
+                
+                // Draw A1
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath(); ctx.arc(curX1, curY1, 25, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.fillText(activeAnim.a1, curX1, curY1+8);
+                
+                // Draw A2
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath(); ctx.arc(curX2, curY2, 25, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.fillText(activeAnim.a2, curX2, curY2+8);
+            } else if (t < 2) {
+                // Flash/Egg hatching
+                let glow = Math.sin((t-1)*Math.PI)*50;
+                ctx.beginPath(); ctx.arc(ex, ey, 40, 0, Math.PI*2);
+                ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = glow;
+                ctx.fill(); ctx.shadowBlur = 0;
+            } else {
+                // Add to history and finish
+                // Trigger Grid flash
+                let cellEl = document.getElementById('res' + activeAnim.cell);
+                cellEl.classList.remove('highlight');
+                void cellEl.offsetWidth; // trigger reflow
+                cellEl.classList.add('highlight');
+
+                // Shift existing offspring left
+                offSprings.unshift({
+                    geno: activeAnim.baby,
+                    pheno: getPhenotype(activeAnim.baby),
+                    x: ex, y: ey, scale: 1.5, alpha: 1
+                });
+                
+                if(offSprings.length > 5) offSprings.pop();
+
+                activeAnim = null;
+                let btn = document.getElementById('btnBreed');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                drawStatic();
+                return;
+            }
+
+            requestAnimationFrame(animateBreed);
+        }
+
+        // Drawing helpers
+        function drawMonster(ctx, x, y, scale, colorType, isBaby, alpha=1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            ctx.globalAlpha = alpha;
+
+            let color = colorType === 'red' ? '#ef4444' : '#3b82f6';
+            let shadow = colorType === 'red' ? '#991b1b' : '#1e3a8a';
+
+            // Bobbing animation for adults
+            let yOffset = isBaby ? 0 : Math.sin(Date.now()*0.003 + x)*5;
+            ctx.translate(0, yOffset);
+
+            // Body
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, -30);
+            ctx.quadraticCurveTo(30, -30, 30, 0);
+            ctx.quadraticCurveTo(30, 40, 20, 40);
+            ctx.quadraticCurveTo(10, 30, 0, 40);
+            ctx.quadraticCurveTo(-10, 30, -20, 40);
+            ctx.quadraticCurveTo(-30, 40, -30, 0);
+            ctx.quadraticCurveTo(-30, -30, 0, -30);
+            ctx.fill();
+
+            // Eye(s)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(0, -5, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(0, -5, 5, 0, Math.PI*2); ctx.fill();
+
+            // Mouth
+            ctx.strokeStyle = shadow;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            if(isBaby) {
+                // Smile
+                ctx.arc(0, 15, 8, 0, Math.PI);
+            } else {
+                // Neutral
+                ctx.moveTo(-8, 15); ctx.lineTo(8, 15);
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawStatic() {
+            ctx.clearRect(0,0,W,H);
+
+            // Draw Platforms
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.fillEllipse = function(cx, cy, rx, ry) {
+                ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+            };
+            ctx.fillEllipse(W*0.25, H*0.4+40, 60, 20);
+            ctx.fillEllipse(W*0.75, H*0.4+40, 60, 20);
+
+            // Draw Parents
+            drawMonster(ctx, W*0.25, H*0.4, 2, getPhenotype(parents.p1), false);
+            drawMonster(ctx, W*0.75, H*0.4, 2, getPhenotype(parents.p2), false);
+
+            // Draw Genotype Tags
+            ctx.font = 'bold 18px Courier New'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillText(parents.p1, W*0.25, H*0.4 + 75);
+            ctx.fillText(parents.p2, W*0.75, H*0.4 + 75);
+
+            // Connector lines to center
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
+            ctx.beginPath(); ctx.moveTo(W*0.25, H*0.4+80); ctx.lineTo(W*0.5, H*0.75); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W*0.75, H*0.4+80); ctx.lineTo(W*0.5, H*0.75); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw Incubator Pod
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.1)'; ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.ellipse(W*0.5, H*0.75 + 40, 80, 25, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+            // Draw Offsprings History
+            offSprings.forEach((baby, idx) => {
+                // Update physics for sliding away
+                let targetX = W*0.5 - (idx * 90);
+                if(idx === 0) targetX = W*0.5; // active stays in center
+                
+                baby.x += (targetX - baby.x) * 0.1;
+                if(idx > 0) {
+                    baby.scale += (1.0 - baby.scale) * 0.1; // shrink slightly
+                    baby.alpha = 1.0 - (idx * 0.2); // fade
+                }
+
+                drawMonster(ctx, baby.x, baby.y, baby.scale, baby.pheno, true, Math.max(0, baby.alpha));
+                
+                // Label
+                ctx.globalAlpha = Math.max(0, baby.alpha);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Courier New';
+                ctx.fillText(baby.geno, baby.x, baby.y + 50);
+                ctx.globalAlpha = 1;
+            });
+
+            if(!activeAnim) {
+                requestAnimationFrame(drawStatic);
+            }
+        }
+
+        setTimeout(() => { updatePunnett(); }, 100);
+
     </script>
 </body>
 </html>

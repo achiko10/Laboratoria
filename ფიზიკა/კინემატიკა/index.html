@@ -1,52 +1,105 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>კინემატიკა - ექსპერიმენტი</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ფიზიკა — კინემატიკა</title>
     <style>
-        /* შენი ორიგინალური სტილი */
-        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; text-align: center; padding: 20px; }
-        .ბარათი { background: white; max-width: 800px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .ღილაკი { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: 0.3s; }
-        .ღილაკი:hover { background: #2980b9; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
 
-        /* სიმულაციის დამატებითი სტილები */
-        #sim-wrapper { margin-top: 20px; background: #1a1a2e; border-radius: 10px; position: relative; overflow: hidden; }
-        canvas { width: 100%; height: 400px; display: block; cursor: crosshair; }
-        .controls { background: #eeeeee; padding: 15px; border-radius: 0 0 10px 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 14px; }
-        .control-item { display: flex; flex-direction: column; align-items: center; }
-        .stats { position: absolute; top: 10px; left: 10px; color: #4ecca3; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; pointer-events: none; }
+        .container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 900px; }
+
+        .sim-area {
+            background: #1e293b;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        canvas { width: 100%; height: 450px; display: block; cursor: crosshair; background: #0b1120; }
+        
+        .controls {
+            background: #1e293b;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .control-item { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.85rem; color: #cbd5e1; }
+        .control-item input[type="range"] { accent-color: #3b82f6; cursor: pointer; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            color: white;
+            transition: 0.2s;
+        }
+        .btn-fire { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-fire:hover { filter: brightness(1.1); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        .btn-clear { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-clear:hover { filter: brightness(1.1); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+
+        .stats {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: #38bdf8;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <div class="ბარათი">
-        <h1>საგანი: ფიზიკა</h1>
-        <h2>თემა: კინემატიკა</h2>
-        <p>მართე ჭურვის გასროლა: შეცვალე კუთხე და სიჩქარე ფიზიკის კანონების გამოსაცდელად.</p>
+    <h1>🚀 კინემატიკა</h1>
+    <p class="subtitle">მართე ჭურვის გასროლა: შეცვალე კუთხე და სიჩქარე ფიზიკის კანონების გამოსაცდელად</p>
 
-        <div id="sim-wrapper">
+    <div class="container">
+        <div class="sim-area">
             <div class="stats">
-                მანძილი: <span id="d-res">0</span> მ<br>
-                სიმაღლე: <span id="h-res">0</span> მ
+                მანძილი: <strong id="d-res" style="color:#fff;">0</strong> მ<br>
+                სიმაღლე: <strong id="h-res" style="color:#fff;">0</strong> მ
             </div>
             <canvas id="canvas"></canvas>
             <div class="controls">
                 <div class="control-item">
-                    <label>კუთხე: <span id="a-val">45</span>°</label>
+                    <label>კუთხე: <span id="a-val" style="color:#fff; font-weight:bold;">45</span>°</label>
                     <input type="range" id="angle" min="0" max="90" value="45">
                 </div>
                 <div class="control-item">
-                    <label>სიჩქარე: <span id="s-val">60</span></label>
+                    <label>სიჩქარე: <span id="s-val" style="color:#fff; font-weight:bold;">60</span> მ/წ</label>
                     <input type="range" id="speed" min="10" max="100" value="60">
                 </div>
-                <button onclick="fire()" style="padding: 10px 20px; cursor:pointer; background:#2ecc71; border:none; color:white; border-radius:5px;">გასროლა 🚀</button>
-                <button onclick="clearSim()" style="padding: 10px 20px; cursor:pointer; background:#e74c3c; border:none; color:white; border-radius:5px;">გასუფთავება</button>
+                <button class="btn btn-fire" onclick="fire()">გასროლა 🚀</button>
+                <button class="btn btn-clear" onclick="clearSim()">გასუფთავება</button>
             </div>
         </div>
-
-        <a href="../../index.html" class="ღილაკი">← მთავარზე დაბრუნება</a>
     </div>
+
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
 
     <script>
         const canvas = document.getElementById('canvas');
@@ -81,6 +134,13 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.beginPath();
+            for(let i=0; i<canvas.width; i+=50) { ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); }
+            for(let j=0; j<canvas.height; j+=50) { ctx.moveTo(0,j); ctx.lineTo(canvas.width,j); }
+            ctx.stroke();
+
             balls.forEach(b => {
                 if (!b.done) {
                     b.path.push({x: b.x, y: b.y});
@@ -97,6 +157,7 @@
                 }
 
                 ctx.strokeStyle = b.color;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 b.path.forEach((p, i) => {
                     if(i===0) ctx.moveTo(p.x, p.y);
@@ -106,8 +167,14 @@
 
                 ctx.fillStyle = b.color;
                 ctx.beginPath();
-                ctx.arc(b.x, b.y, 5, 0, 7);
+                ctx.arc(b.x, b.y, 6, 0, 7);
                 ctx.fill();
+                
+                // Add glow to the ball
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
             });
             requestAnimationFrame(draw);
         }

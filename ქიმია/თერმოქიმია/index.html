@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
@@ -7,261 +7,354 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        h1 { text-align: center; font-size: 1.6rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #ef4444, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
 
-        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 340px; gap: 20px; width: 100%; max-width: 1000px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
-
-        .card { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; }
+        .sim-area {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; 
+            position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
         
-        canvas { width: 100%; height: 300px; background: #0b1120; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .canvas-container { width: 100%; height: 100%; position: relative; }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
 
-        .controls { display: flex; flex-direction: column; gap: 15px; }
-        .control-group label { font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 8px; }
-        .reaction-btns { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        /* Thermometer visual */
+        .thermo-container {
+            position: absolute; right: 20px; top: 20px; width: 30px; height: 200px; background: rgba(0,0,0,0.5); border-radius: 15px; border: 2px solid #475569; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 5px;
+        }
+        .thermo-bulb { width: 40px; height: 40px; border-radius: 50%; background: #ef4444; position: absolute; bottom: -15px; z-index: 11; border: 2px solid #475569; transition: background 0.3s; }
+        .thermo-fluid { width: 12px; height: 20%; background: #ef4444; border-radius: 6px 6px 0 0; transition: height 0.3s, background 0.3s; }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        .btn-exo { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .btn-exo.active { background: #ef4444; color: white; }
-        
-        .btn-endo { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .btn-endo.active { background: #3b82f6; color: white; }
+        .mode-toggle { display: flex; gap: 10px; background: #0f172a; padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .mode-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: bold; background: transparent; color: #94a3b8; transition: 0.2s;}
+        .mode-btn.active.exo { background: #ef4444; color: white; box-shadow: 0 2px 10px rgba(239,68,68,0.3); }
+        .mode-btn.active.endo { background: #3b82f6; color: white; box-shadow: 0 2px 10px rgba(59,130,246,0.3); }
 
-        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .metric { background: #0f172a; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .m-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; }
-        .m-val { font-size: 1.4rem; font-weight: bold; }
-        .val-exo { color: #ef4444; }
-        .val-endo { color: #3b82f6; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.95rem; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-heat { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-heat:hover { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); }
+        .btn-reset { background: #334155; }
+        .btn-reset:hover { background: #475569; }
 
-        .info-panel { background: #111827; border-left: 3px solid #8b5cf6; padding: 15px 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .graph-area { background: #0f172a; height: 160px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-top: 10px;}
+        #graphCanvas { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+
+        .meter-box { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .m-title { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .m-val { font-size: 1.2rem; font-weight: bold; }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 3px solid #8b5cf6; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
         .info-panel strong { color: #e2e8f0; }
 
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
         .back-btn:hover { background: #334155; color: #f8fafc; }
+
+        .game-tip { font-size: 0.8rem; color: #eab308; background: rgba(234, 179, 8, 0.1); padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
     <h1>🌡️ თერმოქიმია</h1>
-    <p class="subtitle">ენერგეტიკული დიაგრამები: ეგზოთერმული და ენდოთერმული რეაქციები</p>
+    <p class="subtitle">მართე რეაქცია: მიაწოდე აქტივაციის ენერგია და დააკვირდი ტემპერატურის ცვლილებას</p>
 
     <div class="container">
-        <div class="dashboard">
-            <div class="card">
+        <div class="sim-area">
+            <div class="canvas-container">
                 <canvas id="canvas"></canvas>
+                <div class="thermo-container">
+                    <div class="thermo-fluid" id="thermoFluid"></div>
+                    <div class="thermo-bulb" id="thermoBulb"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="mode-toggle">
+                <button class="mode-btn exo active" id="btnExo" onclick="setMode('exo')">ეგზოთერმული</button>
+                <button class="mode-btn endo" id="btnEndo" onclick="setMode('endo')">ენდოთერმული</button>
             </div>
 
-            <div class="card controls">
-                <div class="control-group">
-                    <label>აირჩიე რეაქციის ტიპი:</label>
-                    <div class="reaction-btns">
-                        <button class="btn btn-exo active" id="btn-exo" onclick="setMode('exo')">ეგზოთერმული</button>
-                        <button class="btn btn-endo" id="btn-endo" onclick="setMode('endo')">ენდოთერმული</button>
-                    </div>
-                </div>
+            <div class="game-tip" id="gameTip">
+                🔥 მიაწოდე სითბო (აქტივაციის ენერგია), რათა მოლეკულები დაეჯახონ ერთმანეთს და რეაქცია დაიწყოს!
+            </div>
 
-                <div class="metrics">
-                    <div class="metric">
-                        <div class="m-label">ენთალპიის ცვლილება (ΔH)</div>
-                        <div class="m-val" id="dH">-150 kJ</div>
-                    </div>
-                    <div class="metric">
-                        <div class="m-label">აქტივაციის ენერგია (Ea)</div>
-                        <div class="m-val" id="Ea" style="color:#eab308;">+50 kJ</div>
-                    </div>
-                </div>
+            <button class="btn btn-heat" onmousedown="startHeating()" onmouseup="stopHeating()" onmouseleave="stopHeating()" ontouchstart="startHeating()" ontouchend="stopHeating()">🔥 სითბოს მიწოდება (Hold)</button>
+            <button class="btn btn-reset" onclick="initSim()">↺ თავიდან დაწყება</button>
 
-                <div style="font-size:0.8rem; color:#94a3b8; margin-top:10px; background:#0f172a; padding:12px; border-radius:8px;">
-                    <strong style="color:#e2e8f0;" id="desc-title">სითბოს გამოყოფა</strong><br>
-                    <span id="desc-text">პროდუქტებს ნაკლები ენერგია აქვთ ვიდრე რეაგენტებს. ზედმეტი ენერგია გამოიყოფა გარემოში სითბოს სახით (მაგ: წვა).</span>
+            <div class="meter-box">
+                <div>
+                    <div class="m-title">ტემპერატურა</div>
+                    <div class="m-val" id="tempVal" style="color:#ef4444;">25 °C</div>
                 </div>
+                <div style="text-align:right;">
+                    <div class="m-title">ენთალპია (ΔH)</div>
+                    <div class="m-val" id="dhVal" style="color:#ef4444;">-150 kJ</div>
+                </div>
+            </div>
+
+            <div class="m-title" style="margin-top:10px;">ენერგეტიკული დიაგრამა (ცოცხალი)</div>
+            <div class="graph-area">
+                <canvas id="graphCanvas"></canvas>
             </div>
         </div>
 
         <div class="info-panel">
-            <strong>🔬 ენერგიის შენარჩუნება (თერმოქიმია):</strong><br>
-            • <strong>ΔH (ენთალპია):</strong> უარყოფითია ეგზოთერმულში (სითბო გამოიყოფა) და დადებითი ენდოთერმულში (სითბო შთაინთქმება).<br>
-            • <strong>Ea (აქტივაციის ენერგია):</strong> მინიმალური ენერგიის ბარიერი, რომელიც საჭიროა რეაქციის დასაწყებად.
+            <strong>🔬 რა ხდება რეაქტორში? (თამაშის აღწერა):</strong><br>
+            • <strong>აქტივაციის ენერგია (Ea):</strong> ყველა რეაქციას სჭირდება საწყისი ბიძგი (სითბო), რათა ძველი ბმები გაწყდეს.<br>
+            • <strong>ეგზოთერმული:</strong> როგორც კი მიაღწევთ Ea-ს, რეაქცია თავისით მიდის და <strong>გამოყოფს დიდ სითბოს</strong> (თერმომეტრი იწევს ზევით).<br>
+            • <strong>ენდოთერმული:</strong> პროდუქტებს მეტი ენერგია სჭირდებათ, ამიტომ რეაქცია შთანთქავს სითბოს გარემოდან (თერმომეტრი ეცემა დაბლა) და საჭიროებს მუდმივ გათბობას.
         </div>
     </div>
     
-    <div style="text-align:center;">
-        <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
-    </div>
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        let W, H;
-        function resize() { canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio; canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); W = canvas.parentElement.offsetWidth; H = canvas.parentElement.offsetHeight; draw(); }
-        window.addEventListener('resize', resize);
+        const gCanvas = document.getElementById('graphCanvas');
+        const gCtx = gCanvas.getContext('2d');
 
+        let W, H, gW, gH;
         let mode = 'exo';
-        let progress = 0; // 0 to 1 for drawing curve
+        
+        let molecules = [];
+        let particles = []; // sparks/frost
+        
+        let temperature = 25; // base 25C
+        let heating = false;
+        let reactionProgress = 0; // 0 to 100
+        let reactedCount = 0;
+        let totalMolecules = 40;
 
+        let graphPoints = [];
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth * devicePixelRatio;
+            canvas.height = canvas.parentElement.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = canvas.parentElement.offsetWidth;
+            H = canvas.parentElement.offsetHeight;
+
+            gCanvas.width = gCanvas.parentElement.offsetWidth * devicePixelRatio;
+            gCanvas.height = gCanvas.parentElement.offsetHeight * devicePixelRatio;
+            gCtx.scale(devicePixelRatio, devicePixelRatio);
+            gW = gCanvas.parentElement.offsetWidth;
+            gH = gCanvas.parentElement.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        
         function setMode(m) {
             mode = m;
-            document.getElementById('btn-exo').classList.remove('active');
-            document.getElementById('btn-endo').classList.remove('active');
-            document.getElementById('btn-' + m).classList.add('active');
-
+            document.getElementById('btnExo').classList.remove('active');
+            document.getElementById('btnEndo').classList.remove('active');
             if (m === 'exo') {
-                document.getElementById('dH').textContent = '-150 kJ';
-                document.getElementById('dH').className = 'm-val val-exo';
-                document.getElementById('desc-title').textContent = 'სითბოს გამოყოფა 👇';
-                document.getElementById('desc-text').textContent = 'პროდუქტებს ნაკლები ენერგია აქვთ ვიდრე რეაგენტებს. ზედმეტი ენერგია გამოიყოფა გარემოში სითბოს სახით (მაგ: წვის რეაქცია).';
+                document.getElementById('btnExo').classList.add('active');
+                document.getElementById('dhVal').innerText = '-150 kJ';
+                document.getElementById('dhVal').style.color = '#ef4444';
+                document.getElementById('gameTip').innerHTML = '🔥 მიაწოდე სითბო (შენარჩუნებით), რათა დაიწყოს რეაქცია. შემდეგ ის თავად გამოყოფს სითბოს!';
             } else {
-                document.getElementById('dH').textContent = '+200 kJ';
-                document.getElementById('dH').className = 'm-val val-endo';
-                document.getElementById('desc-title').textContent = 'სითბოს შთანთქმა 👆';
-                document.getElementById('desc-text').textContent = 'პროდუქტებს მეტი ენერგია აქვთ. რეაქციის წარმართვისთვის საჭიროა ენერგიის მუდმივი მიწოდება გარემოდან (მაგ: ფოტოსინთეზი).';
+                document.getElementById('btnEndo').classList.add('active');
+                document.getElementById('dhVal').innerText = '+200 kJ';
+                document.getElementById('dhVal').style.color = '#3b82f6';
+                document.getElementById('gameTip').innerHTML = '❄️ ეს ენდოთერმულია! მუდმივად უნდა მიაწოდო სითბო, თორემ რეაქცია გაჩერდება და გარემო გაიყინება.';
+            }
+            initSim();
+        }
+
+        function initSim() {
+            temperature = 25;
+            heating = false;
+            reactionProgress = 0;
+            reactedCount = 0;
+            molecules = [];
+            particles = [];
+            graphPoints = [];
+            
+            // Generate Reactants (Red-Red and Blue-Blue)
+            for(let i=0; i<totalMolecules/2; i++) {
+                molecules.push({ x: Math.random()*(W-40)+20, y: Math.random()*(H-40)+20, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, type: 'A2', reacted: false, color: '#f87171' });
+                molecules.push({ x: Math.random()*(W-40)+20, y: Math.random()*(H-40)+20, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, type: 'B2', reacted: false, color: '#60a5fa' });
+            }
+            updateUI();
+        }
+
+        function startHeating() { heating = true; }
+        function stopHeating() { heating = false; }
+
+        function updateSimulation() {
+            // Heating logic
+            if (heating) {
+                temperature += 0.5;
+                if(temperature > 100) temperature = 100;
+                
+                // Add heating particles from bottom
+                if(Math.random()<0.3) particles.push({ x: Math.random()*W, y: H, vx: (Math.random()-0.5)*2, vy: -Math.random()*3 - 2, color: '#f59e0b', life: 1, text: '🔥' });
+            } else {
+                // Cooling towards ambient (or sub-zero if endothermic reacted)
+                let ambient = mode === 'endo' && reactedCount > 0 ? (25 - (reactedCount/totalMolecules)*35) : 25;
+                if(mode==='exo' && reactedCount > totalMolecules*0.8) ambient = 60; // Exo stays hot
+                
+                temperature += (ambient - temperature) * 0.02;
             }
 
-            progress = 0;
-            animateCurve();
-        }
+            // Exothermic auto-heating
+            if (mode === 'exo' && reactedCount > 0 && reactedCount < totalMolecules) {
+                temperature += (reactedCount / totalMolecules) * 0.4; 
+            }
 
-        function animateCurve() {
-            progress += 0.02;
-            if (progress > 1) progress = 1;
-            draw();
-            if (progress < 1) requestAnimationFrame(animateCurve);
-        }
+            let activationTemp = 50; // Temp required to react
 
-        function draw() {
-            ctx.clearRect(0,0,W,H);
-            
-            const pX = 50; // padding X
-            const pB = 30; // padding bottom
-            const graphW = W - pX * 2;
-            const graphH = H - pB - 20; // 20 top padding
+            // Movement and Reaction
+            let speedMult = 0.5 + (temperature / 50);
 
-            // Draw axes
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(pX, 20); ctx.lineTo(pX, H - pB); // Y axis (Energy)
-            ctx.lineTo(W - pX + 20, H - pB); // X axis (Reaction Progress)
-            ctx.stroke();
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = '12px Arial';
-            ctx.save();
-            ctx.translate(pX - 15, H/2);
-            ctx.rotate(-Math.PI/2);
-            ctx.textAlign = 'center';
-            ctx.fillText('პოტენციური ენერგია', 0, 0);
-            ctx.restore();
-            ctx.fillText('რეაქციის მსვლელობა', W/2, H - 5);
-
-            const startY = mode === 'exo' ? 100 : 220;
-            const endY = mode === 'exo' ? 220 : 60;
-            const peakY = 40; // High activation energy point
-
-            const startX = pX + 20;
-            const peakX = pX + graphW/2 - 20;
-            const endX = pX + graphW - 40;
-
-            // Draw dotted guidelines
-            ctx.setLineDash([4, 4]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.beginPath();
-            ctx.moveTo(pX, startY); ctx.lineTo(endX, startY);
-            ctx.moveTo(pX, endY); ctx.lineTo(endX, endY);
-            ctx.moveTo(pX, peakY); ctx.lineTo(peakX, peakY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Draw labels
-            ctx.fillStyle = '#f8fafc';
-            ctx.textAlign = 'right';
-            ctx.fillText('რეაგენტები', pX - 5, startY + 4);
-            ctx.fillText('პროდუქტები', pX - 5, endY + 4);
-
-            // Calculate bezier points for progressive drawing
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            
-            // Generate curve points
-            const totalWidth = endX - startX;
-            const currentWidth = totalWidth * progress;
-            
-            ctx.strokeStyle = mode === 'exo' ? '#ef4444' : '#3b82f6';
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            for(let x = 0; x <= currentWidth; x++) {
-                const cx = startX + x;
-                const t = x / totalWidth; // 0 to 1
+            molecules.forEach(m => {
+                m.x += m.vx * speedMult; m.y += m.vy * speedMult;
+                if (m.x < 10 || m.x > W-10) m.vx *= -1;
+                if (m.y < 10 || m.y > H-10) m.vy *= -1;
                 
-                // Custom bell-like curve
-                let cy;
-                if (t < 0.5) {
-                    // Start to Peak (Ease In-Out)
-                    const normalizedT = t * 2; // 0 to 1
-                    cy = startY + (peakY - startY) * ( -Math.cos(normalizedT * Math.PI) / 2 + 0.5 );
-                } else {
-                    // Peak to End (Ease In-Out)
-                    const normalizedT = (t - 0.5) * 2; // 0 to 1
-                    cy = peakY + (endY - peakY) * ( -Math.cos(normalizedT * Math.PI) / 2 + 0.5 );
+                // Reaction logic
+                if (!m.reacted && temperature > activationTemp) {
+                    if (Math.random() < (temperature - activationTemp)*0.005) {
+                        m.reacted = true;
+                        reactedCount++;
+                        reactionProgress = (reactedCount / totalMolecules) * 100;
+                        
+                        m.type = 'AB';
+                        m.color = '#a855f7'; // Purple product
+                        
+                        // Explosion effect
+                        if(mode === 'exo') {
+                            for(let i=0; i<3; i++) particles.push({ x: m.x, y: m.y, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, color: '#ef4444', life: 1, text: '✨' });
+                        } else {
+                            for(let i=0; i<2; i++) particles.push({ x: m.x, y: m.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, color: '#3b82f6', life: 1, text: '❄️' });
+                        }
+                    }
                 }
-                
-                // Flat start and end
-                if (t < 0.1) cy = startY;
-                if (t > 0.9) cy = endY;
+            });
 
-                ctx.lineTo(cx, cy);
+            // Particles logic
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
             }
-            ctx.stroke();
 
-            // Glow
-            ctx.shadowColor = mode === 'exo' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(59, 130, 246, 0.5)';
-            ctx.shadowBlur = 10;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            if (progress >= 1) {
-                // Draw Ea Arrow
-                drawArrow(peakX, startY, peakX, peakY, '#eab308', 'Ea');
-                // Draw dH Arrow
-                const dHx = mode === 'exo' ? endX - 20 : endX - 20;
-                drawArrow(dHx, startY, dHx, endY, mode === 'exo' ? '#ef4444' : '#3b82f6', 'ΔH');
-            }
-        }
-
-        function drawArrow(xFrom, yFrom, xTo, yTo, color, text) {
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = 2;
+            // Record Graph Data
+            let currentEnergy; // 0 to 100 scale
+            let baseEng = mode === 'exo' ? 70 : 30;
+            let endEng = mode === 'exo' ? 20 : 80;
+            let prog = reactionProgress / 100;
             
-            ctx.beginPath();
-            ctx.moveTo(xFrom, yFrom);
-            ctx.lineTo(xTo, yTo);
-            ctx.stroke();
+            // Combine temperature contribution (Ea) and chemical bonds (Progress)
+            let tempEng = (temperature - 25) * 0.5; // Up to +37.5 from temp
+            let chemEng = baseEng + (endEng - baseEng) * prog;
+            
+            currentEnergy = chemEng + tempEng;
+            graphPoints.push(currentEnergy);
+            if (graphPoints.length > gW) graphPoints.shift();
 
-            // Arrowheads
-            if (yTo < yFrom) {
-                // Pointing up
-                ctx.beginPath(); ctx.moveTo(xTo, yTo); ctx.lineTo(xTo-4, yTo+8); ctx.lineTo(xTo+4, yTo+8); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(xFrom, yFrom); ctx.lineTo(xFrom-4, yFrom-8); ctx.lineTo(xFrom+4, yFrom-8); ctx.fill();
-            } else {
-                // Pointing down
-                ctx.beginPath(); ctx.moveTo(xTo, yTo); ctx.lineTo(xTo-4, yTo-8); ctx.lineTo(xTo+4, yTo-8); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(xFrom, yFrom); ctx.lineTo(xFrom-4, yFrom+8); ctx.lineTo(xFrom+4, yFrom+8); ctx.fill();
-            }
-
-            ctx.textAlign = 'left';
-            ctx.font = 'bold 12px Arial';
-            ctx.fillText(text, xTo + 8, (yFrom + yTo)/2 + 4);
+            updateUI();
         }
 
-        setTimeout(() => { resize(); setMode('exo'); }, 100);
+        function updateUI() {
+            document.getElementById('tempVal').innerText = Math.round(temperature) + ' °C';
+            let tColor = temperature > 40 ? '#ef4444' : (temperature < 10 ? '#3b82f6' : '#10b981');
+            document.getElementById('tempVal').style.color = tColor;
+
+            let fillH = Math.max(0, Math.min(100, (temperature + 10) * 0.8)); // 0 to 100%
+            document.getElementById('thermoFluid').style.height = fillH + '%';
+            document.getElementById('thermoFluid').style.background = tColor;
+            document.getElementById('thermoBulb').style.background = tColor;
+        }
+
+        function drawGraph() {
+            gCtx.clearRect(0, 0, gW, gH);
+            if (graphPoints.length === 0) return;
+
+            gCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            gCtx.lineWidth = 1;
+            gCtx.beginPath();
+            gCtx.moveTo(0, gH * 0.5); gCtx.lineTo(gW, gH * 0.5);
+            gCtx.stroke();
+
+            gCtx.beginPath();
+            for (let i = 0; i < graphPoints.length; i++) {
+                let x = gW - graphPoints.length + i;
+                let y = gH - (graphPoints[i] / 120) * gH; // Scale mapping
+                if (i === 0) gCtx.moveTo(x, y);
+                else gCtx.lineTo(x, y);
+            }
+            
+            gCtx.strokeStyle = mode === 'exo' ? '#ef4444' : '#3b82f6';
+            gCtx.lineWidth = 3;
+            gCtx.stroke();
+            
+            // Draw gradient under
+            gCtx.lineTo(gW, gH);
+            gCtx.lineTo(gW - graphPoints.length, gH);
+            gCtx.fillStyle = mode === 'exo' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)';
+            gCtx.fill();
+        }
+
+        function drawSim() {
+            ctx.clearRect(0, 0, W, H);
+            
+            // Background effect based on mode and temp
+            if (temperature > 50) {
+                ctx.fillStyle = `rgba(239, 68, 68, ${(temperature-50)*0.002})`;
+                ctx.fillRect(0,0,W,H);
+            } else if (temperature < 20) {
+                ctx.fillStyle = `rgba(59, 130, 246, ${(20-temperature)*0.02})`;
+                ctx.fillRect(0,0,W,H);
+            }
+
+            // Draw molecules
+            molecules.forEach(m => {
+                ctx.fillStyle = m.color;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 8, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Draw bonds for diatomic or products
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if(!m.reacted) {
+                    // Two same atoms bonded
+                    ctx.arc(m.x + 8, m.y + 4, 6, 0, Math.PI*2);
+                } else {
+                    // Different product (change shape slightly)
+                    ctx.fillStyle = '#f472b6';
+                    ctx.arc(m.x + 8, m.y - 4, 6, 0, Math.PI*2);
+                }
+                ctx.fill();
+            });
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.font = '16px Arial';
+                ctx.globalAlpha = p.life;
+                ctx.fillText(p.text, p.x, p.y);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function loop() {
+            if(!W) resize();
+            updateSimulation();
+            drawSim();
+            drawGraph();
+            requestAnimationFrame(loop);
+        }
+
+        setTimeout(() => { resize(); initSim(); loop(); }, 100);
 
     </script>
 </body>

@@ -1,315 +1,402 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>მათემატიკა — ტრიგონომეტრია</title>
+    <title>მათემატიკა — ტრიგონომეტრია (არტილერია)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 15px; }
-        h1 { text-align: center; font-size: 1.5rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px; }
-        .app { max-width: 960px; margin: auto; display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
-        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
-        .canvas-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; width: 100%; cursor: pointer; }
-        #mainCanvas { height: 450px; }
-        #waveCanvas { height: 160px; }
-        .panel { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
-        .angle-input { display: flex; align-items: center; gap: 8px; }
-        .angle-input input { flex: 1; padding: 10px; background: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #f8fafc; font-family: 'Courier New'; font-size: 1.2rem; text-align: center; outline: none; }
-        .angle-input input:focus { border-color: #ec4899; }
-        .angle-input span { color: #94a3b8; font-size: 0.9rem; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #0f172a; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #8b5cf6); cursor: pointer; }
-        .val-card { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .val-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .val-row:last-child { border-bottom: none; }
-        .val-name { font-weight: bold; }
-        .val-num { font-family: 'Courier New'; font-weight: bold; }
-        .quick-btns { display: flex; flex-wrap: wrap; gap: 5px; }
-        .q-btn { padding: 6px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.75rem; transition: 0.2s; }
-        .q-btn:hover { background: #334155; color: #f8fafc; }
-        .identity { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #94a3b8; line-height: 1.6; border-left: 3px solid #8b5cf6; }
-        .identity b { color: #c4b5fd; }
-        .wave-label { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
-        .back-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #1e293b; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .container { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (max-width: 800px) { .container { grid-template-columns: 1fr; } }
+
+        .game-area {
+            background: #1e293b; border-radius: 16px; position: relative; overflow: hidden; height: 500px; 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 80%, #334155 100%);
+        }
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;}
+
+        .floating-ui {
+            position: absolute; top: 15px; left: 15px; z-index: 5; background: rgba(15,23,42,0.8);
+            border: 1px solid #8b5cf6; padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(139,92,246,0.2);
+        }
+        .floating-ui .lvl { font-size: 0.8rem; color: #c4b5fd; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;}
+        .floating-ui .target { font-size: 1.2rem; font-weight: bold; color: #fff;}
+
+        .success-overlay {
+            position: absolute; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);
+            z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .success-overlay h2 { color: #10b981; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 15px rgba(16,185,129,0.5);}
+        .btn-large {
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; 
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 15px;
+            box-shadow: 0 0 20px rgba(16,185,129,0.4);
+        }
+        .btn-large:hover { transform: scale(1.05); }
+
+        .panel { background: #1e293b; border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .control-group { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .control-group label { display: flex; justify-content: space-between; font-size: 0.9rem; color: #e2e8f0; margin-bottom: 10px; font-weight: bold; }
+        .val-span { color: #ec4899; font-family: 'Courier New', monospace; font-size: 1.1rem;}
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #334155; outline: none; margin-bottom: 10px;}
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #8b5cf6); cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(236,72,153,0.5);}
+
+        .math-box { background: #0f172a; border-radius: 8px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; border-left: 3px solid #6366f1; }
+        .math-box .comp { display: flex; justify-content: space-between;}
+        .v-x { color: #3b82f6;} /* Cos / horizontal */
+        .v-y { color: #22c55e;} /* Sin / vertical */
+
+        .btn-fire { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; box-shadow: 0 4px 15px rgba(239,68,68,0.4); margin-top: auto;}
+        .btn-fire:hover { transform: scale(1.02); }
+        .btn-fire:active { transform: scale(0.98); }
+
+        .info-panel { grid-column: 1 / -1; background: #111827; border-left: 4px solid #f43f5e; padding: 20px; border-radius: 10px; font-size: 0.85rem; color: #94a3b8; line-height: 1.7; border: 1px solid rgba(255,255,255,0.05); }
+        .info-panel strong { color: #e2e8f0; }
+
+        .back-btn { margin-top: 30px; padding: 10px 20px; background: #1e293b; color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); align-self: center; }
         .back-btn:hover { background: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
-    <h1>🔄 ტრიგონომეტრია — ერთეულოვანი წრე</h1>
-    <p class="subtitle">გადაათრიე წერტილი წრეზე ან შეიყვანე კუთხე — ნახე sin, cos, tan მნიშვნელობები</p>
-    <div class="app">
-        <div>
-            <div class="canvas-wrap"><canvas id="mainCanvas"></canvas></div>
-            <div class="wave-label">📈 ტალღის ფორმა (sin/cos გრაფიკი):</div>
-            <div class="canvas-wrap" style="margin-top:5px;"><canvas id="waveCanvas"></canvas></div>
+    <h1>🎯 ტრიგონომეტრიული არტილერია</h1>
+    <p class="subtitle">გამოიყენე კუთხის (Sin/Cos) და სიჩქარის ვექტორები სამიზნის გასანადგურებლად!</p>
+
+    <div class="container">
+        <!-- Game Area Canvas -->
+        <div class="game-area" id="game-area">
+            <div class="floating-ui">
+                <div class="lvl" id="lvl-display">დონე 1</div>
+                <div class="target">მანძილი: <span class="val-span" id="target-dist" style="color:#10b981;">0</span> მ</div>
+            </div>
+
+            <div class="success-overlay" id="success">
+                <h2>მიზანი განადგურებულია! 💥</h2>
+                <p style="color:#e2e8f0; margin-bottom: 15px;">შენი ტრაექტორია იდეალური იყო.</p>
+                <button class="btn-large" onclick="nextLevel()">შემდეგი დონე ➞</button>
+            </div>
+
+            <canvas id="canvas"></canvas>
         </div>
+
+        <!-- Controls Panel -->
         <div class="panel">
-            <div style="font-weight:bold; color:#ec4899;">კუთხე</div>
-            <div class="angle-input">
-                <input type="number" id="angle-deg" value="45" min="0" max="360"><span>°</span>
+            <div class="control-group">
+                <label><span>📐 კუთხე (θ):</span> <span class="val-span"><span id="val-angle">45</span>°</span></label>
+                <input type="range" id="sl-angle" min="0" max="90" value="45" oninput="updateAim()">
+                
+                <label style="margin-top:15px;"><span>🚀 საწყისი სიჩქარე (v):</span> <span class="val-span"><span id="val-vel">60</span> მ/წმ</span></label>
+                <input type="range" id="sl-vel" min="20" max="100" value="60" oninput="updateAim()">
             </div>
-            <input type="range" id="angle-slider" min="0" max="360" value="45">
-            <div class="angle-input" style="font-size:0.8rem; color:#94a3b8;">
-                <span>რადიანი:</span><span id="angle-rad" style="color:#f8fafc; font-family:Courier New;">0.785</span>
+
+            <div class="math-box">
+                <div style="color:#94a3b8; margin-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">სიჩქარის ვექტორები:</div>
+                <div class="comp"><span class="v-x">Vₓ = v × cos(θ)</span> <span class="v-x" id="math-vx">0</span></div>
+                <div class="comp"><span class="v-y">Vᵧ = v × sin(θ)</span> <span class="v-y" id="math-vy">0</span></div>
             </div>
-            <div style="font-size:0.75rem; color:#64748b;">სწრაფი კუთხეები:</div>
-            <div class="quick-btns">
-                <button class="q-btn" onclick="setAngle(0)">0°</button>
-                <button class="q-btn" onclick="setAngle(30)">30°</button>
-                <button class="q-btn" onclick="setAngle(45)">45°</button>
-                <button class="q-btn" onclick="setAngle(60)">60°</button>
-                <button class="q-btn" onclick="setAngle(90)">90°</button>
-                <button class="q-btn" onclick="setAngle(120)">120°</button>
-                <button class="q-btn" onclick="setAngle(135)">135°</button>
-                <button class="q-btn" onclick="setAngle(180)">180°</button>
-                <button class="q-btn" onclick="setAngle(210)">210°</button>
-                <button class="q-btn" onclick="setAngle(270)">270°</button>
-                <button class="q-btn" onclick="setAngle(315)">315°</button>
-                <button class="q-btn" onclick="setAngle(360)">360°</button>
-            </div>
-            <div style="font-weight:bold; color:#8b5cf6; margin-top:5px;">მნიშვნელობები</div>
-            <div class="val-card">
-                <div class="val-row"><span class="val-name" style="color:#22c55e;">sin θ</span><span class="val-num" id="val-sin">0.707</span></div>
-                <div class="val-row"><span class="val-name" style="color:#3b82f6;">cos θ</span><span class="val-num" id="val-cos">0.707</span></div>
-                <div class="val-row"><span class="val-name" style="color:#f59e0b;">tan θ</span><span class="val-num" id="val-tan">1.000</span></div>
-                <div class="val-row"><span class="val-name" style="color:#ef4444;">cot θ</span><span class="val-num" id="val-cot">1.000</span></div>
-                <div class="val-row"><span class="val-name" style="color:#ec4899;">(x, y)</span><span class="val-num" id="val-xy">(0.71, 0.71)</span></div>
-            </div>
-            <div class="identity">
-                <b>იდენტობები:</b><br>
-                sin²θ + cos²θ = <span id="identity-check" style="color:#22c55e;">1</span><br>
-                tan θ = sin θ / cos θ<br>
-                sin(90°-θ) = cos θ
-            </div>
+
+            <button class="btn-fire" id="btn-fire" onclick="fireCannon()">🔥 გასროლა</button>
+        </div>
+
+        <div class="info-panel">
+            <strong>🔬 როგორ მუშაობს ტრიგონომეტრია ფიზიკაში?</strong><br>
+            ნებისმიერი გასროლა (ან მოძრაობა კუთხით) იყოფა ორ დამოუკიდებელ მიმართულებად:<br>
+            • <strong>ჰორიზონტალური (X)</strong> მიმართულების სიჩქარე დამოკიდებულია <strong class="v-x">კოსინუსზე (cos)</strong>. რაც უფრო მცირეა კუთხე, მით მეტია ჰორიზონტალური ძალა.<br>
+            • <strong>ვერტიკალური (Y)</strong> მიმართულების სიჩქარე დამოკიდებულია <strong class="v-y">სინუსზე (sin)</strong>. ის საზღვრავს, თუ რა სიმაღლეზე აფრინდება ჭურვი ჰაერში. (გრავიტაცია g ≈ 9.8 მ/წმ² მას ძირს ექაჩება).<br>
+            <em>შეცვალეთ კუთხე/სიჩქარე და დააკვირდით მართკუთხა სამკუთხედს ქვემეხთან!</em>
         </div>
     </div>
-    <div style="text-align:center;"><a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a></div>
+    
+    <a href="../../index.html" class="back-btn">← მთავარზე დაბრუნება</a>
+
     <script>
-        const mc = document.getElementById('mainCanvas');
-        const mCtx = mc.getContext('2d');
-        const wc = document.getElementById('waveCanvas');
-        const wCtx = wc.getContext('2d');
-        let MW, MH, WW, WH;
-
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('game-area');
+        let W, H;
+        
         function resize() {
-            const mWrap = mc.parentElement;
-            mc.width = mWrap.offsetWidth * devicePixelRatio;
-            mc.height = 450 * devicePixelRatio;
-            mCtx.scale(devicePixelRatio, devicePixelRatio);
-            MW = mWrap.offsetWidth; MH = 450;
-
-            const wWrap = wc.parentElement;
-            wc.width = wWrap.offsetWidth * devicePixelRatio;
-            wc.height = 160 * devicePixelRatio;
-            wCtx.scale(devicePixelRatio, devicePixelRatio);
-            WW = wWrap.offsetWidth; WH = 160;
-            drawAll();
+            canvas.width = gameArea.offsetWidth * devicePixelRatio;
+            canvas.height = gameArea.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            W = gameArea.offsetWidth; H = gameArea.offsetHeight;
+            drawStatic();
         }
-        resize(); window.addEventListener('resize', resize);
+        window.addEventListener('resize', resize);
 
-        let angleDeg = 45;
-        const degInput = document.getElementById('angle-deg');
-        const slider = document.getElementById('angle-slider');
+        // -- Game Physics & State --
+        const g = 9.8; 
+        const scale = 5; // Pixels per meter
+        let level = 1;
 
-        function setAngle(deg) {
-            angleDeg = ((deg % 360) + 360) % 360;
-            degInput.value = angleDeg;
-            slider.value = angleDeg;
-            updateValues();
-            drawAll();
-        }
+        let angle = 45; // Degrees
+        let velocity = 60; // m/s
+        
+        let cannon = { x: 50, y: 0 }; // y is from bottom in simulation logic
+        let target = { x: 500, w: 60, h: 20 };
+        
+        let ball = { active: false, x: 0, y: 0, vx: 0, vy: 0, time: 0 };
+        let trail = [];
+        let particles = [];
+        let isLevelComplete = false;
 
-        degInput.addEventListener('input', () => { setAngle(parseFloat(degInput.value) || 0); });
-        slider.addEventListener('input', () => { setAngle(parseFloat(slider.value)); });
+        function updateAim() {
+            if(ball.active) return; // Can't change while flying
+            angle = parseInt(document.getElementById('sl-angle').value);
+            velocity = parseInt(document.getElementById('sl-vel').value);
+            
+            document.getElementById('val-angle').innerText = angle;
+            document.getElementById('val-vel').innerText = velocity;
 
-        // Drag on circle
-        let dragging = false;
-        mc.addEventListener('mousedown', () => dragging = true);
-        mc.addEventListener('mouseup', () => dragging = false);
-        mc.addEventListener('mouseleave', () => dragging = false);
-        mc.addEventListener('mousemove', e => {
-            if(!dragging) return;
-            const rect = mc.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            const cx = MW / 2, cy = MH / 2;
-            const ang = Math.atan2(-(my - cy), mx - cx);
-            let deg = ang * 180 / Math.PI;
-            if(deg < 0) deg += 360;
-            setAngle(Math.round(deg));
-        });
-        // Touch
-        mc.addEventListener('touchstart', e => { dragging = true; e.preventDefault(); }, {passive:false});
-        mc.addEventListener('touchend', () => dragging = false);
-        mc.addEventListener('touchmove', e => {
-            if(!dragging) return;
-            e.preventDefault();
-            const t = e.touches[0];
-            const rect = mc.getBoundingClientRect();
-            const mx = t.clientX - rect.left, my = t.clientY - rect.top;
-            const cx = MW / 2, cy = MH / 2;
-            const ang = Math.atan2(-(my - cy), mx - cx);
-            let deg = ang * 180 / Math.PI;
-            if(deg < 0) deg += 360;
-            setAngle(Math.round(deg));
-        }, {passive:false});
+            let rad = angle * Math.PI / 180;
+            let vx = velocity * Math.cos(rad);
+            let vy = velocity * Math.sin(rad);
 
-        function updateValues() {
-            const rad = angleDeg * Math.PI / 180;
-            const s = Math.sin(rad), c = Math.cos(rad);
-            const t = Math.abs(c) < 1e-10 ? '∞' : (s/c).toFixed(4);
-            const cot = Math.abs(s) < 1e-10 ? '∞' : (c/s).toFixed(4);
-            document.getElementById('angle-rad').textContent = rad.toFixed(4);
-            document.getElementById('val-sin').textContent = s.toFixed(4);
-            document.getElementById('val-cos').textContent = c.toFixed(4);
-            document.getElementById('val-tan').textContent = t;
-            document.getElementById('val-cot').textContent = cot;
-            document.getElementById('val-xy').textContent = `(${c.toFixed(3)}, ${s.toFixed(3)})`;
-            document.getElementById('identity-check').textContent = (s*s + c*c).toFixed(6);
+            document.getElementById('math-vx').innerText = vx.toFixed(1);
+            document.getElementById('math-vy').innerText = vy.toFixed(1);
+
+            drawStatic(); // Redraw UI and vectors
         }
 
-        function drawAll() {
-            drawCircle();
-            drawWave();
+        function initLevel() {
+            isLevelComplete = false;
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('lvl-display').innerText = `დონე ${level}`;
+            document.getElementById('btn-fire').disabled = false;
+            document.getElementById('btn-fire').style.opacity = '1';
+
+            // Cannon stays at 50 from left
+            cannon.y = 40; // Pixels from bottom
+            
+            // Randomize target
+            let distMeters = 50 + (level * 25) + Math.random()*20; 
+            target.x = cannon.x + distMeters * scale; // Convert to px
+            target.w = Math.max(30, 80 - (level * 5)); // Gets narrower
+            
+            document.getElementById('target-dist').innerText = distMeters.toFixed(0);
+
+            ball.active = false;
+            trail = [];
+            particles = [];
+            
+            updateAim();
         }
 
-        function drawCircle() {
-            mCtx.clearRect(0,0,MW,MH);
-            const cx = MW/2, cy = MH/2;
-            const R = Math.min(MW, MH) * 0.38;
-            const rad = angleDeg * Math.PI / 180;
-            const px = cx + R * Math.cos(rad);
-            const py = cy - R * Math.sin(rad);
+        function nextLevel() {
+            level++;
+            initLevel();
+        }
 
-            // Grid
-            mCtx.strokeStyle = 'rgba(255,255,255,0.04)'; mCtx.lineWidth = 1;
-            for(let i=-5;i<=5;i++) {
-                mCtx.beginPath(); mCtx.moveTo(cx+i*R/5,cy-R-20); mCtx.lineTo(cx+i*R/5,cy+R+20); mCtx.stroke();
-                mCtx.beginPath(); mCtx.moveTo(cx-R-20,cy+i*R/5); mCtx.lineTo(cx+R+20,cy+i*R/5); mCtx.stroke();
+        function fireCannon() {
+            if(ball.active || isLevelComplete) return;
+            
+            document.getElementById('btn-fire').disabled = true;
+            document.getElementById('btn-fire').style.opacity = '0.5';
+
+            let rad = angle * Math.PI / 180;
+            ball.x = cannon.x;
+            ball.y = cannon.y;
+            ball.vx = velocity * Math.cos(rad);
+            ball.vy = velocity * Math.sin(rad);
+            ball.active = true;
+            trail = [];
+
+            // Muzzle flash
+            for(let i=0; i<20; i++) {
+                particles.push({
+                    x: cannon.x + Math.cos(rad)*30, y: H - cannon.y - Math.sin(rad)*30,
+                    vx: Math.cos(rad)*Math.random()*10 + (Math.random()-0.5)*5,
+                    vy: -Math.sin(rad)*Math.random()*10 + (Math.random()-0.5)*5,
+                    life: 1, color: '#f59e0b'
+                });
             }
 
-            // Axes
-            mCtx.strokeStyle = 'rgba(255,255,255,0.2)'; mCtx.lineWidth = 1.5;
-            mCtx.beginPath(); mCtx.moveTo(cx-R-30,cy); mCtx.lineTo(cx+R+30,cy); mCtx.stroke();
-            mCtx.beginPath(); mCtx.moveTo(cx,cy-R-30); mCtx.lineTo(cx,cy+R+30); mCtx.stroke();
-            mCtx.fillStyle = '#64748b'; mCtx.font = '11px Arial'; mCtx.textAlign = 'center';
-            mCtx.fillText('0', cx+R+15, cy+15); mCtx.fillText('1', cx+R, cy-8);
-            mCtx.fillText('-1', cx-R, cy-8); mCtx.fillText('90°', cx+12, cy-R-5);
-
-            // Unit circle
-            mCtx.beginPath(); mCtx.arc(cx, cy, R, 0, Math.PI*2);
-            mCtx.strokeStyle = 'rgba(255,255,255,0.15)'; mCtx.lineWidth = 2; mCtx.stroke();
-
-            // Quadrant labels
-            mCtx.fillStyle = 'rgba(255,255,255,0.08)'; mCtx.font = 'bold 14px Arial';
-            mCtx.fillText('I',cx+R*0.5,cy-R*0.5); mCtx.fillText('II',cx-R*0.5,cy-R*0.5);
-            mCtx.fillText('III',cx-R*0.5,cy+R*0.5); mCtx.fillText('IV',cx+R*0.5,cy+R*0.5);
-
-            // Arc
-            mCtx.beginPath(); mCtx.arc(cx, cy, R*0.15, 0, -rad, rad > 0);
-            mCtx.strokeStyle = '#ec4899'; mCtx.lineWidth = 2; mCtx.stroke();
-            // Angle label
-            const labelR = R*0.22;
-            mCtx.fillStyle = '#ec4899'; mCtx.font = 'bold 13px Courier New';
-            mCtx.fillText(`${angleDeg}°`, cx + labelR*Math.cos(-rad/2), cy + labelR*Math.sin(-rad/2) + 4);
-
-            // Radius line
-            mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(px,py);
-            mCtx.strokeStyle = '#f8fafc'; mCtx.lineWidth = 2; mCtx.stroke();
-
-            // Sin line (vertical, green)
-            mCtx.beginPath(); mCtx.moveTo(px,cy); mCtx.lineTo(px,py);
-            mCtx.strokeStyle = '#22c55e'; mCtx.lineWidth = 3; mCtx.stroke();
-            mCtx.fillStyle = '#22c55e'; mCtx.font = 'bold 12px Arial';
-            mCtx.fillText('sin', px + 12, (cy+py)/2 + 4);
-
-            // Cos line (horizontal, blue)
-            mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(px,cy);
-            mCtx.strokeStyle = '#3b82f6'; mCtx.lineWidth = 3; mCtx.stroke();
-            mCtx.fillStyle = '#3b82f6';
-            mCtx.fillText('cos', (cx+px)/2, cy + 18);
-
-            // Tan line (yellow, tangent at x=R)
-            if(Math.abs(Math.cos(rad)) > 0.01) {
-                const tanVal = Math.tan(rad);
-                const tanY = cy - tanVal * R;
-                const clampedTanY = Math.max(cy-R*2, Math.min(cy+R*2, tanY));
-                mCtx.beginPath(); mCtx.moveTo(cx+R, cy); mCtx.lineTo(cx+R, clampedTanY);
-                mCtx.strokeStyle = '#f59e0b'; mCtx.lineWidth = 2.5; mCtx.stroke();
-                mCtx.fillStyle = '#f59e0b'; mCtx.font = 'bold 12px Arial';
-                mCtx.fillText('tan', cx+R+12, (cy+clampedTanY)/2);
-                // Extended radius to tangent
-                mCtx.beginPath(); mCtx.moveTo(cx,cy); mCtx.lineTo(cx+R, clampedTanY);
-                mCtx.setLineDash([4,4]); mCtx.strokeStyle = 'rgba(245,158,11,0.3)'; mCtx.lineWidth = 1; mCtx.stroke();
-                mCtx.setLineDash([]);
-            }
-
-            // Point on circle
-            mCtx.beginPath(); mCtx.arc(px, py, 7, 0, Math.PI*2);
-            mCtx.fillStyle = '#ec4899'; mCtx.fill();
-            mCtx.strokeStyle = '#fff'; mCtx.lineWidth = 2; mCtx.stroke();
-
-            // Coordinate label
-            const cosV = Math.cos(rad).toFixed(2), sinV = Math.sin(rad).toFixed(2);
-            mCtx.fillStyle = '#f8fafc'; mCtx.font = 'bold 11px Courier New';
-            mCtx.fillText(`(${cosV}, ${sinV})`, px + (px > cx ? 15 : -60), py + (py < cy ? -12 : 18));
+            requestAnimationFrame(gameLoop);
         }
 
-        function drawWave() {
-            wCtx.clearRect(0,0,WW,WH);
-            const cy = WH/2;
-            const rad = angleDeg * Math.PI / 180;
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if(!ball.active && particles.length === 0) return; // Stop loop
+            
+            let dt = (timestamp - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.016; // Fix huge jumps if tab was inactive
+            lastTime = timestamp;
 
-            // Axis
-            wCtx.strokeStyle = 'rgba(255,255,255,0.15)'; wCtx.lineWidth = 1;
-            wCtx.beginPath(); wCtx.moveTo(0,cy); wCtx.lineTo(WW,cy); wCtx.stroke();
+            // Physics step
+            // We use simulation time scaled 3x for gameplay speed
+            let simDt = dt * 3; 
+            
+            if (ball.active) {
+                ball.x += ball.vx * simDt * scale;
+                ball.y += ball.vy * simDt * scale;
+                ball.vy -= g * simDt; // Gravity pulls down
 
-            // Degree marks
-            wCtx.fillStyle = '#64748b'; wCtx.font = '9px Arial'; wCtx.textAlign = 'center';
-            [0,90,180,270,360].forEach(d => {
-                const x = (d/360)*WW;
-                wCtx.beginPath(); wCtx.moveTo(x,cy-5); wCtx.lineTo(x,cy+5); wCtx.stroke();
-                wCtx.fillText(d+'°',x,cy+15);
-            });
+                // Add to trail
+                if(trail.length % 3 === 0) trail.push({x: ball.x, y: ball.y});
+                if(trail.length > 100) trail.shift();
 
-            // Sin wave
-            wCtx.beginPath(); wCtx.strokeStyle = '#22c55e'; wCtx.lineWidth = 2;
-            for(let px=0;px<WW;px++) {
-                const d = (px/WW)*360;
-                const y = cy - Math.sin(d*Math.PI/180) * (WH*0.4);
-                px===0 ? wCtx.moveTo(px,y) : wCtx.lineTo(px,y);
+                // Hit detection (Ground)
+                if (ball.y <= 30) { 
+                    ball.y = 30;
+                    ball.active = false;
+                    checkHit();
+                    
+                    // Dust explosion on ground
+                    for(let i=0; i<15; i++) {
+                        particles.push({
+                            x: ball.x, y: H - ball.y,
+                            vx: (Math.random()-0.5)*5, vy: -(Math.random()*5),
+                            life: 1, color: '#64748b'
+                        });
+                    }
+                    setTimeout(() => {
+                        if(!isLevelComplete) {
+                            document.getElementById('btn-fire').disabled = false;
+                            document.getElementById('btn-fire').style.opacity = '1';
+                        }
+                    }, 1000); // 1 sec cooldown before firing again
+                }
             }
-            wCtx.stroke();
-            wCtx.fillStyle='#22c55e'; wCtx.font='bold 10px Arial'; wCtx.textAlign='left'; wCtx.fillText('sin',5,cy-WH*0.35);
 
-            // Cos wave
-            wCtx.beginPath(); wCtx.strokeStyle = '#3b82f6'; wCtx.lineWidth = 2;
-            for(let px=0;px<WW;px++) {
-                const d = (px/WW)*360;
-                const y = cy - Math.cos(d*Math.PI/180) * (WH*0.4);
-                px===0 ? wCtx.moveTo(px,y) : wCtx.lineTo(px,y);
+            // Update particles
+            for(let i=particles.length-1; i>=0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= dt*2;
+                if(p.life <= 0) particles.splice(i,1);
             }
-            wCtx.stroke();
-            wCtx.fillStyle='#3b82f6'; wCtx.fillText('cos',5,cy+WH*0.35+10);
 
-            // Current angle marker
-            const markerX = (angleDeg/360)*WW;
-            const sinY = cy - Math.sin(rad)*(WH*0.4);
-            const cosY = cy - Math.cos(rad)*(WH*0.4);
-            // Vertical line
-            wCtx.beginPath(); wCtx.moveTo(markerX,0); wCtx.lineTo(markerX,WH);
-            wCtx.strokeStyle='rgba(236,72,153,0.3)'; wCtx.lineWidth=1; wCtx.stroke();
-            // Points
-            wCtx.beginPath(); wCtx.arc(markerX,sinY,5,0,Math.PI*2); wCtx.fillStyle='#22c55e'; wCtx.fill();
-            wCtx.beginPath(); wCtx.arc(markerX,cosY,5,0,Math.PI*2); wCtx.fillStyle='#3b82f6'; wCtx.fill();
+            drawStatic();
+            
+            // Draw Ball & Trail over static
+            if (trail.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(trail[0].x, H - trail[0].y);
+                for(let i=1; i<trail.length; i++) ctx.lineTo(trail[i].x, H - trail[i].y);
+                ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+            }
+
+            if (ball.active) {
+                ctx.beginPath(); ctx.arc(ball.x, H - ball.y, 6, 0, Math.PI*2);
+                ctx.fillStyle = '#fff'; ctx.fill();
+                ctx.shadowBlur = 10; ctx.shadowColor = '#fff'; ctx.fill(); ctx.shadowBlur = 0;
+            }
+
+            if(ball.active || particles.length > 0) requestAnimationFrame(gameLoop);
         }
 
-        updateValues();
-        drawAll();
+        function checkHit() {
+            // Check if ball landed within target bounds
+            // target is at Y=30 (ground level)
+            let diff = ball.x - target.x;
+            if (Math.abs(diff) <= target.w/2) {
+                isLevelComplete = true;
+                // Target explosion!
+                for(let i=0; i<50; i++) {
+                    particles.push({
+                        x: target.x + (Math.random()-0.5)*target.w, y: H - 30,
+                        vx: (Math.random()-0.5)*15, vy: -(Math.random()*15),
+                        life: 1, color: (Math.random()>0.5)? '#10b981' : '#ec4899'
+                    });
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('success').style.display = 'flex';
+                }, 1000);
+            }
+        }
+
+        // Draws the environment, UI, Cannon, and Target
+        function drawStatic() {
+            ctx.clearRect(0,0,W,H);
+            
+            // Ground
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, H - 30, W, 30);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(0, H - 30); ctx.lineTo(W, H - 30); ctx.stroke();
+
+            // Distance Markers on ground
+            ctx.fillStyle = '#64748b'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+            for(let d=0; d<=(W/scale); d+=50) {
+                let px = cannon.x + d*scale;
+                if(px > W) break;
+                ctx.beginPath(); ctx.moveTo(px, H - 30); ctx.lineTo(px, H - 25); ctx.stroke();
+                ctx.fillText(d+'მ', px, H - 10);
+            }
+
+            // Target
+            if (!isLevelComplete || particles.length > 0) { // Keep drawing until fully exploded
+                ctx.fillStyle = '#10b981';
+                // Base
+                ctx.fillRect(target.x - target.w/2, H - 30 - 10, target.w, 10);
+                // Bullseye
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(target.x, H - 30 - 5, 4, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Cannon Base
+            ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(cannon.x, H - cannon.y, 15, Math.PI, 0); ctx.fill();
+
+            // Cannon Barrel
+            let rad = angle * Math.PI / 180;
+            ctx.save();
+            ctx.translate(cannon.x, H - cannon.y);
+            ctx.rotate(-rad);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(0, -8, 30, 16);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(25, -6, 5, 12);
+            ctx.restore();
+
+            // --- Vector visualization Triangle ---
+            if (!ball.active) { // Only show while aiming
+                let vScale = velocity * 1.5; // Visual scaler for the triangle
+                let endX = cannon.x + Math.cos(rad) * vScale;
+                let endY = (H - cannon.y) - Math.sin(rad) * vScale;
+                
+                // Hypotenuse (Total Velocity)
+                ctx.beginPath(); ctx.moveTo(cannon.x, H - cannon.y); ctx.lineTo(endX, endY);
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+
+                // Cosine Component (Horizontal - Blue)
+                ctx.beginPath(); ctx.moveTo(cannon.x, H - cannon.y); ctx.lineTo(endX, H - cannon.y);
+                ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.stroke();
+                // Sine Component (Vertical - Green)
+                ctx.beginPath(); ctx.moveTo(endX, H - cannon.y); ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3; ctx.stroke();
+
+                // Arc for angle
+                ctx.beginPath(); ctx.arc(cannon.x, H - cannon.y, 40, 0, -rad, true);
+                ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.stroke();
+                
+                ctx.fillStyle = '#ec4899'; ctx.font = 'bold 12px Arial';
+                ctx.fillText('θ', cannon.x + 45*Math.cos(-rad/2), (H - cannon.y) + 45*Math.sin(-rad/2) + 4);
+                
+                ctx.fillStyle = '#3b82f6'; ctx.fillText('cos', cannon.x + vScale/2, H - cannon.y + 15);
+                ctx.fillStyle = '#22c55e'; ctx.fillText('sin', endX + 10, (H - cannon.y + endY)/2 + 4);
+            }
+
+            // Particles
+            for(let p of particles) {
+                ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life);
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // Init App
+        resize();
+        initLevel();
+
     </script>
 </body>
 </html>
